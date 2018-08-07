@@ -11,7 +11,7 @@ describe('Worker', () => {
     
     afterEach(() => {
         if(worker.isAlive())
-        worker.kill();
+            worker.kill();
     });
     
     it('should be alive', () => {
@@ -51,5 +51,30 @@ describe('Worker', () => {
     it('tasks should be imutable', ()=>{
         worker.tasks().push({});
         assert.equal(worker.tasks().length, 0);
+    });
+
+    describe('exclusive worker', () => {
+        let exclusiveWorker;
+        
+        beforeEach(() => {
+            exclusiveWorker = new Worker(Worker.EXCLUSIVE_TYPE);
+        });
+        
+        afterEach(() => {
+            exclusiveWorker.kill();
+        });
+
+        it('should register a single task', () => {
+            task = {
+                "name": "Dummy Task",
+                "path": path.resolve(__dirname, '../test_assets/dummy_task.js'),
+                "cron": "* * * * *"
+            }
+
+            assert.throws((() => {
+                exclusiveWorker.register(task);
+                exclusiveWorker.register(task);
+            }), "Connot register task! Exclusive Worker may register only one task!");
+        });
     });
 });

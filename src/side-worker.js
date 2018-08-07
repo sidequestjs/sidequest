@@ -4,25 +4,32 @@ const Worker = require('./worker');
 
 module.exports = (() => {
     const defaultMaxWorkers = 10;
-    let workers;
+    let sharedWorkers;
+    let exclusiveWorkers;
     let config;
 
     function initialize(configPath){
         config = loadConfigs(configPath);
-        workers = [];
+        sharedWorkers = [];
+        exclusiveWorkers = [];
         loadTasks(config);
     }
 
-    function worker(){
-        let maxWorkers = config.maxWorkers || defaultMaxWorkers;
-        if(workers.length < maxWorkers){
-            let w = new Worker();
-            workers.push(w);
+    function worker(type){
+        if(type === 'exclusive'){
+            let w = new Worker('exclusive');
+            exclusiveWorkers.push(w);
             return w;
         }
-        let totalTask = workers.reduce((total, worker) => { return total + worker.tasks().length }, 0);
+        let maxWorkers = config.maxWorkers || defaultMaxWorkers;
+        if(sharedWorkers.length < maxWorkers){
+            let w = new Worker('shared');
+            sharedWorkers.push(w);
+            return w;
+        }
+        let totalTask = sharedWorkers.reduce((total, worker) => { return total + worker.tasks().length }, 0);
         let currentWorker = totalTask %  maxWorkers;
-        return workers[currentWorker]; 
+        return sharedWorkers[currentWorker]; 
     }
 
     function loadConfigs(configPath){
@@ -38,23 +45,31 @@ module.exports = (() => {
     }
 
     function register(task){
-        let w = worker();
+        let w = worker(task.workerType);
         w.register(task);
     }
 
-    function getWorkers(){
-        return workers.slice(0);
+    function getSharedWorkers(){
+        return sharedWorkers.slice(0);
+    }
+
+    function getExclusiveWorkers(){
+        return exclusiveWorkers.slice(0);
     }
 
     function terminate(){
-        workers.forEach((worker) => {
+        sharedWorkers.forEach((worker) => {
+            worker.kill();
+        });
+        exclusiveWorkers.forEach((worker) => {
             worker.kill();
         });
     }
 
     return {
         initialize: initialize,
-        workers: getWorkers,    
+        sharedWorkers: getSharedWorkers,
+        exclusiveWorkers: getExclusiveWorkers,    
         terminate: terminate
     }
 })();

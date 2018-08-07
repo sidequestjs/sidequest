@@ -1,13 +1,25 @@
+const cron = require('node-cron');
+
 process.on('message', (message) => {
-    let task = message.task;
-    let t = require(task.path);
-    if(message.type = 'taks-registration'){
+    if(message.type == 'taks-registration'){
+        let task = message.task;
+        let t = require(task.path);
+        cron.schedule(task.cron, () => {
+            process.send({
+                type: 'started',
+                task: task
+            });
+            t.run();
+            process.send({
+                type: 'done',
+                task: task
+            });
+        });
         process.send({
             type: 'task-registred',
             task: task
         });
     }
-    t.run();
 });
 
 // notificar quando não tem mais tasks, para ser finalizado
