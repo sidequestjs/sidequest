@@ -24,9 +24,16 @@ describe('Worker', () => {
         assert.isTrue(worker.isDead());
         assert.isFalse(worker.isAlive());
     });
+
+    it('should have an id', () => {
+        assert.isNotEmpty(worker.id());
+    });
+
+    it('should have a pid', () => {
+        assert.isNotEmpty(worker.pid());
+    });
     
     it('should register a task', (done)=>{
-
         task = {
             "name": "Dummy Task",
             "path": path.resolve(__dirname, '../test_assets/dummy_task.js'),
@@ -35,6 +42,7 @@ describe('Worker', () => {
 
         worker.on('task-registred', (task) => {
             assert.equal(worker.tasks().length, 1);
+            assert.isNotEmpty(task.id);
             done();
         });
         worker.register(task);
