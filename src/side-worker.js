@@ -3,9 +3,9 @@ const Worker = require('./worker');
 
 module.exports = (() => {
     const defaultMaxWorkers = 10;
-    const sharedWorkers;
-    const exclusiveWorkers;
-    const config;
+    let sharedWorkers;
+    let exclusiveWorkers;
+    let config;
 
     /**
      * initialize the side-worker
