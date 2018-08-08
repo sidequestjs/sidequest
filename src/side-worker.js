@@ -1,5 +1,6 @@
 const path = require('path');
 const Worker = require('./worker');
+const Api = require('./api/http');
 
 
 module.exports = (() => {
@@ -8,6 +9,14 @@ module.exports = (() => {
     let exclusiveWorkers;
     let config;
 
+    /**
+     * initialize the side-worker
+     * 
+     * An config file is option, if not passed side-worker will try to 
+     * use the file ./side-worker-config.json
+     * 
+     * @param {string} configPath optional 
+     */
     function initialize(configPath){
         config = loadConfigs(configPath);
         sharedWorkers = [];
@@ -21,7 +30,7 @@ module.exports = (() => {
             exclusiveWorkers.push(w);
             return w;
         }
-        let maxWorkers = config.maxWorkers || defaultMaxWorkers;
+        let maxWorkers = config.maxSharedWorkers || defaultMaxWorkers;
         if(sharedWorkers.length < maxWorkers){
             let w = new Worker('shared');
             sharedWorkers.push(w);
