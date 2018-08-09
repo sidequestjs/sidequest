@@ -1,12 +1,12 @@
 {
-  "name": "side-worker",
-  "version": "1.0.0",
+  "name": "sidequest",
+  "version": "0.0.1-nightbuild-1",
   "description": "",
   "main": "src/side-worker.js",
   "scripts": {
     "test": "nyc --reporter=html --reporter=text mocha --recursive --timeout 5000"
   },
-  "author": "",
+  "author": "Lucas Merencia <lucas@merencia.com>",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.1.2",
