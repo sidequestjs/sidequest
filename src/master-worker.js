@@ -6,6 +6,10 @@ const events = require('events');
 
 const defaultMaxSchedulers = os.cpus().length;
 
+/**
+ * MasterWorker is the responsable to manage all the schedulers, 
+ * it register the tasks and delegate the executions to the workers
+ */
 function MasterWorker () {
     let schedulers = [];
     let usedSchedulers = [];
@@ -35,6 +39,10 @@ function MasterWorker () {
         console.log(`Scheduler created, id: ${scheduler.id()}`);
     }
 
+    /**
+     * register adds a task to the scheduled tasks
+     * @param {*} task 
+     */
     this.register = (task) => {
         task.path = path.resolve(task.path);
         let scheduler = schedulers.pop();
@@ -47,16 +55,27 @@ function MasterWorker () {
         }
     }
 
+    /**
+     * schedulers returns all the created schedulers
+     * @returns {array}
+     */
     this.schedulers = () => {
         return usedSchedulers.concat(schedulers);
     }
 
+    /**
+     * tasks returns all the registred tasks
+     * @returns {array}
+     */
     this.tasks = () => {
         return this.schedulers().reduce((allTasks, scheduler) => {
             return allTasks.concat(scheduler.tasks());
         }, []);
     }
 
+    /**
+     * terminate is responsible to terminate all the schedulers
+     */
     this.terminate = () => {
         this.schedulers().forEach(scheduler => {
             scheduler.terminate();
