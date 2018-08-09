@@ -18,8 +18,3 @@ process.on('message', (message) => {
             executeTask(message.data);
     }
 });
-
-process.on('disconnect', () => {
-    console.log('Worker disconnected, exiting...');
-    process.exit(0);
-});

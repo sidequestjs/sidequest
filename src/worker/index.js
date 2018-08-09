@@ -38,7 +38,7 @@ function Worker(type) {
         return forkProcess.pid.toString();
     }
     
-    this.kill = () => {
+    this.terminate = () => {
         forkProcess.kill();
     }
     
