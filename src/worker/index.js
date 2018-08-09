@@ -5,7 +5,7 @@ const id = require('../id');
 
 const daemonPath = `${__dirname}/daemon.js`;
 
-function Worker(type) {
+function Worker() {
     const forkProcess = fork(daemonPath);
     const workerId = id.generate();
     
