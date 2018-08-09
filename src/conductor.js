@@ -15,17 +15,10 @@ module.exports = (() => {
         scheduler.on('execution-requested', (task) => {
             console.log(`task ${task.name} requested execution!`)
             let worker = new Worker();
-            let timer;
-            worker.on('started', () => {
-                timer = new Date();
-            });
-            worker.on('done', () => {
-                console.log(`execution took ${ new Date() - timer}`);
-            });
             worker.execute(task);
         });
         schedulers.push(scheduler);
-        console.log(`Scheduler ${scheduler.id()} created!`);
+        console.log(`Scheduler created, id: ${scheduler.id()}`);
     }
 
     function register(task){
