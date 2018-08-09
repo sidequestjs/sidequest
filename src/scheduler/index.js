@@ -1,43 +1,42 @@
 const { fork } = require('child_process');
 const events = require('events');
-
 const id = require('../id');
 
 const daemonPath = `${__dirname}/daemon.js`;
 
-function Worker(type) {
+function Scheduler(){
     const forkProcess = fork(daemonPath);
-    const workerId = id.generate();
+    const tasks = [];
+    const schedulerId = id.generate();
     
+    // events setup 
     events.EventEmitter.call(this);
     
     forkProcess.on('message', (message) => {
         switch(message.type){ 
-            case 'execution-started':
-                this.emit('started', message.data);
+            case 'registred':
+                tasks.push(message.data);
+                this.emit('registred', message.data);
                 break;
-            case 'execution-done':
-                forkProcess.kill();
-                this.emit('done', message.data);
+            case 'execution-request':
+                this.emit('execution-requested', message.data);
                 break;
         }
     });
     
-    this.execute = (task) => {
-        forkProcess.send({
-            type: 'execute',
-            data: task
-        });
-    }
-    
+
+    this.register = (task) => {
+        forkProcess.send({ type: 'register', data: task });
+    };
+
     this.id = () => {
-        return workerId;
+        return schedulerId;
     }
-    
+
     this.pid = () => {
-        return forkProcess.pid.toString();
+        return forkProcess.pid.toString();;
     }
-    
+
     this.kill = () => {
         forkProcess.kill();
     }
@@ -51,5 +50,5 @@ function Worker(type) {
     }
 }
 
-Worker.prototype.__proto__ = events.EventEmitter.prototype;
-module.exports = Worker;
+Scheduler.prototype.__proto__ = events.EventEmitter.prototype;
+module.exports = Scheduler;
