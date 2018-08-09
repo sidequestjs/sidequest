@@ -1,27 +1,20 @@
-const cron = require('node-cron');
-
-module.exports = (() => {       
-    process.on('message', (message) => {
-        if(message.type == 'taks-registration'){
-            let task = message.task;
-            let t = require(task.path);
-            cron.schedule(task.cron, () => {
-                process.send({
-                    type: 'started',
-                    task: task
-                });
-                t.run();
-                process.send({
-                    type: 'done',
-                    task: task
-                });
-            });
-            process.send({
-                type: 'task-registred',
-                task: task
-            });
-        }
+function executeTask(task){
+    console.info(`[WORKER DAEMON ${process.pid}]: Task ${task.name} execution`);
+    let t = require(task.path);
+    process.send({
+        type: 'execution-started',
+        data: task
     });
+    t.run();
+    process.send({
+        type: 'execution-done',
+        data: task
+    });
+};
 
-    return process;
-})();
+process.on('message', (message) => {
+    switch(message.type){
+        case 'execute':
+            executeTask(message.data);
+    }
+});
