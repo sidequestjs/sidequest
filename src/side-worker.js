@@ -1,11 +1,14 @@
 const path = require('path');
 const cluster = require('cluster');
 
-const scheduler = require('./conductor');
+const MasterWorker = require('./master-worker');
 
 module.exports = (() => {    
+    let masterWorker;
+
     function initialize(configPath){
         config = loadConfigs(configPath);
+        masterWorker = new MasterWorker(config);
         loadTasks(config);
     }
     
@@ -22,7 +25,7 @@ module.exports = (() => {
     }
     
     function register (task){
-        scheduler.register(task);
+        masterWorker.register(task);
     }
     
     return {
