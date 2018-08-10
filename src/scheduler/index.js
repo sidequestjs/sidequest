@@ -25,13 +25,11 @@ function Scheduler(){
             case 'execution-request':
                 this.emit('execution-requested', message.data);
                 break;
+            case 'fail':
+                forkProcess.kill();
+                this.emit('died', this);
+                break;
         }
-    });
-
-    forkProcess.on('exit', (code) => {
-       if(code == 1){
-           this.emit('died', this);
-       }
     });
     
     /**
@@ -64,9 +62,7 @@ function Scheduler(){
      * the daemon will be notified and will kill itself
      */
     this.terminate = () => {
-        if(forkProcess.connected){
-            forkProcess.disconnect()
-        }
+        forkProcess.kill();
     }
     
     /**
@@ -74,7 +70,7 @@ function Scheduler(){
      * @returns {boolean} 
      */
     this.isDead = () => {
-        return !forkProcess.connected;
+        return forkProcess.killed;
     }
 
     /**
@@ -82,7 +78,7 @@ function Scheduler(){
      * @returns {boolean}
      */
     this.isAlive = () => {
-        return forkProcess.exitCode == null;
+        return !this.isDead();
     }
 
     /**

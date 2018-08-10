@@ -2,17 +2,14 @@ const path = require('path');
 const cluster = require('cluster');
 
 const MasterWorker = require('./master-worker');
-const Api = require('./api/http')
 
 module.exports = (() => {    
     let masterWorker;
-    let api;
 
     function initialize(){
         config = loadConfigs();
         masterWorker = new MasterWorker(config);
         loadTasks(config);
-        api = new Api(config, masterWorker);
     }
     
     function loadConfigs(){
@@ -36,7 +33,6 @@ module.exports = (() => {
     }
 
     function terminate() {
-        api.terminate();
         masterWorker.terminate();
     }
     

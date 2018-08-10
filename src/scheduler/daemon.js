@@ -18,10 +18,13 @@ process.on('message', (message) => {
     switch(message.type){
         case 'register':
             registerTask(message.data);
+            break;
     }
 });
 
-process.on('disconnect', () => {
-    console.log('Scheduler disconnected, exiting...');
-    process.exit(0);
-});
+process.on('uncaughtException', (error) => {
+    process.send({
+        type: 'fail',
+        data: error
+    });
+})
