@@ -48,35 +48,30 @@ describe('MasterWorker', () => {
     });
     
     it('should execute a task', (done) => {
-        masterWorker.register( {
+        masterWorker.on('task-done', (task) => {
+            assert.isNotNull(task);
+            done();
+        });
+        
+        masterWorker.register({
             "name": "Write File",
             "path": "./test/test_assets/write_file.js",
             "cron": "* * * * * *"
         });
-        
-        setTimeout(() => {
-            content = fs.readFileSync(testFile);
-            assert.equal(content, "Temp File"); 
-            done();
-        }, 2500);
     });
 
     it('should terminate all schedulers on scheduler fail', (done) => {
         masterWorker.terminate();
         masterWorker = new MasterWorker();
+        masterWorker.on('terminated',  () => {
+            done();
+        });
+
         masterWorker.register( {
             "name": "Write File",
             "path": "./test/test_assets/write_file.js",
             "cron": "* X * * * *"
         });
-        
-        setTimeout(() => {
-            masterWorker.schedulers().forEach(scheduler => {
-                console.log(`scheduler ${scheduler.id()} - ${ scheduler.isDead()}`)
-                assert.isTrue(scheduler.isDead());
-            });
-            done();
-        }, 2000);
     });
 
     it('should terminate all workers', () => {
