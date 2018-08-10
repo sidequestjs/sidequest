@@ -79,6 +79,25 @@ describe('MasterWorker', () => {
         }, 2000);
     });
 
+    it('should terminate all workers', () => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker();
+
+        let task = {
+            "name": "Write File",
+            "path": "./test/test_assets/write_file.js",
+            "cron": "* * * * * *"
+        };
+        masterWorker.register( task );
+        
+        let scheduler = masterWorker.schedulers()[0];
+        scheduler.emit('execution-requested', task);
+        assert.lengthOf(masterWorker.currentWorkers(), 1);
+        masterWorker.terminate();
+        assert.isTrue(masterWorker.currentWorkers()[0].isDead());
+    });
+
+
     it('should distribute tasks', (done) => {
         masterWorker.terminate();
         masterWorker = new MasterWorker();

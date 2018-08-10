@@ -14,6 +14,7 @@ function MasterWorker () {
     let schedulers = [];
     let usedSchedulers = [];
     let maxSchedulers = defaultMaxSchedulers;
+    let currentWorkers = [];
 
     // events setup 
     events.EventEmitter.call(this);
@@ -23,7 +24,11 @@ function MasterWorker () {
         scheduler.on('execution-requested', (task) => {
             console.log(`task ${task.name} requested execution!`)
             let worker = new Worker();
+            currentWorkers.push(worker);
             worker.execute(task);
+            worker.on('done', () => {
+                currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
+            });
         });
 
         scheduler.on('registred', (task) => {
@@ -80,6 +85,18 @@ function MasterWorker () {
         this.schedulers().forEach(scheduler => {
             scheduler.terminate();
         });
+
+        this.currentWorkers().forEach(worker => {
+            worker.terminate();
+        });
+    }
+
+    /**
+     * currentWorkers returns all the workers that are running
+     * @returns {array}
+     */
+    this.currentWorkers = () => {
+        return currentWorkers.slice(0);
     }
 };
 MasterWorker.prototype.__proto__ = events.EventEmitter.prototype;
