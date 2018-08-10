@@ -5,11 +5,19 @@ const MasterWorker = require('./master-worker');
 
 module.exports = (() => {    
     let masterWorker;
+    let plugins = [];
 
     function initialize(){
         config = loadConfigs();
         masterWorker = new MasterWorker(config);
         loadTasks(config);
+        plugins.forEach((plugin) => {
+            plugin.initialize();
+        });
+    }
+
+    function use(plugin){
+        plugins.push(plugin);
     }
     
     function loadConfigs(){
@@ -34,11 +42,16 @@ module.exports = (() => {
 
     function terminate() {
         masterWorker.terminate();
+        plugins.forEach((plugin) => {
+            plugin.terminate();
+        });
+        plugins = [];
     }
     
     return {
         initialize: initialize,
         masterWorker: getMasterWorker,
-        terminate: terminate
+        terminate: terminate,
+        use: use
     }
 })();
