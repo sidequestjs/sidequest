@@ -6,14 +6,14 @@ const MasterWorker = require('./master-worker');
 module.exports = (() => {    
     let masterWorker;
 
-    function initialize(configPath){
-        config = loadConfigs(configPath);
+    function initialize(){
+        config = loadConfigs();
         masterWorker = new MasterWorker(config);
         loadTasks(config);
     }
     
-    function loadConfigs(configPath){
-        configPath = configPath || `${path.resolve('./')}/side-worker-config.json`;
+    function loadConfigs(){
+        let configPath = `${path.resolve('./')}/side-worker-config.json`;
         console.info(`Loading config ${configPath}...`);
         return require(configPath);
     }
@@ -24,11 +24,21 @@ module.exports = (() => {
         });
     }
     
-    function register (task){
+    function register(task){
         masterWorker.register(task);
+    }
+
+    function getMasterWorker(){
+        return masterWorker;
+    }
+
+    function terminate() {
+        masterWorker.terminate();
     }
     
     return {
-        initialize: initialize
+        initialize: initialize,
+        masterWorker: getMasterWorker,
+        terminate: terminate
     }
 })();
