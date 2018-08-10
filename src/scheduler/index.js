@@ -39,6 +39,7 @@ function Scheduler(){
      * @param {*} task 
      */
     this.register = (task) => {
+        task.id = id.generate();
         forkProcess.send({ type: 'register', data: task });
     };
 

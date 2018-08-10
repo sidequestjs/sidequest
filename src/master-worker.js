@@ -15,6 +15,7 @@ function MasterWorker (config) {
     let usedSchedulers = [];
     let maxSchedulers = (config && config.totalSchedulers) || defaultMaxSchedulers;
     let currentWorkers = [];
+    let startedAt = new Date();
 
     // events setup 
     events.EventEmitter.call(this);
@@ -97,6 +98,13 @@ function MasterWorker (config) {
      */
     this.currentWorkers = () => {
         return currentWorkers.slice(0);
+    }
+
+    /**
+     * startedAt returns when the master worker was initilized
+     */
+    this.startedAt = () => {
+        return startedAt;
     }
 };
 MasterWorker.prototype.__proto__ = events.EventEmitter.prototype;
