@@ -1,4 +1,4 @@
-const sideWorker = require('../src/side-worker');
+const sideWorker = require('../src/sidequest');
 const { assert } = require('chai');
 
 describe('side-worker', () => {
