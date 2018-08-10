@@ -10,10 +10,10 @@ module.exports = (() => {
     function initialize(){
         config = loadConfigs();
         masterWorker = new MasterWorker(config);
-        loadTasks(config);
         plugins.forEach((plugin) => {
             plugin.initialize(masterWorker);
         });
+        loadTasks(config);
     }
 
     function use(plugin){
