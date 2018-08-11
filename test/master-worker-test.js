@@ -39,6 +39,11 @@ describe('MasterWorker', () => {
         assert.isNotNull(masterWorker.startedAt());
         assert.instanceOf(masterWorker.startedAt(), Date);
     });
+
+    it('should respont to id', () => {
+        assert.isNotNull(masterWorker.id());
+    });
+    
     
     it('should register tasks', (done) => {
         masterWorker.on('task-registred', (task) => {
@@ -55,7 +60,7 @@ describe('MasterWorker', () => {
     });
     
     it('should execute a task', (done) => {
-        masterWorker.on('task-done', (task) => {
+        masterWorker.on('worker-done', (task) => {
             assert.isNotNull(task);
             done();
         });

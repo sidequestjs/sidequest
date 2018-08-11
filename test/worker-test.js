@@ -6,7 +6,11 @@ describe("Worker", () => {
     let worker;
     
     beforeEach(() => {
-        worker = new Worker();
+        worker = new Worker({
+            "name": "Task",
+            "path": path.resolve("./test/test_assets/dummy_task.js"),
+            "cron": "* * * * * *"
+        });
     });
 
     afterEach(() => {
@@ -21,27 +25,24 @@ describe("Worker", () => {
         assert.isNotEmpty(worker.pid());
     });
 
+    it("should have a task", () => {
+        assert.isNotNull(worker.task());
+        assert.equal(worker.task().name, "Task");
+    });
+
     it("should start a task", (done) => {
         worker.on('started', (task) => {
             assert.isNotNull(task);
             done();
         });
-        worker.execute( {
-            "name": "Task",
-            "path": path.resolve("./test/test_assets/dummy_task.js"),
-            "cron": "* * * * * *"
-        });
+        worker.execute();
     });
     it("should done a task", (done) => {
         worker.on('done', (task) => {
             assert.isNotNull(task);
             done()
         });
-        worker.execute( {
-            "name": "Task",
-            "path": path.resolve("./test/test_assets/dummy_task.js"),
-            "cron": "* * * * * *"
-        });
+        worker.execute();
     });
     
     it("should have to be killed", (done) => {
