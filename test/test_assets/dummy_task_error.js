@@ -1,3 +1,5 @@
+'use strict';
+
 exports.run = ()=>{
-    throw "dummy error";
-}
+    throw 'dummy error';
+};

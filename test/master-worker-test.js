@@ -1,3 +1,5 @@
+'use strict';
+
 const MasterWorker = require('../src/master-worker');
 const { assert } = require('chai');
 const cpus = require('os').cpus().length;
@@ -5,7 +7,7 @@ const fs = require('fs');
 
 describe('MasterWorker', () => {
     let masterWorker;
-    let testFile = ".temp_test.txt";
+    let testFile = '.temp_test.txt';
     
     beforeEach(() => {
         if(fs.existsSync(testFile)){
@@ -46,16 +48,16 @@ describe('MasterWorker', () => {
     
     
     it('should register tasks', (done) => {
-        masterWorker.on('task-registred', (task) => {
+        masterWorker.on('task-registred', () => {
             let tasks = masterWorker.tasks();
             assert.lengthOf(tasks, 1);
             done();
         });
         
         masterWorker.register( {
-            "name": "Dummy Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * *"
+            'name': 'Dummy Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* * * * *'
         });
     });
     
@@ -66,9 +68,9 @@ describe('MasterWorker', () => {
         });
 
         masterWorker.register({
-            "name": "Write File",
-            "path": "./test/test_assets/write_file.js",
-            "cron": "* * * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/write_file.js',
+            'cron': '* * * * * *'
         });
     });
 
@@ -80,9 +82,9 @@ describe('MasterWorker', () => {
         });
 
         masterWorker.register( {
-            "name": "Write File",
-            "path": "./test/test_assets/write_file.js",
-            "cron": "* X * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/write_file.js',
+            'cron': '* X * * * *'
         });
     });
 
@@ -91,9 +93,9 @@ describe('MasterWorker', () => {
         masterWorker = new MasterWorker({totalSchedulers: 1});
 
         let task = {
-            "name": "Write File",
-            "path": "./test/test_assets/write_file.js",
-            "cron": "* * * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/write_file.js',
+            'cron': '* * * * * *'
         };
         masterWorker.register( task );
         
@@ -113,15 +115,15 @@ describe('MasterWorker', () => {
         
         for(let i = 0; i < 4; i++){
             masterWorker.register( {
-                "name": "Write File",
-                "path": "./test/test_assets/dummy_task.js",
-                "cron": "* * * * * *"
+                'name': 'Write File',
+                'path': './test/test_assets/dummy_task.js',
+                'cron': '* * * * * *'
             });
         }
 
         masterWorker.on('task-registred', () => {
             tasksRegistred++;
-            if(tasksRegistred == 4){
+            if(tasksRegistred === 4){
                 masterWorker.schedulers().forEach((scheduler) => {
                     assert.lengthOf(scheduler.tasks(), 2);
                 });
@@ -137,59 +139,59 @@ describe('MasterWorker', () => {
     });
 
 
-    it("should receive the result on done event", (done) => {
+    it('should receive the result on done event', (done) => {
         masterWorker.terminate();
         masterWorker = new MasterWorker({totalSchedulers: 1});
 
         masterWorker.on('task-done', (task, result) =>{
             assert.isNotNull(task);
-            assert.equal(result, "async task!");
+            assert.equal(result, 'async task!');
             done();
-        })
+        });
 
         let task = {
-            "name": "Write File",
-            "path": "./test/test_assets/promise-task.js",
-            "cron": "* * * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/promise-task.js',
+            'cron': '* * * * * *'
         };
         masterWorker.register( task );
     });
 
-    it("should receive the result on error event", (done) => {
+    it('should receive the result on error event', (done) => {
         masterWorker.terminate();
         masterWorker = new MasterWorker({totalSchedulers: 1});
 
         masterWorker.on('task-error', (task, error) =>{
             assert.isNotNull(task);
-            assert.equal(error, "async error");
+            assert.equal(error, 'async error');
             done();
-        })
+        });
 
         let task = {
-            "name": "Write File",
-            "path": "./test/test_assets/promise-task-error.js",
-            "cron": "* * * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/promise-task-error.js',
+            'cron': '* * * * * *'
         };
         masterWorker.register( task );
     });
 
-    it("should prevent a task to be executed twice simultaneously", (done) => {
+    it('should prevent a task to be executed twice simultaneously', (done) => {
         masterWorker.terminate();
         masterWorker = new MasterWorker({totalSchedulers: 1});
         let executions = 0;
         masterWorker.on('task-done', (task, result) =>{
             executions++;
             assert.isNotNull(task);
-            assert.equal(result, "slow task executed");
+            assert.equal(result, 'slow task executed');
             assert.equal(executions, 1);
             done();
-        })
+        });
 
         let task = {
-            "name": "Write File",
-            "path": "./test/test_assets/slow-task.js",
-            "cron": "* * * * * *"
+            'name': 'Write File',
+            'path': './test/test_assets/slow-task.js',
+            'cron': '* * * * * *'
         };
         masterWorker.register( task );
-    })
+    });
 });

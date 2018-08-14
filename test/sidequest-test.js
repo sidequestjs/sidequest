@@ -1,3 +1,5 @@
+'use strict';
+
 const sidequest = require('../src/sidequest');
 const { assert } = require('chai');
 
@@ -15,11 +17,11 @@ describe('side-worker', () => {
                 sidequest.terminate();
                 done();
             }, terminate: () => {}
-        }
+        };
 
         sidequest.use(plugin);
         sidequest.initialize();
-    })
+    });
 
     it('should terminate a plugin', (done) => {
         let plugin = {
@@ -28,10 +30,10 @@ describe('side-worker', () => {
                 assert.isNotNull(masterWorker);
                 done();
             }
-        }
+        };
 
         sidequest.use(plugin);
         sidequest.initialize();
         sidequest.terminate();
-    })
+    });
 });

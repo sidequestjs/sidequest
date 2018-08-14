@@ -1,3 +1,5 @@
+'use strict';
+
 const { fork } = require('child_process');
 const events = require('events');
 const id = require('../id');
@@ -47,15 +49,15 @@ function Scheduler(){
      */
     this.id = () => {
         return schedulerId;
-    }
+    };
 
     /**
      * pid returns the scheduler pid
      * @returns {string} scheduler pid
      */
     this.pid = () => {
-        return forkProcess.pid.toString();;
-    }
+        return forkProcess.pid.toString();
+    };
 
     /**
      * terminate disconect the daemon from main proccess
@@ -63,7 +65,7 @@ function Scheduler(){
      */
     this.terminate = () => {
         forkProcess.kill();
-    }
+    };
     
     /**
      * isDead returns true if the child process was terminated
@@ -71,7 +73,7 @@ function Scheduler(){
      */
     this.isDead = () => {
         return forkProcess.killed;
-    }
+    };
 
     /**
      * isAlive returns true if the child process is running
@@ -79,7 +81,7 @@ function Scheduler(){
      */
     this.isAlive = () => {
         return !this.isDead();
-    }
+    };
 
     /**
      * tasks returns the scheduled tasks
@@ -87,8 +89,8 @@ function Scheduler(){
      */
     this.tasks = () => {
         return tasks.slice(0);
-    }
+    };
 }
 
-Scheduler.prototype.__proto__ = events.EventEmitter.prototype;
+Scheduler.prototype = events.EventEmitter.prototype;
 module.exports = Scheduler;

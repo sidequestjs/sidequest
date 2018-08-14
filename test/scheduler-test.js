@@ -1,3 +1,5 @@
+'use strict';
+
 const Scheduler = require('../src/scheduler');
 const { assert } = require('chai');
 
@@ -15,6 +17,7 @@ describe('Scheduler', () => {
     it('should have an id', () => {
         assert.isNotEmpty(scheduler.id());
     });
+    
     it('should have an pid', () => {
         assert.isNotEmpty(scheduler.pid());
     });
@@ -34,34 +37,34 @@ describe('Scheduler', () => {
             done();
         });
         scheduler.register( {
-            "name": "Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * * *"
+            'name': 'Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* * * * * *'
         });
     });
 
     it('should return tasks', (done) => {
-        scheduler.on('registred', (task) => {
+        scheduler.on('registred', () => {
             assert.lengthOf(scheduler.tasks(), 1);
             done();
         });
         scheduler.register( {
-            "name": "Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * * *"
+            'name': 'Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* * * * * *'
         });
     });
 
     it('should return imutable tasks', (done) => {
-        scheduler.on('registred', (task) => {
+        scheduler.on('registred', () => {
             scheduler.tasks().push({});
             assert.lengthOf(scheduler.tasks(), 1);
             done();
         });
         scheduler.register( {
-            "name": "Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * * *"
+            'name': 'Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* * * * * *'
         });
     });
 
@@ -71,9 +74,9 @@ describe('Scheduler', () => {
             done();
         });
         scheduler.register( {
-            "name": "Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * * *"
+            'name': 'Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* * * * * *'
         });
     });
 
@@ -83,9 +86,9 @@ describe('Scheduler', () => {
             done();
         });
         scheduler.register( {
-            "name": "Task",
-            "path": "./test/test_assets/dummy_task.js",
-            "cron": "* X * * * *"
+            'name': 'Task',
+            'path': './test/test_assets/dummy_task.js',
+            'cron': '* X * * * *'
         });
     });
 });

@@ -1,3 +1,21 @@
+'use strict';
+
+function sendResult(task, result){
+    process.send({
+        type: 'execution-done',
+        data: task, 
+        result: result
+    });
+}
+
+function sendError(task, error){
+    process.send({
+        type: 'execution-error',
+        data: task, 
+        error: error
+    });
+}
+
 function executeTask(task){
     console.info(`[WORKER DAEMON ${process.pid}]: Task ${task.name} execution`);
     let t = require(task.path);
@@ -14,28 +32,11 @@ function executeTask(task){
                 sendError(task, error);
             });
         } else {
-            sendResult(task, execution)
+            sendResult(task, execution);
         }
     } catch (error) {
         sendError(task, error);
-    }
-    
-};
-
-function sendResult(task, result){
-    process.send({
-        type: 'execution-done',
-        data: task, 
-        result: result
-    });
-}
-
-function sendError(task, error){
-    process.send({
-        type: 'execution-error',
-        data: task, 
-        error: error
-    });
+    }   
 }
 
 process.on('message', (message) => {
