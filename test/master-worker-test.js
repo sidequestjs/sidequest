@@ -60,7 +60,7 @@ describe('MasterWorker', () => {
     });
     
     it('should execute a task', (done) => {
-        masterWorker.on('worker-done', (task) => {
+        masterWorker.on('task-done', (task) => {
             assert.isNotNull(task);
             done();
         });
