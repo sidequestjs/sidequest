@@ -1,3 +1,5 @@
-exports.run = async () => {
-    return "async task!"
+exports.run = () => {
+    return new Promise((resolve) => {
+        resolve("async task!");
+    });
 }

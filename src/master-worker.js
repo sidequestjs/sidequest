@@ -26,16 +26,26 @@ function MasterWorker (config) {
         let scheduler = new Scheduler();
         scheduler.on('execution-requested', (task) => {
             console.log(`task ${task.name} requested execution!`)
-            let worker = new Worker(task);
-            currentWorkers.push(worker);
-            worker.on('started', () => {
-                this.emit('task-started', worker);
-            });
-            worker.on('done', (task, result, error) => {
-                currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
-                this.emit('task-done', task);
-            });    
-            worker.execute();
+
+            let runningTasks = this.currentTasks().filter(t => t.id == task.id);
+            if(runningTasks.length > 0){
+                console.warn(`There is a previous version of the task ${task.name} [${task.id}] running. Execution blocked`);
+            } else {
+                let worker = new Worker(task);
+                currentWorkers.push(worker);
+                worker.on('started', () => {
+                    this.emit('task-started', worker);
+                });
+                worker.on('done', (task, result) => {
+                    currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
+                    this.emit('task-done', task, result);
+                }); 
+                worker.on('error', (task, error) => {
+                    console.error(`Task ${task.name} [ ${task.id} ] was failed with error: ${error}`)
+                    this.emit('task-error', task, error);
+                });
+                worker.execute();
+            }
         });
 
         scheduler.on('registred', (task) => {
@@ -121,6 +131,14 @@ function MasterWorker (config) {
      */
     this.startedAt = () => {
         return startedAt;
+    }
+
+    /**
+     * currentTasks returns all the tasks that are running
+     * @returns {array}
+     */
+    this.currentTasks = () => {
+        return this.currentWorkers().map(worker => worker.task());
     }
 };
 MasterWorker.prototype.__proto__ = events.EventEmitter.prototype;

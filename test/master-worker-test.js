@@ -135,4 +135,61 @@ describe('MasterWorker', () => {
         masterWorker = new MasterWorker({totalSchedulers: 2});
         assert.lengthOf(masterWorker.schedulers(), 2);
     });
+
+
+    it("should receive the result on done event", (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
+
+        masterWorker.on('task-done', (task, result) =>{
+            assert.isNotNull(task);
+            assert.equal(result, "async task!");
+            done();
+        })
+
+        let task = {
+            "name": "Write File",
+            "path": "./test/test_assets/promise-task.js",
+            "cron": "* * * * * *"
+        };
+        masterWorker.register( task );
+    });
+
+    it("should receive the result on error event", (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
+
+        masterWorker.on('task-error', (task, error) =>{
+            assert.isNotNull(task);
+            assert.equal(error, "async error");
+            done();
+        })
+
+        let task = {
+            "name": "Write File",
+            "path": "./test/test_assets/promise-task-error.js",
+            "cron": "* * * * * *"
+        };
+        masterWorker.register( task );
+    });
+
+    it("should prevent a task to be executed twice simultaneously", (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
+        let executions = 0;
+        masterWorker.on('task-done', (task, result) =>{
+            executions++;
+            assert.isNotNull(task);
+            assert.equal(result, "slow task executed");
+            assert.equal(executions, 1);
+            done();
+        })
+
+        let task = {
+            "name": "Write File",
+            "path": "./test/test_assets/slow-task.js",
+            "cron": "* * * * * *"
+        };
+        masterWorker.register( task );
+    })
 });
