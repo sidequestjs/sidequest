@@ -1,3 +1,3 @@
 exports.run = ()=>{
-    console.log('dummy task');
+    return 'dummy task!';
 }

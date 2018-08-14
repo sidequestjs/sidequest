@@ -5,16 +5,42 @@ function executeTask(task){
         type: 'execution-started',
         data: task
     });
-    t.run();
+    try {
+        let execution = t.run();
+        if( execution instanceof Promise ){
+            execution.then((result) => {
+                sendResult(task, result);
+            }).catch((error) => {
+                sendError(task, error);
+            });
+        } else {
+            sendResult(task, execution)
+        }
+    } catch (error) {
+        sendError(task, error);
+    }
+    
+};
+
+function sendResult(task, result){
     process.send({
         type: 'execution-done',
-        data: task
+        data: task, 
+        result: result
     });
-};
+}
+
+function sendError(task, error){
+    process.send({
+        type: 'execution-error',
+        data: task, 
+        error: error
+    });
+}
 
 process.on('message', (message) => {
     switch(message.type){
         case 'execute':
-            executeTask(message.data);
+        executeTask(message.data);
     }
 });
