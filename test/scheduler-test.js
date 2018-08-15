@@ -79,17 +79,5 @@ describe('Scheduler', () => {
             'cron': '* * * * * *'
         });
     });
-
-    it('should emmit died event', (done) => {
-        scheduler.on('died', (s) => {
-            assert.equal(s.id(), scheduler.id());
-            done();
-        });
-        scheduler.register( {
-            'name': 'Task',
-            'path': './test/test_assets/dummy_task.js',
-            'cron': '* X * * * *'
-        });
-    });
 });
 

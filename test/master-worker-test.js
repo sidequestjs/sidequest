@@ -74,20 +74,6 @@ describe('MasterWorker', () => {
         });
     });
 
-    it('should terminate all schedulers on scheduler fail', (done) => {
-        masterWorker.terminate();
-        masterWorker = new MasterWorker({totalSchedulers: 1});
-        masterWorker.on('terminated',  () => {
-            done();
-        });
-
-        masterWorker.register( {
-            'name': 'Write File',
-            'path': './test/test_assets/write_file.js',
-            'cron': '* X * * * *'
-        });
-    });
-
     it('should terminate all workers', () => {
         masterWorker.terminate();
         masterWorker = new MasterWorker({totalSchedulers: 1});

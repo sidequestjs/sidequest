@@ -6,6 +6,7 @@ const Worker = require('./worker');
 const os = require('os');
 const events = require('events');
 const id = require('./id');
+const taskValidation = require('./task-validation');
 
 const defaultMaxSchedulers = os.cpus().length;
 
@@ -57,12 +58,6 @@ function MasterWorker (config) {
             this.emit('task-registred', task);
         });
         
-        scheduler.on('died', (scheduler) => {
-            console.error(`Scheduler ${scheduler.id()} died, finishing side-worker`);
-            this.terminate();
-            this.emit('terminated');
-        });
-        
         return scheduler;
     };
     
@@ -78,6 +73,7 @@ function MasterWorker (config) {
     */
     this.register = (task) => {
         task.path = path.resolve(task.path);
+        taskValidation.validate(task);
         let scheduler = schedulers.pop();
         usedSchedulers.push(scheduler);
         scheduler.register(task);

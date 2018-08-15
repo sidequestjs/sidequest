@@ -23,10 +23,3 @@ process.on('message', (message) => {
             break;
     }
 });
-
-process.on('uncaughtException', (error) => {
-    process.send({
-        type: 'fail',
-        data: error
-    });
-});
