@@ -3,7 +3,7 @@
 const sidequest = require('../src/sidequest');
 const { assert } = require('chai');
 
-describe('side-worker', () => {
+describe('sidequest', () => {
     it('should initilize', () => {
         sidequest.initialize();
         assert.lengthOf(sidequest.masterWorker().schedulers(), 2);
@@ -16,7 +16,7 @@ describe('side-worker', () => {
                 assert.isNotNull(masterWorker);
                 sidequest.terminate();
                 done();
-            }, terminate: () => {}
+            }, terminate: (_) => {}
         };
 
         sidequest.use(plugin);
@@ -25,7 +25,9 @@ describe('side-worker', () => {
 
     it('should terminate a plugin', (done) => {
         let plugin = {
-            initialize: () => {}, 
+            initialize: (_) => {
+
+            }, 
             terminate: (masterWorker) => {
                 assert.isNotNull(masterWorker);
                 done();

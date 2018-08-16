@@ -3,6 +3,7 @@
 const path = require('path');
 
 const MasterWorker = require('./master-worker');
+const pluginValidation = require('./plugin-validation');
 
 module.exports = (() => {    
     let masterWorker;
@@ -25,6 +26,7 @@ module.exports = (() => {
     }
 
     function use(plugin){
+        pluginValidation.validate(plugin);
         plugins.push(plugin);
     }
     
