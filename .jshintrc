@@ -17,7 +17,7 @@
     "shadow": false,
     "strict": true,
     "undef": true,
-    "unused": true,
+    "unused": "vars",
     "asi": false,
     "boss": false,
     "debug": false,
