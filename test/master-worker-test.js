@@ -188,7 +188,7 @@ describe('MasterWorker', () => {
         let doneCalled = false;
         masterWorker.on('task-done', (task, result) =>{
             executions++;
-            if(executions == 2 && !doneCalled){
+            if(executions === 2 && !doneCalled){
                 assert.isNotNull(task);
                 assert.equal(result, 'slow task executed');
                 assert.isAtLeast(executions, 2);
