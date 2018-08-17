@@ -47,10 +47,10 @@ function MasterWorker (config) {
             console.log(`task ${task.name} requested execution!`);
             
             let runningTasks = this.currentTasks().filter(t => t.id === task.id);
-            if(runningTasks.length > 0){
-                console.warn(`There is a previous version of the task ${task.name} [${task.id}] running. Execution blocked`);
-            } else {
+            if(task.unsafe || runningTasks.length === 0){
                 executeTask(task);
+            } else {
+                console.warn(`There is a previous version of the task ${task.name} [${task.id}] running. Execution blocked`);
             }
         });
         
