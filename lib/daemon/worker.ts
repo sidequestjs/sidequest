@@ -5,37 +5,44 @@ import Queue from '../storage/queue';
 
 const BATCH_SIZE = process.env.SIDEQUEST_BATCH_SIZE || '10';
 
-let loop: any;
+let started: boolean;
 
 async function start(queueName: string) {
-  if(loop) throw new Error('Worker already started!');
+  if(started) throw new Error('Worker already started!');
 
-  const process = async() : Promise<any> => {
-    const tasks = await loadTasks();
-    let batchSize = parseInt(BATCH_SIZE);
-    if(isNaN(batchSize)) batchSize = 10;
+  const tasks = await loadTasks();
+  let batchSize = parseInt(BATCH_SIZE);
+  if(isNaN(batchSize)) batchSize = 10;
 
-    const queue = new Queue(queueName);
-    
+  const queue = new Queue(queueName);
+
+  const loop = async () => {
     const result = await queue.pop(batchSize);
-
     if(result.length >  0){
       for(let i = 0; i < result.length; i++){
-        const job = result[i];
-        const task = tasks[job.task];
-        if(task && task.class){
-          const instance:Task = new task.class();
-          instance.id = job.id;
-          await instance.execute(job.args);
-        } else {
-          throw new Error(`cannot process item: ${job}`);
-        } 
+        try{
+          await process(result[i]);
+        } catch (error){
+          console.error(error);
+        }
       }
-      return process();
     }
+
+    if(started) setTimeout(loop, 500);
   }
 
-  setInterval(process, 500);
+  const process = async(item: any) : Promise<any> => {
+    const task = tasks[item.task];
+    if(task && task.class){
+      const instance:Task = new task.class();
+      instance.id = item.id;
+      await instance.execute(item.args);
+    } else {
+      throw new Error(`cannot process item: ${item}`);
+    } 
+  }
+
+  loop();
 }
 
 process.on('message', async(message:any) => {

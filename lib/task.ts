@@ -11,8 +11,8 @@ abstract class Task {
     if (!this.run) throw new Error('A Task must implement run method');
   }
 
-  execute(params: any){
-    this.run.call(this, ...params)
+  async execute(params: any){
+    await this.run.call(this, ...params)
   }
 
   static async enqueue(...params: any){
