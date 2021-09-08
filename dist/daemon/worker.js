@@ -40,64 +40,80 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var load_tasks_1 = __importDefault(require("../loader/load-tasks"));
-var ioredis_1 = __importDefault(require("ioredis"));
-var redis = new ioredis_1.default();
+var scored_queue_1 = __importDefault(require("../storage/scored_queue"));
 var BATCH_SIZE = process.env.SIDEQUEST_BATCH_SIZE || '10';
-var loop;
-function start(queue) {
+var started;
+function start(queueName) {
     return __awaiter(this, void 0, void 0, function () {
-        var process;
+        var tasks, batchSize, queue, loop, processTask;
         var _this = this;
         return __generator(this, function (_a) {
-            if (loop)
-                throw new Error('Worker already started!');
-            process = function () { return __awaiter(_this, void 0, void 0, function () {
-                var tasks, batchSize, result, i, item, job, task, instance, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, (0, load_tasks_1.default)()];
-                        case 1:
-                            tasks = _a.sent();
-                            batchSize = parseInt(BATCH_SIZE);
-                            if (isNaN(batchSize))
-                                batchSize = 10;
-                            return [4 /*yield*/, redis.zpopmin("queue-" + queue, batchSize)];
-                        case 2:
-                            result = _a.sent();
-                            if (!(result.length > 0)) return [3 /*break*/, 11];
-                            i = 0;
-                            _a.label = 3;
-                        case 3:
-                            if (!(i < result.length)) return [3 /*break*/, 10];
-                            item = result[i];
-                            _a.label = 4;
-                        case 4:
-                            _a.trys.push([4, 8, , 9]);
-                            job = JSON.parse(item);
-                            task = tasks[job.task];
-                            if (!(task && task.class)) return [3 /*break*/, 6];
-                            instance = new task.class();
-                            instance.id = job.id;
-                            return [4 /*yield*/, instance.execute(job.args)];
-                        case 5:
-                            _a.sent();
-                            return [3 /*break*/, 7];
-                        case 6: throw new Error("cannot process item: " + item);
-                        case 7: return [3 /*break*/, 9];
-                        case 8:
-                            error_1 = _a.sent();
-                            console.error(error_1);
-                            return [3 /*break*/, 9];
-                        case 9:
-                            i = i + 2;
-                            return [3 /*break*/, 3];
-                        case 10: return [2 /*return*/, process()];
-                        case 11: return [2 /*return*/];
-                    }
-                });
-            }); };
-            setInterval(process, 500);
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0:
+                    if (started)
+                        throw new Error('Worker already started!');
+                    started = true;
+                    return [4 /*yield*/, (0, load_tasks_1.default)()];
+                case 1:
+                    tasks = _a.sent();
+                    batchSize = parseInt(BATCH_SIZE);
+                    if (isNaN(batchSize))
+                        batchSize = 10;
+                    queue = new scored_queue_1.default(queueName);
+                    loop = function () { return __awaiter(_this, void 0, void 0, function () {
+                        var result, i, error_1;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, queue.pop(batchSize, new Date().getTime())];
+                                case 1:
+                                    result = _a.sent();
+                                    if (!(result.length > 0)) return [3 /*break*/, 7];
+                                    i = 0;
+                                    _a.label = 2;
+                                case 2:
+                                    if (!(i < result.length)) return [3 /*break*/, 7];
+                                    _a.label = 3;
+                                case 3:
+                                    _a.trys.push([3, 5, , 6]);
+                                    return [4 /*yield*/, processTask(result[i])];
+                                case 4:
+                                    _a.sent();
+                                    return [3 /*break*/, 6];
+                                case 5:
+                                    error_1 = _a.sent();
+                                    console.error(error_1);
+                                    return [3 /*break*/, 6];
+                                case 6:
+                                    i++;
+                                    return [3 /*break*/, 2];
+                                case 7:
+                                    if (started)
+                                        setTimeout(loop, 500);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    processTask = function (item) { return __awaiter(_this, void 0, void 0, function () {
+                        var task, instance;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    task = tasks[item.task];
+                                    if (!(task && task.class)) return [3 /*break*/, 2];
+                                    instance = new task.class();
+                                    instance.id = item.id;
+                                    return [4 /*yield*/, instance.execute(item.args)];
+                                case 1:
+                                    _a.sent();
+                                    return [3 /*break*/, 3];
+                                case 2: throw new Error("cannot process item: " + item);
+                                case 3: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    loop();
+                    return [2 /*return*/];
+            }
         });
     });
 }
