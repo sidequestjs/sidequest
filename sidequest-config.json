@@ -16,7 +16,7 @@
     "tasks": [
         {
             "name": "MyJob",
-            "path": "./test/my-job.js",
+            "path": "./playground/my-job.js",
             "queue": "high"
         }
     ]

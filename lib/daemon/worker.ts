@@ -1,7 +1,7 @@
 
 import loadTasks from '../loader/load-tasks';
 import Task from '../task';
-import Queue from '../storage/scored_queue';
+import Queue from '../storage/scored-queue';
 
 const BATCH_SIZE = process.env.SIDEQUEST_BATCH_SIZE || '10';
 
