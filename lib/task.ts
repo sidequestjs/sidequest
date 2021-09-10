@@ -5,6 +5,13 @@ import Metric from './monitor/metric';
 
 import loadTasks from './loader/load-tasks';
 
+interface TaskOptions {
+  performAt?: Date,
+  enqueuedAt: Date,
+  params?: Array<any>,
+  task: String
+}
+
 abstract class Task {
   abstract id:string;
   metric:Metric;
@@ -21,7 +28,7 @@ abstract class Task {
     this.metric.sample(timing);
   }
 
-  static async enqueue(options?: { performAt?: Date }, ...params: any){
+  static async enqueue(options: TaskOptions){
     const tasksConfig = await loadTasks();
     const taskName = this.name;
     const config = tasksConfig[taskName];
@@ -30,9 +37,17 @@ abstract class Task {
 
     const queue = new Queue(config.queue);
 
-    const score = options?.performAt?.getTime() || new Date().getTime();
+    const performAt = options?.performAt || new Date();
+
+    const item = {
+      id: nanoId(36),
+      performAt: performAt,
+      enqueuedAt: new Date(),
+      params: options.params,
+      task: taskName,
+    } 
     
-    queue.push({ id: nanoId(36), task: taskName, args: params }, score);
+    queue.push(item, performAt.getTime());
   }
 
   abstract run(...params:any): void;

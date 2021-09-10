@@ -38,9 +38,9 @@ async function start(queueName: string) {
     if(task && task.class){
       const instance:Task = new task.class();
       instance.id = item.id;
-      await instance.execute(item.args);
+      await instance.execute(item.params);
     } else {
-      throw new Error(`cannot process item: ${item}`);
+      throw new Error(`cannot process item: ${JSON.stringify(item)}`);
     } 
   }
 
