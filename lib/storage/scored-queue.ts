@@ -1,4 +1,5 @@
 import redis from './redis-client';
+import EnqueuedTask from './enqueued-task';
 
 class Queue {
   name: string;
@@ -8,11 +9,11 @@ class Queue {
     this.name = `sidequest-queue-${_name}`;
   }
 
-  async push(item: object, score: number ){
+  async push(item: EnqueuedTask, score: number ){
     await redis.zadd(this.name, score, JSON.stringify(item));
   }
 
-  async pop(batchSize = 1, maxScore: number|string = "+inf"){
+  async pop(batchSize = 1, maxScore: number|string = "+inf"): Promise<Array<EnqueuedTask>>{
     const result = await redis.zpopminbyscore(this.name, maxScore, batchSize);
 
     const data = [];

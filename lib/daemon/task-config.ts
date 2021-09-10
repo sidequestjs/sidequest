@@ -1,7 +1,7 @@
-interface Task {
+interface TaskConfig {
   name: string,
   path: string,
   class: Function,
 }
 
-export default Task;
+export default TaskConfig;

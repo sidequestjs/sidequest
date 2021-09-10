@@ -1,4 +1,4 @@
-import Task from "../daemon/task";
+import Task from "../daemon/task-config";
 import path from 'path';
 import loadConfig from './load-config';
 
