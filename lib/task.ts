@@ -32,7 +32,10 @@ abstract class Task {
 
   async execute(params: any){
     const startedAt = new Date().getTime();
-    await this.run.call(this, ...params)
+    if (params)
+      await this.run(...params)
+    else
+      await this.run()
     const currentTime = new Date().getTime();
     const timing = currentTime - startedAt;
     const latency = currentTime - this.performAt.getTime();
@@ -43,9 +46,12 @@ abstract class Task {
   static async enqueue(options: TaskOptions){
     const tasksConfig = await loadTasks();
     const taskName = this.name;
+
     const config = tasksConfig[taskName];
 
-    if(!config) throw new Error(`Taks ${taskName} not defined at sidequest-config.json`);
+    if(!config){
+      throw new Error(`Taks ${taskName} not defined at sidequest-config.json`);
+    }
 
     const queue = new Queue(config.queue);
 
