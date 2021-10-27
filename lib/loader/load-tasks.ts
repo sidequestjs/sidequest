@@ -2,12 +2,8 @@ import Task from "../daemon/task-config";
 import path from 'path';
 import loadConfig from './load-config';
 
-let tasks:any;
-
 async function loadTasks() {
-  if(tasks) return tasks;
-  
-  tasks = {};
+  let tasks:any = {};
   const config = await loadConfig();
 
   for(let i in config.tasks){
