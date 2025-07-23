@@ -83,3 +83,5 @@ typings/
 
 playground/
 dist/
+
+testing.js
