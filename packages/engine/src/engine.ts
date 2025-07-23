@@ -104,7 +104,7 @@ export class Engine {
     return _backend;
   }
 
-  static async getQueueConfig(queue: string): Promise<QueueConfig> {
+  static async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
     if (!_backend) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
     return _backend.getQueueConfig(queue);
   }

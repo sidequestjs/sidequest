@@ -146,6 +146,26 @@ export default function defineClaimPendingJobTestSuite() {
       expect(claimedJobs).toHaveLength(0);
     });
 
+    it("should claim only available jobs", async () => {
+      // Insert a new waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      await backend.createNewJob(job);
+      await backend.createNewJob({ ...job, available_at: new Date(9999999999999) });
+
+      const claimedJobs = await backend.claimPendingJob("default", 10);
+      expect(claimedJobs).toHaveLength(1);
+    });
+
     it("should not claim a job when not job is in the DB", async () => {
       const [claimedJob] = await backend.claimPendingJob("default");
       expect(claimedJob).toBe(undefined);
