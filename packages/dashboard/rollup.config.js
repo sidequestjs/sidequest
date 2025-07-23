@@ -2,7 +2,7 @@ import path from "path";
 import createConfig from "../../rollup.config.base.js";
 import pkg from "./package.json" with { type: "json" };
 
-import copy from "rollup-plugin-copy";
+import copy from 'rollup-plugin-copy-watch'
 import del from "rollup-plugin-delete";
 import postcss from "rollup-plugin-postcss";
 
@@ -13,6 +13,7 @@ const configs = createConfig(
   ["src/index.ts"],
   [
     copy({
+      watch: ["src/views/**/*", "src/public/img", "src/public/js"],
       targets: [
         { src: "src/views/**/*", dest: "dist/views" },
         { src: "src/public/img", dest: "dist/public" },
@@ -33,7 +34,7 @@ const configs = createConfig(
           rename: "highlight.js",
         },
       ],
-    }),
+    })
   ],
 );
 

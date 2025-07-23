@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "dev": "npx rollup -c -w & tsx watch --include 'dist/**/*' --clear-screen=false src/devserver.ts"
+    "dev": "npx rollup -c -w"
   },
   "license": "ISC",
   "dependencies": {

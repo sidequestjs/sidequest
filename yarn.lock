@@ -2607,7 +2607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:^3.5.2":
+"chokidar@npm:^3.4.0, chokidar@npm:^3.5.2":
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
   dependencies:
@@ -6967,6 +6967,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-copy-watch@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "rollup-plugin-copy-watch@npm:0.0.1"
+  dependencies:
+    "@types/fs-extra": "npm:^8.0.1"
+    chokidar: "npm:^3.4.0"
+    colorette: "npm:^1.1.0"
+    fs-extra: "npm:^8.1.0"
+    globby: "npm:10.0.1"
+    is-plain-object: "npm:^3.0.0"
+  checksum: 10c0/d63dc5907e3aa5e3a2b65896de423fa12d293f4934877dc1ba86ef978ec2cb4e7be606151bf46ec06102c0f4ca7232cfb0db186bbfc75a43655d2a0a07003974
+  languageName: node
+  linkType: hard
+
 "rollup-plugin-copy@npm:^3.5.0":
   version: 3.5.0
   resolution: "rollup-plugin-copy@npm:3.5.0"
@@ -7397,6 +7411,7 @@ __metadata:
     prettier-plugin-organize-imports: "npm:^4.1.0"
     rollup: "npm:^4.43.0"
     rollup-plugin-copy: "npm:^3.5.0"
+    rollup-plugin-copy-watch: "npm:^0.0.1"
     rollup-plugin-delete: "npm:^3.0.1"
     rollup-plugin-dts: "npm:^6.2.1"
     rollup-plugin-postcss: "npm:^4.0.2"
