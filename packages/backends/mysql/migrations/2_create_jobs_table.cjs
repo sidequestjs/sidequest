@@ -1,6 +1,6 @@
 exports.up = async function(knex) {
   await knex.schema.createTable('sidequest_jobs', (table) => {
-    table.bigIncrements('id').unsigned().primary();
+    table.bigIncrements('id').primary();
 
     table.string('queue', 191).notNullable().index();
 
@@ -10,21 +10,21 @@ exports.up = async function(knex) {
     table.json('args').notNullable();
     table.json('constructor_args').notNullable();
 
-    table.integer('timeout').unsigned().nullable();
-    table.integer('attempt').unsigned().notNullable();
-    table.integer('max_attempts').unsigned().notNullable();
+    table.integer('timeout').nullable();
+    table.integer('attempt').notNullable();
+    table.integer('max_attempts').notNullable();
     table.json('result').nullable();
     table.json('errors').nullable();
 
-    table.timestamp('inserted_at').notNullable().defaultTo(knex.fn.now());
-    table.timestamp('attempted_at').nullable();
-    table.timestamp('available_at').notNullable();
-    table.timestamp('completed_at').nullable();
-    table.timestamp('failed_at').nullable();
-    table.timestamp('cancelled_at').nullable();
+    table.dateTime('inserted_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
+    table.dateTime('attempted_at', { precision: 3 }).nullable();
+    table.dateTime('available_at', { precision: 3 }).notNullable();
+    table.dateTime('completed_at', { precision: 3 }).nullable();
+    table.dateTime('failed_at', { precision: 3 }).nullable();
+    table.dateTime('cancelled_at', { precision: 3 }).nullable();
 
     table.string('claimed_by', 191).nullable();
-    table.timestamp('claimed_at').nullable();
+    table.dateTime('claimed_at', { precision: 3 }).nullable();
 
     table.string('unique_digest', 191).nullable().unique();
     table.json('uniqueness_config').nullable();
