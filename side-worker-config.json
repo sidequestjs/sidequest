@@ -16,10 +16,9 @@
             "cron": "* * * * *"
         },
         {
-            "name": "Exclusive Task",
+            "name": "One More Task",
             "path": "./test/test_assets/dummy_task.js",
-            "cron": "* * * * *",
-            "workerType": "exclusive"
+            "cron": "* * * * *"
         }
     ]
 }
