@@ -1106,6 +1106,45 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sidequest/core@workspace:*, @sidequest/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/core@workspace:packages/core"
+  dependencies:
+    winston: "npm:^3.17.0"
+  languageName: unknown
+  linkType: soft
+
+"@sidequest/engine@workspace:*, @sidequest/engine@workspace:packages/engine":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/engine@workspace:packages/engine"
+  dependencies:
+    "@sidequest/core": "workspace:*"
+    ejs: "npm:^3.1.10"
+    express: "npm:^5.1.0"
+    express-ejs-layouts: "npm:^2.5.1"
+  languageName: unknown
+  linkType: soft
+
+"@sidequest/postgres-backend@workspace:packages/backends/postgres":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/postgres-backend@workspace:packages/backends/postgres"
+  dependencies:
+    "@sidequest/core": "workspace:*"
+    knex: "npm:^3.1.0"
+    pg: "npm:^8.15.6"
+  languageName: unknown
+  linkType: soft
+
+"@sidequest/sqlite-backend@workspace:packages/backends/sqlite":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/sqlite-backend@workspace:packages/backends/sqlite"
+  dependencies:
+    "@sidequest/core": "workspace:*"
+    knex: "npm:^3.1.0"
+    sqlite3: "npm:^5.1.7"
+  languageName: unknown
+  linkType: soft
+
 "@sinonjs/commons@npm:^3.0.1":
   version: 3.0.1
   resolution: "@sinonjs/commons@npm:3.0.1"
@@ -5870,9 +5909,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sidequest@workspace:.":
+"sidequest-monorepo@workspace:.":
   version: 0.0.0-use.local
-  resolution: "sidequest@workspace:."
+  resolution: "sidequest-monorepo@workspace:."
   dependencies:
     "@eslint/js": "npm:^9.29.0"
     "@istanbuljs/nyc-config-typescript": "npm:^1.0.2"
@@ -5890,16 +5929,11 @@ __metadata:
     c8: "npm:^10.1.3"
     chai: "npm:^5.2.0"
     concurrently: "npm:^9.1.2"
-    ejs: "npm:^3.1.10"
     eslint: "npm:^9.29.0"
     eslint-config-prettier: "npm:^10.1.5"
-    express: "npm:^5.1.0"
-    express-ejs-layouts: "npm:^2.5.1"
-    knex: "npm:^3.1.0"
     mocha: "npm:^11.2.2"
     nodemon: "npm:^3.1.10"
     nyc: "npm:^17.1.0"
-    pg: "npm:^8.15.6"
     postcss: "npm:^8.5.5"
     prettier: "npm:^3.5.3"
     prettier-plugin-organize-imports: "npm:^4.1.0"
@@ -5907,12 +5941,18 @@ __metadata:
     rollup-plugin-dts: "npm:^6.2.1"
     shx: "npm:^0.4.0"
     sinon: "npm:^20.0.0"
-    sqlite3: "npm:^5.1.7"
     tailwindcss: "npm:^4.1.10"
     tsx: "npm:^4.19.4"
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.34.0"
-    winston: "npm:^3.17.0"
+  languageName: unknown
+  linkType: soft
+
+"sidequest@workspace:packages/sidequest":
+  version: 0.0.0-use.local
+  resolution: "sidequest@workspace:packages/sidequest"
+  dependencies:
+    "@sidequest/engine": "workspace:*"
   languageName: unknown
   linkType: soft
 

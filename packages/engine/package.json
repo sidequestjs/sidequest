@@ -1,0 +1,46 @@
+{
+  "name": "@sidequest/engine",
+  "version": "1.0.0-alpha.1",
+  "description": "",
+  "main": "./dist/sidequest.cjs",
+  "module": "./dist/sidequest.js",
+  "types": "./dist/sidequest.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c && yarn copy:ejs && yarn build:web && yarn copy:js && yarn copy:img",
+    "build:web": "tailwindcss -i ./src/web/public/css/styles.css -o ./dist/web/public/css/styles.css",
+    "copy:ejs": "shx rm -rf dist/web/views && shx cp -r src/web/views dist/web/views",
+    "copy:js": "shx rm -rf dist/web/public/js && shx cp -r src/web/public/js dist/web/public/js",
+    "copy:img": "shx rm -rf dist/web/public/img && shx cp -r src/web/public/img dist/web/public/img",
+    "dev": "rollup -c -w",
+    "test": "mocha --recursive './src/**/*.test.ts'",
+    "test:coverage": "nyc yarn test",
+    "prepublish": "yarn build"
+  },
+  "author": "Lucas Merencia <lucas@merencia.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@sidequest/core": "workspace:*",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-ejs-layouts": "^2.5.1"
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "check-coverage": true,
+    "all": true,
+    "include": [
+      "src/**/!(*.test.*).[tj]s?(x)"
+    ],
+    "exclude": [
+      "src/**/*.test.ts"
+    ],
+    "reporter": [
+      "html",
+      "lcov",
+      "text"
+    ],
+    "report-dir": "coverage"
+  },
+  "packageManager": "yarn@4.9.2"
+}

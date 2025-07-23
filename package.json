@@ -1,26 +1,19 @@
 {
-  "name": "sidequest",
-  "version": "1.0.0-alpha.1",
-  "description": "",
-  "main": "./dist/sidequest.cjs",
-  "module": "./dist/sidequest.js",
-  "types": "./dist/sidequest.d.ts",
+  "name": "sidequest-monorepo",
+  "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "packages/backends/*"
+  ],
   "scripts": {
-    "build": "rollup -c && yarn copy:ejs && yarn build:web && yarn copy:js && yarn copy:img",
-    "build:web": "tailwindcss -i ./src/web/public/css/styles.css -o ./dist/web/public/css/styles.css",
-    "copy:ejs": "shx rm -rf dist/web/views && shx cp -r src/web/views dist/web/views",
-    "copy:js": "shx rm -rf dist/web/public/js && shx cp -r src/web/public/js dist/web/public/js",
-    "copy:img": "shx rm -rf dist/web/public/img && shx cp -r src/web/public/img dist/web/public/img",
-    "dev": "rollup -c -w",
-    "test": "mocha --recursive './src/**/*.test.ts'",
-    "test:coverage": "nyc yarn test",
-    "prepublish": "yarn build",
+    "build": "yarn workspaces foreach -Apt run build",
+    "test": "yarn workspaces foreach -Apt run test",
     "format": "prettier --write \"**/*.{ts,js,tsx,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,tsx,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,js,tsx,jsx,json,md}\"",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix"
   },
-  "author": "Lucas Merencia <lucas@merencia.com>",
-  "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
@@ -54,32 +47,6 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
-  },
-  "dependencies": {
-    "ejs": "^3.1.10",
-    "express": "^5.1.0",
-    "express-ejs-layouts": "^2.5.1",
-    "knex": "^3.1.0",
-    "pg": "^8.15.6",
-    "sqlite3": "^5.1.7",
-    "winston": "^3.17.0"
-  },
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript",
-    "check-coverage": true,
-    "all": true,
-    "include": [
-      "src/**/!(*.test.*).[tj]s?(x)"
-    ],
-    "exclude": [
-      "src/**/*.test.ts"
-    ],
-    "reporter": [
-      "html",
-      "lcov",
-      "text"
-    ],
-    "report-dir": "coverage"
   },
   "packageManager": "yarn@4.9.2"
 }

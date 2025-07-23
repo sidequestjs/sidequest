@@ -1,0 +1,18 @@
+{
+  "name": "@sidequest/core",
+  "version": "1.0.0-alpha.1",
+  "description": "",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "author": "Lucas Merencia <lucas@merencia.com>",
+  "license": "ISC",
+  "dependencies": {
+    "winston": "^3.17.0"
+  },
+  "packageManager": "yarn@4.9.2"
+}
