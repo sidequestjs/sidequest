@@ -1,3 +1,5 @@
+'use strict';
+
 const cron = require('node-cron');
 
 function registerTask(task){
@@ -12,7 +14,7 @@ function registerTask(task){
         type: 'registred',
         data: task
     });
-};
+}
 
 process.on('message', (message) => {
     switch(message.type){
@@ -27,4 +29,4 @@ process.on('uncaughtException', (error) => {
         type: 'fail',
         data: error
     });
-})
+});

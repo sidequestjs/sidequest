@@ -1,3 +1,7 @@
-exports.run = async () => {
-    throw "async error";
-}
+'use strict';
+
+exports.run = () => {
+    return new Promise((_, reject) => {
+       reject('async error'); 
+    });
+};

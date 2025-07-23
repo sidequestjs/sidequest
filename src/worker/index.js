@@ -1,3 +1,5 @@
+'use strict';
+
 const { fork } = require('child_process');
 const events = require('events');
 
@@ -39,7 +41,7 @@ function Worker(task) {
             type: 'execute',
             data: workerTask
         });
-    }
+    };
     
     /**
      * task return the executed task
@@ -47,7 +49,7 @@ function Worker(task) {
      */
     this.task = () => {
         return workerTask;
-    }
+    };
 
     /**
      * id returns the worker id
@@ -55,7 +57,7 @@ function Worker(task) {
      */
     this.id = () => {
         return workerId;
-    }
+    };
     
     /**
      * pid returns the child process pid
@@ -63,14 +65,14 @@ function Worker(task) {
      */
     this.pid = () => {
         return forkProcess.pid.toString();
-    }
+    };
     
     /**
      * terminate sends a SIGTERM to chield process
      */
     this.terminate = () => {
         forkProcess.kill('SIGTERM');
-    }
+    };
     
     /**
      * isDead returns true if the child process was terminated
@@ -78,7 +80,7 @@ function Worker(task) {
      */
     this.isDead = () => {
         return forkProcess.killed;
-    }
+    };
 
     /**
      * isAlive returns true if the child process is running
@@ -86,8 +88,8 @@ function Worker(task) {
      */
     this.isAlive = () => {
         return !this.isDead();
-    }
+    };
 }
 
-Worker.prototype.__proto__ = events.EventEmitter.prototype;
+Worker.prototype = events.EventEmitter.prototype;
 module.exports = Worker;

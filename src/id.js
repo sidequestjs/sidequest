@@ -1,3 +1,5 @@
+'use strict';
+
 const nanoid = require('nanoid/generate');
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 /**
@@ -13,5 +15,5 @@ module.exports = (() => {
     }
     return {
        generate: generate 
-    }
+    };
 })();

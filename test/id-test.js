@@ -1,3 +1,5 @@
+'use strict';
+
 const id = require('../src/id');
 const { assert } = require('chai');
 

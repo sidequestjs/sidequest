@@ -1,3 +1,5 @@
+'use strict';
+
 exports.run = () => {
     let wait = true;
     let startedAt = new Date();
@@ -8,5 +10,5 @@ exports.run = () => {
         }
     }
     
-    return "slow task executed";
-}
+    return 'slow task executed';
+};
