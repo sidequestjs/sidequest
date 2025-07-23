@@ -90,11 +90,18 @@ jobsRouter.get("/:id", async (req, res) => {
   const isHtmx = req.get("hx-request");
 
   if (job) {
-    res.render("pages/job", {
-      title: `Job #${job.id}`,
-      job,
-      layout: !isHtmx,
-    });
+    if (isHtmx) {
+      res.render("partials/job-view", {
+        title: `Job #${job.id}`,
+        job,
+        layout: false,
+      });
+    } else {
+      res.render("pages/job", {
+        title: `Job #${job.id}`,
+        job,
+      });
+    }
   } else {
     res.status(404).send("Job not found!");
   }
@@ -108,12 +115,11 @@ jobsRouter.patch("/:id/run", async (req, res) => {
 
   if (job) {
     await backend.updateJob({ id: job.id, available_at: new Date() });
-    res.header("HX-Trigger", "runJob").status(200).end();
+    res.header("HX-Trigger", "jobChanged").status(200).end();
   } else {
     res.status(404).end();
   }
 });
-
 
 jobsRouter.patch("/:id/cancel", async (req, res) => {
   const backend = getBackend();
@@ -121,9 +127,24 @@ jobsRouter.patch("/:id/cancel", async (req, res) => {
   const jobId = parseInt(req.params.id);
   const job = await backend?.getJob(jobId);
 
-  if(job){
+  if (job) {
     await backend.updateJob({ ...job, state: "canceled" });
-    res.header("HX-Trigger", "cancelJob").status(200).end();
+    res.header("HX-Trigger", "jobChanged").status(200).end();
+  } else {
+    res.status(404).end();
+  }
+});
+
+jobsRouter.patch("/:id/rerun", async (req, res) => {
+  const backend = getBackend();
+
+  const jobId = parseInt(req.params.id);
+  const job = await backend?.getJob(jobId);
+
+  if (job) {
+    const maxAttempts = job.max_attempts === job.attempt ? job.max_attempts + 1 : job.max_attempts;
+    await backend.updateJob({ ...job, state: "waiting", max_attempts: maxAttempts });
+    res.header("HX-Trigger", "jobChanged").status(200).end();
   } else {
     res.status(404).end();
   }

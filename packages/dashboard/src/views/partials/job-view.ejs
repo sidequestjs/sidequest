@@ -2,7 +2,7 @@
   id="job-details"
   hx-get="/jobs/<%= job.id %>"
   hx-swap="outerHTML"
-  hx-trigger="every 3s, runJob, cancelJob"
+  hx-trigger="every 3s, jobChanged"
 >
   <div class="flex w-full">
     <h1 class="text-2xl font-bold flex-1">
@@ -25,6 +25,9 @@
       <% if (job.available_at > new Date()) { %>
       <button type="button" class="btn btn-sm btn-outline" hx-patch="/jobs/<%= job.id %>/run"><i data-feather="play" class="w-4 h-4"></i>Run</button>
       <% } %>
+      <% if (['canceled', 'failed', 'completed'].includes(job.state)){ %>
+        <button class="btn btn-sm btn-outline" hx-patch="/jobs/<%= job.id %>/rerun"><i data-feather="refresh-ccw" class="w-4 h-4"></i>Re-Run</button>
+        <% } %>
       <button class="btn btn-sm btn-outline"><i data-feather="trash" class="w-4 h-4"></i>Delete</button>
     </div>
   </div>
@@ -182,7 +185,6 @@
           </div>
         </div>
       <% } %>
-      
     </div>
   </div>
 </section>
