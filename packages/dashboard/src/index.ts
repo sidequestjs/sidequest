@@ -1,9 +1,9 @@
 import { JobState, logger } from "@sidequest/core";
 import { Engine } from "@sidequest/engine";
 import express from "express";
+import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
-import basicAuth from 'express-basic-auth';
 import { DashboardConfig } from "./config";
 
 export class SidequestDashboard {
@@ -13,14 +13,16 @@ export class SidequestDashboard {
 
     const app = express();
 
-    if(config?.auth){
+    if (config?.auth) {
       const auth = config.auth;
-      const users = {}
+      const users = {};
       users[auth.user] = auth.password;
-      app.use(basicAuth({
-        users: users,
-        challenge: true,
-      }));
+      app.use(
+        basicAuth({
+          users: users,
+          challenge: true,
+        }),
+      );
     }
 
     app.use(expressLayouts);
@@ -96,10 +98,10 @@ export class SidequestDashboard {
 
     const port = config?.port ?? 8678;
     app.listen(port, (error) => {
-      if(error){
+      if (error) {
         logger().error("Failed to start Sidequest Dashboard!", error);
       } else {
-        logger().info(`Server running on http://localhost:${port}`)
+        logger().info(`Server running on http://localhost:${port}`);
       }
     });
   }

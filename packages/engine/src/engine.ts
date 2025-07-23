@@ -73,7 +73,7 @@ export class Engine {
           _mainWorker = fork(workerPath);
           _mainWorker.on("message", (msg) => {
             if (msg === "ready") {
-              _mainWorker?.send({ type: "start", config });
+              _mainWorker?.send({ type: "start", sidequestConfig: config });
               clearTimeout(timeout);
               resolve();
             }

@@ -20,7 +20,7 @@ export function configureLogger(options: LoggerOptions) {
   winston.addColors(colors);
 
   const newLogger = winston.createLogger({
-    level: "debug",
+    level: options.level,
     format: buildFormat(),
     transports: [new winston.transports.Console()],
   });
