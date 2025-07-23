@@ -9,7 +9,7 @@
       <th class="px-4 py-3">Available At</th>
       <th class="px-4 py-3">Completed At</th>
       <th class="px-4 py-3">Claimed By</th>
-      <th class="px-4 py-3"></th>
+      <th class="max-w-3"></th>
     </tr>
   </thead>
   <tbody>
@@ -34,11 +34,14 @@
       <td class="px-4 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
       <td class="px-4 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
       <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
-      <% if (job.available_at > new Date()) { %>
-      <td class="px-4 py-3">
-        <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run">Run</button>
+      <td class="max-w-3">
+        <% if (job.available_at > new Date()) { %>
+          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run"><i data-feather="play" class="w-4 h-4"></i>Run</button>
+        <% } %>
+        <% if (!['canceled', 'failed', 'completed'].includes(job.state)){ %>
+          <button class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/cancel"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
+        <% } %>
       </td>
-      <% } %>
     </tr>
     <% }) %>
   </tbody>
