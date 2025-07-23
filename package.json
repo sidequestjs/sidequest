@@ -7,7 +7,7 @@
     "packages/backends/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach -Apti run build",
+    "build": "yarn workspaces foreach -Api --topological-dev run build",
     "test": "yarn vitest",
     "test:ci": "yarn vitest run",
     "test:debug": "yarn vitest --test-timeout=0 run",
