@@ -2,9 +2,9 @@
   "name": "side-worker",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/side-worker.js",
   "scripts": {
-    "test": "nyc --reporter=html --reporter=text mocha --recursive"
+    "test": "nyc --reporter=html --reporter=text mocha --recursive --timeout 5000"
   },
   "author": "",
   "license": "ISC",
