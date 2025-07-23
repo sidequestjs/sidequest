@@ -1,7 +1,8 @@
 import path from "path";
 import { Job, Sidequest, SidequestConfig } from "../sidequest";
 import { fork } from "child_process";
-import { JobData } from "src/core/schema/job-data";
+import { JobData } from "../core/schema/job-data";
+import { grantQueueConfig } from "../core/queue/grant-queue-config";
 
 const executorPath = path.resolve(__dirname, 'executor.js');
 
@@ -20,7 +21,7 @@ async function run(sidequestConfig: SidequestConfig){
           activeJobsPerQueue[queue] = new Set();
         }
         const activeJobs = activeJobsPerQueue[queue];
-        const queueConfig = await Sidequest.getQueueConfig(queue);
+        const queueConfig = await grantQueueConfig(queue, { concurrency: 10, queue: queue, state: 'active'});
         const limit = queueConfig.concurrency || 10;
 
         if(activeJobs.size >= limit){

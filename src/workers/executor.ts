@@ -1,7 +1,7 @@
 import { Sidequest, SidequestConfig } from "../sidequest";
 import { Job } from "../core/job";
-import { JobData } from "src/core/schema/job-data";
-import { JobActions } from "src/core/job/job-actions";
+import { JobData } from "../core/schema/job-data";
+import { JobActions } from "../core/job/job-actions";
 
 export async function execute(jobData: JobData, config: SidequestConfig): Promise<void> {
     await Sidequest.configure(config);

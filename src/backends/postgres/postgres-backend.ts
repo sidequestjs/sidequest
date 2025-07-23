@@ -25,7 +25,7 @@ export class PostgresBackend implements Backend{
     return newConfig[0];
   }
 
-  async getQueueConfig(queue: string, fallback?: QueueConfig): Promise<QueueConfig> {
+  async getQueueConfig(queue: string): Promise<QueueConfig> {
     return  this.knex('sidequest_queues').where({queue: queue}).first();
   }
 

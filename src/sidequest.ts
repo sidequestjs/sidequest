@@ -4,6 +4,7 @@ import { Backend } from './backends/backend';
 import { PostgresBackend } from './sidequest';
 import { grantQueueConfig } from './core/queue/grant-queue-config';
 import { QueueConfig } from './core/schema/queue-config';
+import { SqliteBackend } from './backends/sqlite/sqlite-backend';
 
 const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
@@ -15,17 +16,17 @@ let _mainWorker: ChildProcess | undefined;
 export type QueueState = 'active' | 'paused';
 
 export type SidequestConfig = {
-  backend_url: string,
+  backend?: Backend,
   queues: Map<string, QueueConfig>
 }
 
 export  class Sidequest {
-  static async configure(config: SidequestConfig){
-    _config = config;
-    _backend = new PostgresBackend({ connection: config.backend_url });
+  static async configure(config?: SidequestConfig){
+    _config = config || { queues: new Map<string, QueueConfig>};
+    _backend = new SqliteBackend();
     await _backend.setup();
-    for(let queue of Object.keys(config.queues)){
-      await grantQueueConfig(queue, config.queues[queue])
+    for(let queue of Object.keys(_config.queues)){
+      await grantQueueConfig(queue, _config.queues[queue]);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Sidequest } from "src/sidequest";
+import { Sidequest } from "../../sidequest";
 import { JobData } from "../schema/job-data";
 
 export class JobActions {
