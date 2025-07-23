@@ -1,16 +1,20 @@
+import { SQLBackend } from "packages/backends/backend/dist";
 import { QueueConfig } from "packages/core/dist";
-import { Engine, SidequestConfig } from "../engine";
+import { SidequestConfig } from "../engine";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 
 export class QueueManager {
-  async getQueuesWithRunnableJobs(sidequestConfig?: SidequestConfig) {
-    const backend = Engine.getBackend()!;
+  constructor(
+    private config: SidequestConfig,
+    private backend: SQLBackend,
+  ) {}
 
-    const queueNames = await backend.getQueuesFromJobs();
+  async getQueuesWithRunnableJobs() {
+    const queueNames = await this.backend.getQueuesFromJobs();
 
     const queues: QueueConfig[] = [];
     for (const queue of queueNames) {
-      const fromConfig = sidequestConfig?.queues?.find((q) => q.name === queue);
+      const fromConfig = this.config?.queues?.find((q) => q.name === queue);
       const queueConfig = await grantQueueConfig(queue, fromConfig);
       if (queueConfig) {
         queues.push(queueConfig);

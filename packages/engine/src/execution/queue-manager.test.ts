@@ -21,7 +21,10 @@ describe("QueueManager", () => {
   it("get query config from waiting job in a new queue", async () => {
     await Engine.build(DummyJob).queue("new").enqueue();
 
-    const queues = await new QueueManager().getQueuesWithRunnableJobs({ queues: [{ name: "default" }] });
+    const queues = await new QueueManager(
+      { queues: [{ name: "default" }] },
+      Engine.getBackend()!,
+    ).getQueuesWithRunnableJobs();
     expect(queues).toHaveLength(1);
     expect(queues[0].name).toEqual("new");
   });
@@ -30,7 +33,10 @@ describe("QueueManager", () => {
     await grantQueueConfig("default", { name: "default", concurrency: 16 });
     await Engine.build(DummyJob).queue("default").enqueue();
 
-    const queues = await new QueueManager().getQueuesWithRunnableJobs({ queues: [{ name: "default" }] });
+    const queues = await new QueueManager(
+      { queues: [{ name: "default" }] },
+      Engine.getBackend()!,
+    ).getQueuesWithRunnableJobs();
     expect(queues).toHaveLength(1);
     expect(queues[0].name).toEqual("default");
     expect(queues[0].concurrency).toEqual(16);
@@ -43,7 +49,10 @@ describe("QueueManager", () => {
     await Engine.build(DummyJob).queue("default").enqueue();
     await Engine.build(DummyJob).queue("high").enqueue();
 
-    const queues = await new QueueManager().getQueuesWithRunnableJobs({ queues: [{ name: "default" }] });
+    const queues = await new QueueManager(
+      { queues: [{ name: "default" }] },
+      Engine.getBackend()!,
+    ).getQueuesWithRunnableJobs();
     expect(queues).toHaveLength(2);
     expect(queues[0].name).toEqual("high");
     expect(queues[0].priority).toEqual(10);

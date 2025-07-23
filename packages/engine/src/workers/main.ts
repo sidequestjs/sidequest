@@ -2,6 +2,8 @@ import { DuplicatedJobError, logger } from "@sidequest/core";
 import cron from "node-cron";
 import { Engine, SidequestConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
+import { ExecutorManager } from "../execution/executor-manager";
+import { QueueManager } from "../execution/queue-manager";
 import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
 import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { gracefulShutdown } from "../utils/shutdown";
@@ -12,7 +14,13 @@ let dispatcher: Dispatcher | undefined;
 export async function runWorker(sidequestConfig: SidequestConfig) {
   try {
     await Engine.configure(sidequestConfig);
-    dispatcher = new Dispatcher(sidequestConfig);
+    const backend = Engine.getBackend()!;
+
+    dispatcher = new Dispatcher(
+      backend,
+      new QueueManager(sidequestConfig, backend),
+      new ExecutorManager(sidequestConfig),
+    );
     dispatcher.start();
 
     startCron(sidequestConfig);
