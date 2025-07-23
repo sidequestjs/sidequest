@@ -85,10 +85,23 @@ describe("job.ts", () => {
     expect(jobData.length).toBe(1);
   });
 
+  it("should not be able to enqueue duplicated jobs in the same period", async () => {
+    await new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue();
+    await expect(new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue()).rejects.toThrow();
+    await new Promise((r) => { setTimeout(r, 1100)});
+    await new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue();
+
+    const jobData = await Engine.getBackend()!.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
   it("should not be able to enqueue duplicated jobs with different args withargs=false", async () => {
-    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: false }).enqueue();
+    await new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue();
     await expect(
-      new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: false }).enqueue("arg1"),
+      new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue("arg1"),
     ).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({
@@ -99,8 +112,8 @@ describe("job.ts", () => {
   });
 
   it("should be able to enqueue duplicated jobs with different args", async () => {
-    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue();
-    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1");
+    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue();
+    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1");
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
@@ -110,9 +123,9 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs with same args withargs=true", async () => {
-    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1");
+    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1");
     await expect(
-      new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1"),
+      new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1"),
     ).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({

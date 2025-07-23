@@ -1,4 +1,11 @@
-import { AliveJobConfig, FixedWindowConfig, JobData, UniquenessConfig, UniquenessFactory } from "@sidequest/core";
+import {
+  AliveJobConfig,
+  FixedWindowConfig,
+  JobData,
+  TimePeriod,
+  UniquenessConfig,
+  UniquenessFactory,
+} from "@sidequest/core";
 import { Engine } from "../engine";
 import { JobClassType } from "./job";
 
@@ -30,7 +37,7 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
-  unique(value: boolean | AliveJobConfig | FixedWindowConfig): this {
+  unique(value: boolean | { withArgs?: boolean; period?: TimePeriod }): this {
     if (typeof value === "boolean") {
       if (value) {
         const config: AliveJobConfig = {
@@ -40,7 +47,15 @@ export class JobBuilder<T extends JobClassType> {
         this.uniquenessConfig = config;
       }
     } else {
-      this.uniquenessConfig = value;
+      if (value.period) {
+        this.uniquenessConfig = {
+          type: "fixed-window",
+          period: value.period,
+          withArgs: value.withArgs,
+        } as FixedWindowConfig;
+      } else {
+        this.uniquenessConfig = { type: "alive-job", withArgs: value.withArgs } as AliveJobConfig;
+      }
     }
     return this;
   }

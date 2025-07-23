@@ -8,7 +8,7 @@ const aliveStates: JobState[] = ["waiting", "claimed", "running"];
 
 export interface AliveJobConfig {
   type: "alive-job";
-  withArgs: boolean;
+  withArgs?: boolean;
 }
 
 export class AliveJobUniqueness implements Uniqueness {

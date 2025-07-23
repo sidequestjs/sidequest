@@ -4,12 +4,12 @@ import crypto from "crypto";
 import stableStringify from "json-stable-stringify";
 import { JobData } from "../schema";
 
-type TimePeriod = "second" | "minute" | "hour" | "day" | "week" | "month";
+export type TimePeriod = "second" | "minute" | "hour" | "day" | "week" | "month";
 
 export interface FixedWindowConfig {
   type: "fixed-window";
   period: TimePeriod;
-  withArgs: boolean;
+  withArgs?: boolean;
 }
 
 export class FixedWindowUniqueness implements Uniqueness {
