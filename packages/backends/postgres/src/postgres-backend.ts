@@ -90,35 +90,4 @@ export default class PostgresBackend extends SQLBackend {
     const result = await query;
     return result as JobData[];
   }
-
-  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
-    const jobs = await this.knex("sidequest_jobs")
-      .select("*")
-      .whereRaw(
-        `
-        (
-          state = 'claimed'
-          AND claimed_at IS NOT NULL
-          AND (EXTRACT(EPOCH FROM (NOW() - claimed_at)) * 1000) > ?
-        )
-        OR
-        (
-          state = 'running'
-          AND attempted_at IS NOT NULL
-          AND timeout IS NOT NULL
-          AND (EXTRACT(EPOCH FROM (NOW() - attempted_at)) * 1000) > timeout
-        )
-        OR
-        (
-          state = 'running'
-          AND attempted_at IS NOT NULL
-          AND timeout IS NULL
-          AND (EXTRACT(EPOCH FROM (NOW() - attempted_at)) * 1000) > ?
-        )
-      `,
-        [maxClaimedMs, maxStaleMs],
-      );
-
-    return jobs as JobData[];
-  }
 }

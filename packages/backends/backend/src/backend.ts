@@ -131,7 +131,33 @@ export abstract class SQLBackend {
     };
   }): Promise<JobData[]>;
 
-  abstract staleJobs(maxStaleMs?: number, maxClaimedMs?: number): Promise<JobData[]>;
+  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+    const now = new Date();
+    const jobs = (await this.knex("sidequest_jobs")
+      .select("*")
+      .where((qb) => {
+        qb.where("state", "claimed")
+          .andWhereNot("claimed_at", null)
+          .andWhere("claimed_at", "<", new Date(now.getTime() - maxClaimedMs));
+      })
+      .orWhere((qb) => {
+        qb.where("state", "running").andWhereNot("attempted_at", null);
+      })) as JobData[];
+
+    const parsedJobs = jobs.map(safeParseJobData);
+
+    // We filter the running here to account for timeout and different DBs
+    const filtered = parsedJobs.filter((job) => {
+      if (job.state === "running" && job.timeout != null) {
+        return new Date(job.attempted_at!).getTime() < now.getTime() - job.timeout;
+      }
+      if (job.state === "running" && job.timeout == null) {
+        return new Date(job.attempted_at!).getTime() < now.getTime() - maxStaleMs;
+      }
+      return true; // already filtered `claimed` by SQL
+    });
+    return filtered;
+  }
 
   async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
     await this.knex("sidequest_jobs")
