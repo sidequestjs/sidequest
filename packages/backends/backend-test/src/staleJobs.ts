@@ -1,6 +1,6 @@
 import { NewJobData } from "@sidequest/backend";
 import { describe, it } from "vitest";
-import { backend } from ".";
+import { backend } from "./backend";
 
 export default function defineStaleJobsTestSuite() {
   describe("staleJobs", () => {

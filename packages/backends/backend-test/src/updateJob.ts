@@ -1,7 +1,7 @@
 import { NewJobData } from "@sidequest/backend";
 import { JobData, toErrorData } from "packages/core/dist";
 import { describe, it } from "vitest";
-import { backend } from ".";
+import { backend } from "./backend";
 
 export default function defineUpdateJobTestSuite() {
   describe("updateJob", () => {

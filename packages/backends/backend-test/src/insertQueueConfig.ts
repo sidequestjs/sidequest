@@ -1,5 +1,5 @@
 import { describe, it } from "vitest";
-import { backend } from ".";
+import { backend } from "./backend";
 
 export default function defineInsertQueueConfigTestSuite() {
   describe("insertQueueConfig / getQueueConfig", () => {
