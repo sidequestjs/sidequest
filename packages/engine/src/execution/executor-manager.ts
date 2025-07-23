@@ -1,7 +1,6 @@
 import { Backend } from "@sidequest/backend";
 import { JobData, JobTransitionFactory, logger, QueueConfig, RunningTransition } from "@sidequest/core";
 import EventEmitter from "events";
-import { SidequestConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
 
@@ -11,21 +10,24 @@ import { RunnerPool } from "../shared-runner";
 export class ExecutorManager {
   private activeByQueue: Record<string, Set<number>>;
   private activeJobs: Set<number>;
-  private sidequestConfig: SidequestConfig;
-  private backend: Backend;
   private runnerPool: RunnerPool;
 
   /**
    * Creates a new ExecutorManager.
-   * @param sidequestConfig The Sidequest configuration.
    * @param backend The backend instance.
+   * @param maxConcurrentJobs The maximum number of concurrent jobs across all queues.
+   * @param minThreads Minimum number of worker threads to use.
+   * @param maxThreads Maximum number of worker threads to use.
    */
-  constructor(sidequestConfig: SidequestConfig, backend: Backend) {
+  constructor(
+    private backend: Backend,
+    private maxConcurrentJobs: number,
+    minThreads: number,
+    maxThreads: number,
+  ) {
     this.activeByQueue = {};
     this.activeJobs = new Set();
-    this.sidequestConfig = sidequestConfig;
-    this.backend = backend;
-    this.runnerPool = new RunnerPool();
+    this.runnerPool = new RunnerPool(minThreads, maxThreads);
   }
 
   /**
@@ -52,7 +54,7 @@ export class ExecutorManager {
    * @returns The number of available slots.
    */
   availableSlotsGlobal() {
-    const limit = this.sidequestConfig.maxConcurrentJobs ?? 10;
+    const limit = this.maxConcurrentJobs;
     const availableSlots = limit - this.activeJobs.size;
     if (availableSlots < 0) {
       return 0;

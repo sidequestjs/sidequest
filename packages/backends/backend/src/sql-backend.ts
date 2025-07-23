@@ -2,6 +2,7 @@ import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sid
 import { Knex } from "knex";
 import { hostname } from "os";
 import { Backend, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
+import { JOB_FALLBACK, MISC_FALLBACK, QUEUE_FALLBACK } from "./constants";
 import { safeParseJobData, whereOrWhereIn } from "./utils";
 
 /**
@@ -60,10 +61,8 @@ export abstract class SQLBackend implements Backend {
 
   async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
     const data: NewQueueData = {
-      name: queueConfig.name,
-      concurrency: queueConfig.concurrency ?? 10,
-      priority: queueConfig.priority ?? 0,
-      state: queueConfig.state ?? "active",
+      ...QUEUE_FALLBACK,
+      ...queueConfig,
     };
 
     logger("Backend").debug(`Inserting new queue config: ${JSON.stringify(data)}`);
@@ -117,15 +116,15 @@ export abstract class SQLBackend implements Backend {
       queue: job.queue,
       script: job.script,
       class: job.class,
-      args: JSON.stringify(job.args ?? []),
-      constructor_args: JSON.stringify(job.constructor_args ?? []),
+      args: JSON.stringify(job.args ?? JOB_FALLBACK.args),
+      constructor_args: JSON.stringify(job.constructor_args ?? JOB_FALLBACK.constructor_args),
       state: job.state,
       attempt: job.attempt,
-      max_attempts: job.max_attempts ?? 5,
-      available_at: job.available_at ?? new Date(),
-      timeout: job.timeout ?? null,
-      unique_digest: job.unique_digest ?? null,
-      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
+      max_attempts: job.max_attempts ?? JOB_FALLBACK.max_attempts,
+      available_at: job.available_at ?? JOB_FALLBACK.available_at,
+      timeout: job.timeout ?? JOB_FALLBACK.timeout,
+      unique_digest: job.unique_digest ?? JOB_FALLBACK.unique_digest,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : JOB_FALLBACK.uniqueness_config,
       inserted_at: new Date(),
     };
     logger("Backend").debug(`Creating new job: ${JSON.stringify(data)}`);
@@ -239,7 +238,10 @@ export abstract class SQLBackend implements Backend {
     return rawJobs.map(safeParseJobData);
   }
 
-  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+  async staleJobs(
+    maxStaleMs = MISC_FALLBACK.maxStaleMs,
+    maxClaimedMs = MISC_FALLBACK.maxClaimedMs,
+  ): Promise<JobData[]> {
     const now = new Date();
     logger("Backend").debug(
       `Fetching stale jobs older than ${maxStaleMs}ms and claimed jobs older than ${maxClaimedMs}ms`,

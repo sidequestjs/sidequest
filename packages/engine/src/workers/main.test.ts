@@ -62,38 +62,38 @@ describe("main.ts", () => {
   });
 
   describe("startCron", () => {
-    it("should schedule both cron jobs", () => {
-      startCron();
+    it("should schedule both cron jobs", async () => {
+      await startCron(60, 600_000, 60_000, 60, 0);
 
       expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
-      expect(cronMocks.schedule).toHaveBeenCalledWith("0 * * * *", expect.any(Function));
+      expect(cronMocks.schedule).toHaveBeenCalledWith("*/60 * * * *", expect.any(Function));
     });
 
     it("should call releaseStaleJobs when release cron executes", async () => {
-      startCron();
+      await startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
       await cronCallback();
 
-      expect(releaseStaleJobs).toHaveBeenCalledWith(Engine.getBackend());
+      expect(releaseStaleJobs).toHaveBeenCalledWith(Engine.getBackend(), 600_000, 60_000);
     });
 
     it("should call cleanupFinishedJobs when cleanup cron executes", async () => {
-      startCron();
+      await startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
 
       await cronCallback();
 
-      expect(cleanupFinishedJobs).toHaveBeenCalledWith(Engine.getBackend());
+      expect(cleanupFinishedJobs).toHaveBeenCalledWith(Engine.getBackend(), 0);
     });
 
     it("should handle errors and log them when releaseStaleJobs fails", async () => {
       const error = new Error("fail");
       (releaseStaleJobs as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(error);
 
-      startCron();
+      await startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 

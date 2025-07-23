@@ -1,6 +1,5 @@
 import { JobData, JobResult, logger } from "@sidequest/core";
 import EventEmitter from "events";
-import os from "os";
 import path from "path";
 import Piscina from "piscina";
 
@@ -17,13 +16,13 @@ export class RunnerPool {
    * Creates a new RunnerPool.
    * @param size The number of worker threads to use (defaults to number of CPUs).
    */
-  constructor(size: number = os.cpus().length) {
+  constructor(minThreads: number, maxThreads: number) {
     this.pool = new Piscina({
       filename: runnerPath,
-      minThreads: size,
-      maxThreads: size * 2,
+      minThreads,
+      maxThreads,
     });
-    logger("RunnerPool").debug(`Created worker pool with min ${size} threads`);
+    logger("RunnerPool").debug(`Created worker pool with min ${minThreads} threads and max ${maxThreads} threads`);
   }
 
   /**

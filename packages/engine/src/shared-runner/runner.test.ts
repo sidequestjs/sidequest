@@ -1,4 +1,4 @@
-import { FailedResult, JobData } from "packages/core/dist";
+import { FailedResult, JobData } from "@sidequest/core";
 import { Engine, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import run from "./runner";

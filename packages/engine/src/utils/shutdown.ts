@@ -31,12 +31,14 @@ async function shutdown(fn: () => void | Promise<void>, tag: string, signal: str
  * @param fn The async function to run during shutdown.
  * @param tag A label for logging.
  */
-export function gracefulShutdown(fn: () => void | Promise<void>, tag: string) {
-  process.on("SIGINT", async () => {
-    await shutdown(fn, tag, "SIGINT");
-  });
+export function gracefulShutdown(fn: () => void | Promise<void>, tag: string, enabled: boolean) {
+  if (enabled) {
+    process.on("SIGINT", async () => {
+      await shutdown(fn, tag, "SIGINT");
+    });
 
-  process.on("SIGTERM", async () => {
-    await shutdown(fn, tag, "SIGTERM");
-  });
+    process.on("SIGTERM", async () => {
+      await shutdown(fn, tag, "SIGTERM");
+    });
+  }
 }

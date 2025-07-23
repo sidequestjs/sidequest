@@ -21,7 +21,7 @@ describe("release-stale-jobs.ts", () => {
     const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
     const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
-    await releaseStaleJobs(backend!);
+    await releaseStaleJobs(backend!, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe("release-stale-jobs.ts", () => {
     const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
     const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
-    await releaseStaleJobs(backend!);
+    await releaseStaleJobs(backend!, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).toHaveBeenCalledTimes(2);
@@ -89,7 +89,7 @@ describe("release-stale-jobs.ts", () => {
     const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([mockStaleJob]);
     const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
-    await releaseStaleJobs(backend!);
+    await releaseStaleJobs(backend!, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).toHaveBeenCalledOnce();
@@ -116,7 +116,7 @@ describe("release-stale-jobs.ts", () => {
     const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
     const updateJobSpy = vi.spyOn(backend!, "updateJob").mockRejectedValue(new Error("Database error"));
 
-    await expect(releaseStaleJobs(backend!)).rejects.toThrow("Database error");
+    await expect(releaseStaleJobs(backend!, 600_000, 60_000)).rejects.toThrow("Database error");
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).toHaveBeenCalledOnce();
@@ -128,9 +128,47 @@ describe("release-stale-jobs.ts", () => {
     const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockRejectedValue(new Error("Failed to fetch stale jobs"));
     const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
-    await expect(releaseStaleJobs(backend!)).rejects.toThrow("Failed to fetch stale jobs");
+    await expect(releaseStaleJobs(backend!, 600_000, 60_000)).rejects.toThrow("Failed to fetch stale jobs");
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).not.toHaveBeenCalled();
+  });
+
+  it("should pass correct maxStaleMs parameter to backend", async () => {
+    const backend = Engine.getBackend();
+    const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
+
+    const maxStaleMs = 300_000; // 5 minutes
+    const maxClaimedMs = 30_000; // 30 seconds
+
+    await releaseStaleJobs(backend!, maxStaleMs, maxClaimedMs);
+
+    expect(staleJobsSpy).toHaveBeenCalledWith(maxStaleMs, maxClaimedMs);
+  });
+
+  it("should handle edge case timing values", async () => {
+    const backend = Engine.getBackend();
+    const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
+
+    // Test with very large numbers
+    const maxStaleMs = Number.MAX_SAFE_INTEGER;
+    const maxClaimedMs = Number.MAX_SAFE_INTEGER - 1;
+
+    await releaseStaleJobs(backend!, maxStaleMs, maxClaimedMs);
+
+    expect(staleJobsSpy).toHaveBeenCalledWith(maxStaleMs, maxClaimedMs);
+  });
+
+  it("should handle millisecond precision timing", async () => {
+    const backend = Engine.getBackend();
+    const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
+
+    // Test with precise millisecond values
+    const maxStaleMs = 123.456; // fractional milliseconds
+    const maxClaimedMs = 987.654;
+
+    await releaseStaleJobs(backend!, maxStaleMs, maxClaimedMs);
+
+    expect(staleJobsSpy).toHaveBeenCalledWith(maxStaleMs, maxClaimedMs);
   });
 });

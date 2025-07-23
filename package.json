@@ -53,8 +53,6 @@
     "@types/node": "^24.0.3",
     "@vitest/coverage-v8": "3.2.4",
     "eslint": "^9.29.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.5.1",
     "globals": "^16.2.0",
     "husky": "^9.1.7",
     "postcss": "^8.5.5",

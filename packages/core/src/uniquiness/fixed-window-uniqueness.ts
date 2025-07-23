@@ -23,7 +23,28 @@ export interface FixedWindowConfig {
 }
 
 /**
- * Uniqueness strategy based on fixed time windows.
+ * Implements uniqueness checking using a fixed time window approach.
+ *
+ * This class generates unique digest keys for jobs based on their class name,
+ * execution time (truncated to a configured period), and optionally their arguments.
+ * Jobs with identical digests within the same time window are considered duplicates.
+ *
+ * The time window is determined by truncating the job's `available_at` timestamp
+ * to the specified period granularity (second, minute, hour, day, week, or month).
+ *
+ * @example
+ * ```typescript
+ * const uniqueness = new FixedWindowUniqueness({
+ *   period: 'hour',
+ *   withArgs: true
+ * });
+ *
+ * const digest = uniqueness.digest(jobData);
+ * // Returns SHA256 hash of "JobClass::time=2023-01-01T15:00:00.000Z::args=[...]::ctor=[...]"
+ * ```
+ *
+ * In this example, jobs of the same class scheduled within the same hour with the same arguments
+ * will have the same digest and thus won't be duplicated.
  */
 export class FixedWindowUniqueness implements Uniqueness {
   /**

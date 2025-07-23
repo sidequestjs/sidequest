@@ -1,6 +1,8 @@
 import {
+  JOB_FALLBACK,
   NewJobData,
   NewQueueData,
+  QUEUE_FALLBACK,
   safeParseJobData,
   SQLBackend,
   UpdateJobData,
@@ -27,10 +29,8 @@ export default class MysqlBackend extends SQLBackend {
 
   async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
     const data: NewQueueData = {
-      name: queueConfig.name,
-      concurrency: queueConfig.concurrency ?? 10,
-      priority: queueConfig.priority ?? 0,
-      state: queueConfig.state ?? "active",
+      ...QUEUE_FALLBACK,
+      ...queueConfig,
     };
 
     logger("Backend").debug(`Inserting new queue config: ${JSON.stringify(data)}`);
@@ -73,15 +73,15 @@ export default class MysqlBackend extends SQLBackend {
       queue: job.queue,
       script: job.script,
       class: job.class,
-      args: JSON.stringify(job.args ?? []),
-      constructor_args: JSON.stringify(job.constructor_args ?? []),
+      args: JSON.stringify(job.args ?? JOB_FALLBACK.args),
+      constructor_args: JSON.stringify(job.constructor_args ?? JOB_FALLBACK.constructor_args),
       state: job.state,
       attempt: job.attempt,
-      max_attempts: job.max_attempts ?? 5,
-      available_at: job.available_at ?? new Date(),
-      timeout: job.timeout ?? null,
-      unique_digest: job.unique_digest ?? null,
-      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
+      max_attempts: job.max_attempts ?? JOB_FALLBACK.max_attempts,
+      available_at: job.available_at ?? JOB_FALLBACK.available_at,
+      timeout: job.timeout ?? JOB_FALLBACK.timeout,
+      unique_digest: job.unique_digest ?? JOB_FALLBACK.unique_digest,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : JOB_FALLBACK.uniqueness_config,
       inserted_at: new Date(),
     };
     logger("Backend").debug(`Creating new job: ${JSON.stringify(data)}`);

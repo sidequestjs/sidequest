@@ -1,7 +1,11 @@
 import { NewJobData } from "@sidequest/backend";
 import {
   AliveJobConfig,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  type AliveJobUniqueness,
   FixedWindowConfig,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  type FixedWindowUniqueness,
   JobData,
   logger,
   TimePeriod,
@@ -9,16 +13,56 @@ import {
   UniquenessFactory,
 } from "@sidequest/core";
 import { Engine } from "../engine";
+import { JOB_BUILDER_FALLBACK } from "./constants";
 import { JobClassType } from "./job";
+
+/**
+ * Configuration for job uniqueness constraints.
+ *
+ * @remarks
+ * Controls how jobs are deduplicated to prevent multiple instances of the same job from running.
+ *
+ * - When `true`: Jobs are made unique based on their type/name only
+ * - When `false`: No uniqueness constraint is applied
+ * - When an object: Provides fine-grained control over uniqueness behavior
+ *
+ * @example
+ * ```typescript
+ * // Simple uniqueness
+ * const unique: UniquenessInput = true;
+ *
+ * // No uniqueness
+ * const notUnique: UniquenessInput = false;
+ *
+ * // Advanced uniqueness with arguments consideration
+ * const advancedUnique: UniquenessInput = {
+ *   withArgs: true,
+ *   period: { hours: 1 }
+ * };
+ * ```
+ */
+export type UniquenessInput = boolean | { withArgs?: boolean; period?: TimePeriod };
+
+export interface JobBuilderDefaults {
+  /** Default queue name for jobs built with the JobBuilder */
+  queue?: string;
+  /** Default timeout in milliseconds for jobs built with the JobBuilder */
+  timeout?: number;
+  /** Default uniqueness configuration for jobs built with the JobBuilder */
+  uniqueness?: UniquenessInput;
+  /** Default maximum attempts for jobs built with the JobBuilder */
+  maxAttempts?: number;
+  /** Default available at date for jobs built with the JobBuilder */
+  availableAt?: Date;
+}
 
 /**
  * Builder for creating and enqueuing jobs with custom configuration.
  * @template T The job class type.
  */
 export class JobBuilder<T extends JobClassType> {
-  private JobClass: T;
-  private constructorArgs: ConstructorParameters<T>;
-  private queueName: string;
+  private constructorArgs?: ConstructorParameters<T>;
+  private queueName?: string;
   private jobTimeout?: number;
   private uniquenessConfig?: UniquenessConfig;
   private jobMaxAttempts?: number;
@@ -28,10 +72,16 @@ export class JobBuilder<T extends JobClassType> {
    * Creates a new JobBuilder for the given job class.
    * @param JobClass The job class constructor.
    */
-  constructor(JobClass: T) {
-    this.JobClass = JobClass;
-    this.constructorArgs = [] as unknown[] as ConstructorParameters<T>;
-    this.queueName = "default";
+  constructor(
+    private JobClass: T,
+    private defaults?: JobBuilderDefaults,
+  ) {
+    this.queue(this.defaults?.queue ?? JOB_BUILDER_FALLBACK.queue!);
+    this.maxAttempts(this.defaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!);
+    this.availableAt(this.defaults?.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!);
+    this.timeout(this.defaults?.timeout ?? JOB_BUILDER_FALLBACK.timeout!);
+    this.unique(this.defaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!);
+    this.with(...(JOB_BUILDER_FALLBACK.constructorArgs as unknown as ConstructorParameters<T>));
   }
 
   /**
@@ -66,11 +116,15 @@ export class JobBuilder<T extends JobClassType> {
 
   /**
    * Sets the uniqueness configuration for the job.
-   * @param value Boolean or uniqueness config object. If true, uses an alive job uniqueness strategy.
+   * @param value Boolean or uniqueness config object. If true, uses an alive job uniqueness strategy (see {@link AliveJobUniqueness}).
    * If false, disables uniqueness. If an object, uses the custom uniqueness strategy.
+   * @param value.withArgs If true, uniqueness is based on job class and job arguments.
+   * If false, uniqueness is based only on the job class.
+   * @param value.period  If a period is provided, uses a fixed window uniqueness strategy (see {@link FixedWindowUniqueness}).
    * @returns This builder instance.
+   * @see {@link UniquenessInput} for more details.
    */
-  unique(value: boolean | { withArgs?: boolean; period?: TimePeriod }): this {
+  unique(value: UniquenessInput): this {
     if (typeof value === "boolean") {
       if (value) {
         const config: AliveJobConfig = {
@@ -78,6 +132,8 @@ export class JobBuilder<T extends JobClassType> {
           withArgs: false,
         };
         this.uniquenessConfig = config;
+      } else {
+        this.uniquenessConfig = undefined; // no uniqueness
       }
     } else {
       if (value.period) {
@@ -119,7 +175,7 @@ export class JobBuilder<T extends JobClassType> {
    * @returns A promise resolving to the created job data.
    */
   async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
-    const job = new this.JobClass(...this.constructorArgs);
+    const job = new this.JobClass(...this.constructorArgs!);
 
     await job.ready();
 
@@ -129,17 +185,17 @@ export class JobBuilder<T extends JobClassType> {
 
     const backend = Engine.getBackend()!;
     const jobData: NewJobData = {
-      queue: this.queueName,
+      queue: this.queueName!,
       script: job.script,
       class: job.className,
       state: "waiting",
       args,
-      constructor_args: this.constructorArgs,
+      constructor_args: this.constructorArgs!,
       attempt: 0,
-      max_attempts: this.jobMaxAttempts ?? 5,
-      available_at: this.jobAvailableAt ?? new Date(),
-      timeout: this.jobTimeout ?? null,
-      uniqueness_config: this.uniquenessConfig ?? null,
+      max_attempts: this.jobMaxAttempts!,
+      available_at: this.jobAvailableAt!,
+      timeout: this.jobTimeout!,
+      uniqueness_config: this.uniquenessConfig!,
     };
     logger("JobBuilder").debug(
       `Enqueuing job ${job.className} with args: ${JSON.stringify(args)}

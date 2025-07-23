@@ -1,7 +1,10 @@
 import {
   Backend,
+  JOB_FALLBACK,
+  MISC_FALLBACK,
   NewJobData,
   NewQueueData,
+  QUEUE_FALLBACK,
   safeParseJobData,
   UpdateJobData,
   UpdateQueueData,
@@ -34,11 +37,9 @@ export default class RedisBackend implements Backend {
     const id = await this.client.incr("sidequest:queue:id");
     const data: QueueConfig = {
       id,
-      name: queueConfig.name,
-      concurrency: queueConfig.concurrency ?? 10,
-      priority: queueConfig.priority ?? 0,
-      state: queueConfig.state ?? "active",
-    };
+      ...QUEUE_FALLBACK,
+      ...queueConfig,
+    } as QueueConfig;
 
     const multi = this.client.multi();
 
@@ -134,13 +135,13 @@ export default class RedisBackend implements Backend {
       state: job.state,
       script: job.script,
       class: job.class,
-      args: job.args ?? [],
-      constructor_args: job.constructor_args ?? [],
+      args: job.args ?? JOB_FALLBACK.args,
+      constructor_args: job.constructor_args ?? JOB_FALLBACK.constructor_args,
       attempt: 0,
-      max_attempts: job.max_attempts ?? 5,
+      max_attempts: job.max_attempts ?? JOB_FALLBACK.max_attempts!,
       inserted_at: insertedAt,
       available_at: availableAt,
-      timeout: job.timeout ?? null,
+      timeout: job.timeout ?? JOB_FALLBACK.timeout!,
       result: null,
       errors: null,
       attempted_at: null,
@@ -149,8 +150,8 @@ export default class RedisBackend implements Backend {
       cancelled_at: null,
       claimed_at: null,
       claimed_by: null,
-      unique_digest: job.unique_digest ?? null,
-      uniqueness_config: job.uniqueness_config ?? null,
+      unique_digest: job.unique_digest ?? JOB_FALLBACK.unique_digest!,
+      uniqueness_config: job.uniqueness_config ?? JOB_FALLBACK.uniqueness_config!,
     };
 
     const multi = this.client.multi();
@@ -358,7 +359,10 @@ export default class RedisBackend implements Backend {
     return safeParseJobData(updated);
   }
 
-  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+  async staleJobs(
+    maxStaleMs = MISC_FALLBACK.maxStaleMs,
+    maxClaimedMs = MISC_FALLBACK.maxClaimedMs,
+  ): Promise<JobData[]> {
     const now = Date.now();
     const [claimedIds, runningIds] = await Promise.all([
       this.client.smembers("sidequest:jobs:by:state:claimed"),

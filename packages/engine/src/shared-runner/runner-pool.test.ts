@@ -42,7 +42,7 @@ describe("RunnerPool", () => {
       state: "waiting",
     });
 
-    pool = new RunnerPool(2);
+    pool = new RunnerPool(2, 4);
   });
 
   it("should call pool.run with job data", async () => {

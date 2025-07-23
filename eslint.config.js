@@ -1,7 +1,6 @@
 // @ts-check
 
 import eslint from "@eslint/js";
-import prettierRecommended from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
@@ -9,7 +8,6 @@ export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   tseslint.configs.stylistic,
-  prettierRecommended,
   {
     ignores: [
       "**/dist/**",
@@ -24,7 +22,6 @@ export default tseslint.config(
   {
     rules: {
       "no-console": "error",
-      "prettier/prettier": "warn",
     },
   },
   {

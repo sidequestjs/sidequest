@@ -59,8 +59,8 @@ describe("Dispatcher", () => {
 
       const dispatcher = new Dispatcher(
         backend,
-        new QueueManager(config, backend),
-        new ExecutorManager(config, backend),
+        new QueueManager(backend, config.queues!),
+        new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4),
       );
       dispatcher.start();
 
@@ -85,8 +85,8 @@ describe("Dispatcher", () => {
 
       const dispatcher = new Dispatcher(
         backend,
-        new QueueManager(config, backend),
-        new ExecutorManager(config, backend),
+        new QueueManager(backend, config.queues!),
+        new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4),
       );
       dispatcher.start();
 
@@ -117,8 +117,8 @@ describe("Dispatcher", () => {
 
       const dispatcher = new Dispatcher(
         backend,
-        new QueueManager(config, backend),
-        new ExecutorManager(config, backend),
+        new QueueManager(backend, config.queues!),
+        new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4),
       );
       dispatcher.start();
 

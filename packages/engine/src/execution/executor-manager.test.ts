@@ -63,56 +63,56 @@ describe("ExecutorManager", () => {
 
   describe("execute", () => {
     it("sends the job to the execution pool", async () => {
-      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(config, backend);
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
 
-      const execPromise = executorManager.execute(queryConfig!, jobData);
-      expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(0);
+      const execPromise = executorManager.execute(queryConfig, jobData);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
       expect(executorManager.availableSlotsGlobal()).toEqual(4);
 
       await execPromise;
       expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
-      expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(1);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(5);
     });
   });
 
   describe("availableSlotsByQueue", () => {
     it("returns the available slots by queue", async () => {
-      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 7 });
-      const executorManager = new ExecutorManager(config, backend);
-      expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(7);
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(7);
     });
 
     it("returns zero as min value", async () => {
-      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 0 });
-      const executorManager = new ExecutorManager(config, backend);
-      void executorManager.execute(queryConfig!, jobData);
-      expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(0);
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
+      void executorManager.execute(queryConfig, jobData);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
     });
   });
 
   describe("availableSlotsGlobal", () => {
     it("returns the global available slots", () => {
-      const executorManager = new ExecutorManager(config, backend);
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
       expect(executorManager.availableSlotsGlobal()).toEqual(5);
     });
 
     it("returns zero as min value", async () => {
-      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 0 });
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
       config.maxConcurrentJobs = 0;
-      const executorManager = new ExecutorManager(config, backend);
-      void executorManager.execute(queryConfig!, jobData);
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      void executorManager.execute(queryConfig, jobData);
       expect(executorManager.availableSlotsGlobal()).toEqual(0);
     });
   });
 
   describe("totalActiveWorkers", () => {
     it("returns the available slots by queue", async () => {
-      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 7 });
-      const executorManager = new ExecutorManager(config, backend);
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
       expect(executorManager.totalActiveWorkers()).toEqual(0);
-      const execPromise = executorManager.execute(queryConfig!, jobData);
+      const execPromise = executorManager.execute(queryConfig, jobData);
       expect(executorManager.totalActiveWorkers()).toEqual(1);
       await execPromise;
       expect(executorManager.totalActiveWorkers()).toEqual(0);

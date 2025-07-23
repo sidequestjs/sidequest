@@ -71,7 +71,7 @@ describe("cleanup-finished-job.ts", () => {
       cancelled_at: oneMonthAgo,
     });
 
-    await cleanupFinishedJobs(backend);
+    await cleanupFinishedJobs(backend, 30 * 24 * 60 * 60 * 1000); // 30 days
 
     const jobs = await backend.listJobs({ state: ["canceled", "failed", "completed"] });
 
