@@ -1,8 +1,8 @@
+import { logger } from "@sidequest/core";
 import { Engine } from "@sidequest/engine";
 import express from "express";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
-import { logger } from "packages/core/dist";
 import { DashboardConfig } from "./config";
 
 export class SidequestDashboard {
