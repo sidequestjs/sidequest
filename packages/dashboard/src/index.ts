@@ -96,7 +96,7 @@ export class SidequestDashboard {
       });
     });
 
-    app.get("/job/:id", async (req, res) => {
+    app.get("/jobs/:id", async (req, res) => {
       const backend = Engine.getBackend();
 
       const jobId = parseInt(req.params.id);
