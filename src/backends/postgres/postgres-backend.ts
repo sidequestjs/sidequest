@@ -43,7 +43,8 @@ export class PostgresBackend implements Backend{
       queue: job.queue,
       class: job.class,
       script: job.script,
-      args: this.knex.raw('?', [JSON.stringify(job.args)])
+      args: this.knex.raw('?', [JSON.stringify(job.args)]),
+      timeout: job.timeout,
     }
 
     const inserted = await this.knex('sidequest_jobs').insert(data).returning('*');
@@ -84,6 +85,7 @@ export class PostgresBackend implements Backend{
       state: job.state,
       script: job.script,
       class: job.class,
+      timeout: job.timeout,
       attempt: job.attempt,
       max_attempts: job.max_attempts,
       errors: job.errors,

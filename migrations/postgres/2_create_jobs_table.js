@@ -8,6 +8,7 @@ exports.up = async function(knex) {
     table.string('class').notNullable();
     table.jsonb('args').notNullable();
 
+    table.integer('timeout').nullable();
     table.integer('attempt').notNullable().defaultTo(0);
     table.integer('max_attempts').notNullable().defaultTo(5);
     table.specificType('result', 'jsonb').notNullable().defaultTo('{}');

@@ -77,9 +77,9 @@ describe('main.ts', ()=> {
     
     await worker.run(config);
     
-    await DynamicDummyJob.enqueue(lowQueueName);
-    await DynamicDummyJob.enqueue(mediumQueueName);
-    await DynamicDummyJob.enqueue(highQueueName);
+    await DynamicDummyJob.config({queue: lowQueueName }).enqueue();
+    await DynamicDummyJob.config({queue: mediumQueueName }).enqueue();
+    await DynamicDummyJob.config({queue: highQueueName }).enqueue();
 
     const executed: JobData[] = [];
 

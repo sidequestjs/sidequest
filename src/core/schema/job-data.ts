@@ -7,6 +7,7 @@ export type JobData = {
     script: string;
     class: string;
     args: any[];
+    timeout?: number;
     attempt: number;
     max_attempts: number;
     result?: any;
