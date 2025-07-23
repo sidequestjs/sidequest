@@ -29,6 +29,19 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,14 +66,19 @@ jobs:
       - name: Run linter
         run: yarn lint
 
-      - name: Wait for PostgreSQL to be ready
+      - name: Wait for PostgreSQL and MySQL to be ready
         run: |
           until pg_isready -h localhost -U postgres; do
             echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
+            echo "Waiting for MySQL..."
             sleep 2
           done
 
       - name: Run tests
         env:
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          MYSQL_URL: mysql://root:root@127.0.0.1:3306/test
         run: yarn test:ci
