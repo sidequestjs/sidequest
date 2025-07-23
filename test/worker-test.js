@@ -37,9 +37,56 @@ describe("Worker", () => {
         });
         worker.execute();
     });
+
     it("should done a task", (done) => {
-        worker.on('done', (task) => {
+        worker.on('done', (task, result) => {
             assert.isNotNull(task);
+            assert.equal(result, "dummy task!");
+            done()
+        });
+        worker.execute();
+    });
+
+    it("should done a task with error", (done) => {
+        worker.terminate();
+        worker = new Worker({
+            "name": "Task",
+            "path": path.resolve("./test/test_assets/dummy_task_error.js"),
+            "cron": "* * * * * *"
+        });
+        worker.on('error', (task, error) => {
+            assert.isNotNull(task);
+            assert.equal(error, "dummy error");
+            done()
+        });
+        worker.execute();
+    });
+
+    it("should done a task that returns a primise", (done) => {
+        worker.terminate();
+        worker = new Worker({
+            "name": "Task",
+            "path": path.resolve("./test/test_assets/promise-task.js"),
+            "cron": "* * * * * *"
+        });
+        worker.on('done', (task, result) => {
+            assert.isNotNull(task);
+            assert.equal(result, "async task!");
+            done()
+        });
+        worker.execute();
+    });
+
+    it("should done a task thar return a promise and with error", (done) => {
+        worker.terminate();
+        worker = new Worker({
+            "name": "Task",
+            "path": path.resolve("./test/test_assets/promise-task-error.js"),
+            "cron": "* * * * * *"
+        });
+        worker.on('error', (task, error) => {
+            assert.isNotNull(task);
+            assert.equal(error, "async error");
             done()
         });
         worker.execute();

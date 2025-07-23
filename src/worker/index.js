@@ -22,7 +22,10 @@ function Worker(task) {
                 break;
             case 'execution-done':
                 forkProcess.kill();
-                this.emit('done', message.data);
+                this.emit('done', message.data, message.result);
+                break;
+            case 'execution-error':
+                this.emit('error', message.data, message.error);
                 break;
         }
     });

@@ -31,7 +31,7 @@ function MasterWorker (config) {
             worker.on('started', () => {
                 this.emit('task-started', worker);
             });
-            worker.on('done', () => {
+            worker.on('done', (task, result, error) => {
                 currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
                 this.emit('task-done', task);
             });    
