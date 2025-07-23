@@ -1,10 +1,9 @@
 import { Knex, knex as createKnex } from "knex";
 import { Backend } from "../backend";
 import path from "path";
-import { Job } from "../../core/job";
-
 import os from 'os';
-import { QueueConfig } from "src/sidequest";
+import { JobData } from "../../core/schema/job-data";
+import { QueueConfig } from "../../core/schema/queue-config";
 
 export class PostgresBackend implements Backend{
   knex: Knex<any, unknown[]>;
@@ -20,21 +19,14 @@ export class PostgresBackend implements Backend{
       },
     });
   }
+  
+  async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
+    const newConfig = await this.knex('sidequest_queues').insert(queueConfig).returning('*');
+    return newConfig[0];
+  }
 
   async getQueueConfig(queue: string, fallback?: QueueConfig): Promise<QueueConfig> {
-    const config = await this.knex('sidequest_queues').where({queue: queue}).first();
-    if(config) return config;
-
-    const defaultOptions  = {
-      queue: queue,
-      concurrency: 10,
-      state: 'active'
-    }
-    
-    const configData = Object.assign(defaultOptions, fallback);
-    
-    const newConfig = await this.knex('sidequest_queues').insert(configData).returning('*');
-    return newConfig[0];
+    return  this.knex('sidequest_queues').where({queue: queue}).first();
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
@@ -42,19 +34,18 @@ export class PostgresBackend implements Backend{
     return queues.map(q => q.queue);
   }
 
-  async insertJob(job: Job, args: any[] = []): Promise<void> {
-    args = Array.isArray(args) ? args : []
+  async insertJob(job: JobData): Promise<void> {
     const data = {
       queue: job.queue,
       class: job.class,
       script: job.script,
-      args: this.knex.raw('?', [JSON.stringify(args)])
+      args: this.knex.raw('?', [JSON.stringify(job.args)])
     }
 
     await this.knex('sidequest_jobs').insert(data).returning('*');
   }
 
-  async claimPendingJob(queue: string, quatity: number = 1): Promise<Job[]> {
+  async claimPendingJob(queue: string, quatity: number = 1): Promise<JobData[]> {
     const workerName = `sidequest@${os.hostname()}-${process.pid}`;
 
     const result = await this.knex.transaction(async (trx) => {
@@ -81,7 +72,7 @@ export class PostgresBackend implements Backend{
     return result;
   }
 
-  async updateJob(job: Job): Promise<Job> {
+  async updateJob(job: JobData): Promise<JobData> {
     const data: any = {
       id: job.id,
       queue: job.queue,

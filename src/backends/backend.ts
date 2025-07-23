@@ -1,14 +1,18 @@
-import { QueueConfig } from "../sidequest";
+import { QueueConfig } from "src/core/schema/queue-config";
 import { Job } from "../core/job";
+import { JobData } from "src/core/schema/job-data";
 
 export interface Backend {
   setup(): Promise<void> | void;
   close():  Promise<void> | void;
 
-  insertJob(job: Job, args: any[]): void | Promise<void>;
-  claimPendingJob(queue: string, quatity?: number): Promise<Job[]>;
+  insertJob(job: JobData): void | Promise<void>;
+  claimPendingJob(queue: string, quatity?: number): Promise<JobData[]>;
 
   getQueuesFromJobs(): string[] | Promise<string[]>;
-  getQueueConfig(queue: string, fallback?: QueueConfig): QueueConfig | Promise<QueueConfig>;
-  updateJob(job: Job): Promise<Job>;
+
+  getQueueConfig(queue: string): QueueConfig | Promise<QueueConfig>;
+  insertQueueConfig(queueConfig: QueueConfig): QueueConfig | Promise<QueueConfig>;
+  
+  updateJob(job: JobData): Promise<JobData>;
 }

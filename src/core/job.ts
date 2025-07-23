@@ -1,26 +1,11 @@
 import { Sidequest } from "../sidequest";
+import { JobData, JobState } from "./schema/job-data";
 
-export type JobState = 'pending' | 'claimed' | 'running' | 'discarded' | 'completed' | 'cancelled';
 
 export abstract class Job {
-  id?: number;
   queue: string;
-  state?: JobState;
   script: string;
   class: string;
-  args?: any[];
-  attempt?: number;
-  max_attempts?: number;
-  result?: any;
-  errors?: any[];
-  inserted_at?: Date;
-  attempted_at?: Date;
-  available_at?: Date;
-  completed_at?: Date;
-  discarded_at?: Date;
-  cancelled_at?: Date;
-  claimed_at?: Date;
-  claimed_by?: string;
 
   constructor(queue?: string) {
     this.queue = queue || 'default';
@@ -33,7 +18,15 @@ export abstract class Job {
   static async enqueue(this: { new (...args: any[]): Job }, ...args: any[]): Promise<void> {
     const job = new this(...args);
     const backend = Sidequest.getBackend();
-    await backend.insertJob(job, args);
+    const jobData: JobData = {
+      queue: job.queue,
+      script: job.script,
+      class: job.class,
+      args: args,
+      attempt: 0,
+      max_attempts: 5
+    }
+    await backend.insertJob(jobData);
   }
 }
 

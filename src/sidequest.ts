@@ -2,6 +2,8 @@ import { ChildProcess, fork } from 'child_process';
 import path from 'path';
 import { Backend } from './backends/backend';
 import { PostgresBackend } from './sidequest';
+import { grantQueueConfig } from './core/queue/grant-queue-config';
+import { QueueConfig } from './core/schema/queue-config';
 
 const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
@@ -11,12 +13,6 @@ let _config: SidequestConfig;
 let _mainWorker: ChildProcess | undefined;
 
 export type QueueState = 'active' | 'paused';
-
-export type QueueConfig = {
-  queue: string,
-  concurrency: number,
-  state: string,
-}
 
 export type SidequestConfig = {
   backend_url: string,
@@ -29,7 +25,7 @@ export  class Sidequest {
     _backend = new PostgresBackend({ connection: config.backend_url });
     await _backend.setup();
     for(let queue of Object.keys(config.queues)){
-      await _backend.getQueueConfig(queue, config.queues[queue]);
+      await grantQueueConfig(queue, config.queues[queue])
     }
   }
 

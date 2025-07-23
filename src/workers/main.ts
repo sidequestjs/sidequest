@@ -1,6 +1,7 @@
 import path from "path";
 import { Job, Sidequest, SidequestConfig } from "../sidequest";
 import { fork } from "child_process";
+import { JobData } from "src/core/schema/job-data";
 
 const executorPath = path.resolve(__dirname, 'executor.js');
 
@@ -29,7 +30,7 @@ async function run(sidequestConfig: SidequestConfig){
 
         const availableSlots = limit - activeJobs.size;
         
-        const jobs: Job[] = await backend.claimPendingJob(queue, availableSlots);
+        const jobs: JobData[] = await backend.claimPendingJob(queue, availableSlots);
 
         for (const job of jobs) {
           const child = fork(executorPath);
