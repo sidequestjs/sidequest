@@ -2,7 +2,7 @@
 const daemon = require('../dist/daemon');
 const MyJob = require('../test/my-job');
 
-daemon.start();
+// daemon.start();
 
 async function run(){
   for(let i = 0; i < 100; i++){
@@ -10,4 +10,4 @@ async function run(){
   }
 }
 
-// run();
+run();
