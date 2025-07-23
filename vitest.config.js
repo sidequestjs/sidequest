@@ -7,5 +7,19 @@ export default defineConfig({
     isolate: true,
     pool: "threads",
     fileParallelism: false,
+    coverage: {
+      provider: 'v8', // or 'v8'
+      exclude: [
+        '**/*.d.ts',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        '**/dist/**',
+        '**/node_modules/**',
+        '**/migrations/**',
+        '**/*.js',
+        '**/*.cjs',
+        '**/*.mjs',
+      ],
+    },
   },
 });

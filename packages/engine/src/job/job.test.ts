@@ -86,10 +86,12 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs in the same period", async () => {
-    await new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue();
-    await expect(new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue()).rejects.toThrow();
-    await new Promise((r) => { setTimeout(r, 1100)});
-    await new JobBuilder(DummyJob).unique({ period: 'second' }).enqueue();
+    await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
+    await expect(new JobBuilder(DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
+    await new Promise((r) => {
+      setTimeout(r, 1100);
+    });
+    await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
@@ -100,9 +102,7 @@ describe("job.ts", () => {
 
   it("should not be able to enqueue duplicated jobs with different args withargs=false", async () => {
     await new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue();
-    await expect(
-      new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue("arg1"),
-    ).rejects.toThrow();
+    await expect(new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue("arg1")).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
@@ -124,9 +124,7 @@ describe("job.ts", () => {
 
   it("should not be able to enqueue duplicated jobs with same args withargs=true", async () => {
     await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1");
-    await expect(
-      new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1"),
-    ).rejects.toThrow();
+    await expect(new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1")).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,

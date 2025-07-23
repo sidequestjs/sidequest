@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { Engine, JobClassType, SidequestConfig } from "../engine";
+import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
+import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { JobBuilder } from "../job/job-builder";
 import { JobTransitioner } from "../job/job-transitioner";
 import { DummyJob } from "../test-jobs/dummy-job";
@@ -19,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 const cronMocks = vi.hoisted(() => ({
-  schedule: vi.fn(),
+  schedule: vi.fn().mockReturnValue({ execute: vi.fn() }),
 }));
 
 vi.mock("child_process", () => ({
@@ -105,9 +107,31 @@ describe("main.ts", () => {
 
       await cronCallback();
 
-      expect(mockBuild).toHaveBeenCalled();
+      expect(mockBuild).toHaveBeenCalledWith(ReleaseStaleJob);
       expect(mockQueue).toHaveBeenCalledWith("sidequest_internal");
-      expect(mockUnique).toHaveBeenCalledWith(true);
+      expect(mockUnique).toHaveBeenCalledWith({ period: "second" });
+      expect(mockTimeout).toHaveBeenCalledWith(10_000);
+      expect(mockEnqueue).toHaveBeenCalled();
+    });
+
+    it("should enqueue CleanupFinishedJobs when cron job executes", async () => {
+      const mockEnqueue = vi.fn().mockResolvedValue(undefined);
+      const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
+      const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
+      const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
+      const mockBuild = vi
+        .spyOn(Engine, "build")
+        .mockReturnValue({ queue: mockQueue } as unknown as JobBuilder<JobClassType>);
+
+      startCron();
+
+      const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
+
+      await cronCallback();
+
+      expect(mockBuild).toHaveBeenCalledWith(CleanupFinishedJobs);
+      expect(mockQueue).toHaveBeenCalledWith("sidequest_internal");
+      expect(mockUnique).toHaveBeenCalledWith({ period: "hour" });
       expect(mockTimeout).toHaveBeenCalledWith(10_000);
       expect(mockEnqueue).toHaveBeenCalled();
     });
@@ -200,7 +224,7 @@ describe("main.ts", () => {
 
       await runWorker(config);
 
-      expect(callOrder).toEqual(["worker.run", "startCron"]);
+      expect(callOrder).toEqual(["worker.run", "startCron", "startCron"]);
       expect(mockWorkerRun).toHaveBeenCalledWith(config);
       expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
     });

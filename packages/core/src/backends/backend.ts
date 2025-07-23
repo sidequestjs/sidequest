@@ -32,4 +32,5 @@ export interface Backend {
   listQueues(): Promise<QueueConfig[]>;
 
   staleJobs(maxStaleMs?: number, maxClaimedMs?: number): Promise<JobData[]>;
+  deleteFinishedJobs(cutoffDate: Date): Promise<void>;
 }

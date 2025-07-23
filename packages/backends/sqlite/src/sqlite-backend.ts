@@ -236,6 +236,16 @@ export default class SqliteBackend implements Backend {
     })) as JobData[];
   }
 
+  async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
+    await this.knex("sidequest_jobs")
+      .where((qb) => {
+        qb.where("completed_at", "<", cutoffDate)
+          .orWhere("failed_at", "<", cutoffDate)
+          .orWhere("cancelled_at", "<", cutoffDate);
+      })
+      .del();
+  }
+
   async setup(): Promise<void> {
     try {
       const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
