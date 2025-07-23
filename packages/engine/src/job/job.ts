@@ -83,13 +83,14 @@ async function buildPath(className: string) {
 
   const filePaths = stackLines
     .map((line) => {
-      const match = /(file:\/\/)?((\w:)?[/\\].+):\d+:\d+/.exec(line);
+      const match = /(file:\/\/)?(((\/?)(\w:))?([/\\].+)):\d+:\d+/.exec(line);
       if (match) {
-        return match[2].replaceAll("\\", "/");
+        return `${match[5] ?? ""}${match[6].replaceAll("\\", "/")}`;
       }
       return null;
     })
     .filter(Boolean);
+
 
   for (const filePath of filePaths) {
     const hasExported = await hasClassExported(filePath!, className);

@@ -102,10 +102,13 @@ export class SidequestDashboard {
       const jobId = parseInt(req.params.id);
       const job = await backend?.getJob(jobId);
 
+      const isHtmx = req.get("HX-Request");
+
       if(job){
         res.render("pages/job", {
           title: `Job #${job.id}`,
           job,
+          layout: !isHtmx
         });
       } else {
         res.status(404).send("Job not found!")

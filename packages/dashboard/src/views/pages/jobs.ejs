@@ -67,7 +67,7 @@
       <tbody>
         <% jobs.forEach(job => { %>
           <tr class="hover:bg-base-300">
-            <td class="px-4 py-3 text-base-content"><%= job.id %></td>
+            <td class="px-4 py-3 text-base-content"><a href="/job/<%= job.id %>"><%= job.id %></a></td>
             <td class="px-4 py-3 text-base-content"><%= job.class %></td>
             <td class="px-4 py-3"><%= job.queue %></td>
             <td class="px-4 py-3">

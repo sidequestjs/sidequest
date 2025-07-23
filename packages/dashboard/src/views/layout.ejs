@@ -34,8 +34,13 @@
     </div>
 
     <script>
-      feather.replace();
-      hljs.highlightAll();
+      function loadLibs(){
+        feather.replace();
+        hljs.highlightAll();
+      }
+
+      document.addEventListener('htmx:afterSwap',  loadLibs);
+      loadLibs();
     </script>
   </body>
 </html>

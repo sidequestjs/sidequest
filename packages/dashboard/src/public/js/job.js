@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function applySeeMore(){
   document.querySelectorAll('.sq-code').forEach(container => {
     const content = container.querySelector('.code-content');
     const btn = container.querySelector('.toggle-btn');
@@ -22,4 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-});
+}
+
+document.addEventListener('DOMContentLoaded', applySeeMore);
+document.addEventListener('htmx:afterSwap', applySeeMore);
