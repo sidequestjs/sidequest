@@ -16,7 +16,7 @@ jobs:
         run: |
           BRANCH_NAME="${{ github.head_ref }}"
           echo "Branch name: $BRANCH_NAME"
-          if [[ ! "$BRANCH_NAME" =~ ^(feat|fix|chore|docs|refactor|style|test|perf)/.+$ ]]; then
+          if [[ ! "$BRANCH_NAME" =~ ^(feat|fix|chore|docs|refactor|style|test|perf|build)/.+$ ]]; then
             echo "::error::Invalid branch name: '$BRANCH_NAME'."
             echo "::error::Branch names must start with one of: feat/, fix/, chore/, docs/, refactor/, style/, test/, perf/"
             echo "::error::For example: 'feat/login-page' or 'fix/api-error'"
@@ -27,7 +27,7 @@ jobs:
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           echo "PR title: $PR_TITLE"
-          if [[ ! "$PR_TITLE" =~ ^(feat|fix|chore|docs|refactor|style|test|perf)(\(.+\))?:\ .+ ]]; then
+          if [[ ! "$PR_TITLE" =~ ^(feat|fix|chore|docs|refactor|style|test|perf|build)(\(.+\))?:\ .+ ]]; then
             echo "::error::Invalid PR title: $PR_TITLE"
             echo "::error::PR title must follow Conventional Commits, e.g., 'feat(api): add user login'"
             exit 1
