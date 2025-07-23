@@ -18,4 +18,4 @@ migrations/
 *.log
 *.tmp
 
-packages/docs
+packages/docs/.vitepress/cache
