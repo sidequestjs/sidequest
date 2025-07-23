@@ -1,6 +1,6 @@
 {
   "name": "sidequest",
-  "version": "0.0.1-nightbuild-5",
+  "version": "0.0.1-nightbuild-6",
   "description": "",
   "main": "src/sidequest.js",
   "scripts": {
