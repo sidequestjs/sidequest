@@ -11,7 +11,15 @@ export default tseslint.config(
   tseslint.configs.stylistic,
   prettierRecommended,
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**", "**/public/**", "**/views/**", "**/migrations/**"],
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/coverage/**",
+      "**/public/**",
+      "**/views/**",
+      "**/migrations/**",
+      "packages/docs/.vitepress/cache/**",
+    ],
   },
   {
     rules: {
