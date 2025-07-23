@@ -53,8 +53,8 @@ export class Engine {
     };
   }
 
-  static async start(config: SidequestConfig): Promise<void> {
-    await Engine.configure(config);
+  static async start(config?: SidequestConfig): Promise<void> {
+    config = await Engine.configure(config);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
