@@ -1,0 +1,27 @@
+{
+  "name": "@sidequest/mysql-backend",
+  "version": "1.0.0-alpha.1",
+  "license": "LGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/mysql-backend.cjs",
+  "module": "./dist/mysql-backend.js",
+  "types": "./dist/mysql-backend.d.ts",
+  "exports": {
+    "import": "./dist/mysql-backend.js",
+    "require": "./dist/mysql-backend.cjs",
+    "types": "./dist/mysql-backend.d.ts"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "@sidequest/core": "workspace:*",
+    "knex": "^3.1.0",
+    "mysql2": "^3.14.2"
+  },
+  "devDependencies": {
+    "@sidequest/backend-test": "workspace:*"
+  }
+}
