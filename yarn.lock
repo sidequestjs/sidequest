@@ -1330,7 +1330,6 @@ __metadata:
     express-ejs-layouts: "npm:^2.5.1"
     feather-icons: "npm:^4.29.2"
     htmx.org: "npm:^2.0.4"
-    tsx: "npm:^4.20.3"
   languageName: unknown
   linkType: soft
 
@@ -8047,7 +8046,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.4, tsx@npm:^4.20.3":
+"tsx@npm:^4.19.4":
   version: 4.20.3
   resolution: "tsx@npm:4.20.3"
   dependencies:

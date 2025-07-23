@@ -48,6 +48,13 @@ configs.push(
         minimize: true,
       }),
       del({ targets: "dist/_styles.css" }),
+      copy({
+        targets: [
+          { src: "src/views/**/*", dest: "dist/views" },
+          { src: "src/public/img", dest: "dist/public" },
+          { src: "src/public/js", dest: "dist/public" },
+        ],
+      }),
     ],
   },
 );
