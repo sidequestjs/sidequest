@@ -28,14 +28,14 @@ function MasterWorker (config) {
             console.log(`task ${task.name} requested execution!`)
             let worker = new Worker(task);
             currentWorkers.push(worker);
-            worker.execute();
             worker.on('started', () => {
-                this.emit('worker-started', worker);
+                this.emit('task-started', worker);
             });
             worker.on('done', () => {
                 currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
-                this.emit('worker-done', task);
-            });
+                this.emit('task-done', task);
+            });    
+            worker.execute();
         });
 
         scheduler.on('registred', (task) => {
