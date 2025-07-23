@@ -66,15 +66,15 @@ export abstract class SQLBackend {
       queue: job.queue,
       script: job.script,
       class: job.class,
-      args: this.knex.raw("?", [JSON.stringify(job.args)]),
-      constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
+      args: JSON.stringify(job.args ?? []),
+      constructor_args: JSON.stringify(job.constructor_args ?? []),
       state: job.state,
       attempt: job.attempt,
       max_attempts: job.max_attempts ?? 5,
       available_at: job.available_at ?? new Date(),
       timeout: job.timeout ?? null,
       unique_digest: job.unique_digest ?? null,
-      uniqueness_config: job.uniqueness_config ? this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]) : null,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
       inserted_at: new Date(),
     };
 
@@ -116,7 +116,25 @@ export abstract class SQLBackend {
     return result.map(safeParseJobData);
   }
 
-  abstract updateJob(job: UpdateJobData): Promise<JobData>;
+  async updateJob(job: UpdateJobData): Promise<JobData> {
+    const data = {
+      ...job,
+      args: job.args ? JSON.stringify(job.args) : job.args,
+      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
+      result: job.result ? JSON.stringify(job.result) : job.result,
+      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
+    };
+
+    const [updated] = (await this.knex("sidequest_jobs")
+      .where({ id: job.id })
+      .update(data)
+      .returning("*")) as JobData[];
+
+    if (!updated) throw new Error("Cannot update job, not found.");
+
+    return safeParseJobData(updated);
+  }
 
   abstract listJobs(params: {
     queue?: string;

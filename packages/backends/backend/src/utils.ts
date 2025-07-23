@@ -4,7 +4,11 @@ export function safeParse<T>(value: unknown): T;
 export function safeParse(value: null | undefined): null;
 export function safeParse<T>(value: unknown): T | null {
   if (value !== undefined && value !== null) {
-    return (typeof value === "string" ? JSON.parse(value) : value) as T;
+    try {
+      return (typeof value === "string" ? JSON.parse(value) : value) as T;
+    } catch {
+      return value as T;
+    }
   } else {
     return null;
   }

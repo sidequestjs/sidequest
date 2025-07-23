@@ -1,4 +1,4 @@
-import { SQLBackend, UpdateJobData } from "@sidequest/backend";
+import { SQLBackend } from "@sidequest/backend";
 import { JobData, JobState } from "@sidequest/core";
 import createKnex from "knex";
 import path from "path";
@@ -26,31 +26,6 @@ export default class SqliteBackend extends SQLBackend {
       },
     });
     super(knex);
-  }
-
-  async updateJob(job: UpdateJobData): Promise<JobData> {
-    const data = {
-      ...job,
-      args: job.args ? JSON.stringify(job.args) : job.args,
-      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
-      result: job.result ? JSON.stringify(job.result) : job.result,
-      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
-    };
-
-    const [updated] = (await this.knex("sidequest_jobs")
-      .where({ id: job.id })
-      .update(data)
-      .returning("*")) as JobData[];
-
-    if (!updated) throw new Error("Cannot update job, not found.");
-
-    return {
-      ...updated,
-      args: safeParse(updated.args),
-      result: safeParse(updated.result),
-      errors: safeParse(updated.errors),
-      uniqueness_config: safeParse(job.uniqueness_config),
-    } as JobData;
   }
 
   async listJobs({
