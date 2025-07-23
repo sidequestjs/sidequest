@@ -1,6 +1,14 @@
-import { NewJobData, NewQueueData, safeParseJobData, SQLBackend, UpdateJobData, UpdateQueueData, whereOrWhereIn } from "@sidequest/backend";
-import createKnex, { Knex } from "knex";
+import {
+  NewJobData,
+  NewQueueData,
+  safeParseJobData,
+  SQLBackend,
+  UpdateJobData,
+  UpdateQueueData,
+  whereOrWhereIn,
+} from "@sidequest/backend";
 import { DuplicatedJobError, JobData, JobState, QueueConfig } from "@sidequest/core";
+import createKnex, { Knex } from "knex";
 import path from "path";
 
 export default class MysqlBackend extends SQLBackend {
@@ -28,9 +36,7 @@ export default class MysqlBackend extends SQLBackend {
     const result = await this.knex.transaction(async (trx) => {
       const [insertedId] = await trx("sidequest_queues").insert(data);
 
-      const inserted = await trx<QueueConfig>("sidequest_queues")
-        .where({ id: insertedId })
-        .first();
+      const inserted = await trx<QueueConfig>("sidequest_queues").where({ id: insertedId }).first();
 
       if (!inserted) throw new Error("Failed to insert queue config.");
 
@@ -45,13 +51,9 @@ export default class MysqlBackend extends SQLBackend {
     if (!id) throw new Error("Queue id is required for update.");
 
     const result = await this.knex.transaction(async (trx) => {
-      await trx("sidequest_queues")
-        .where({ id })
-        .update(updates);
+      await trx("sidequest_queues").where({ id }).update(updates);
 
-      const updated = await trx<QueueConfig>("sidequest_queues")
-        .where({ id })
-        .first();
+      const updated = await trx<QueueConfig>("sidequest_queues").where({ id }).first();
 
       if (!updated) throw new Error("Cannot update queue, not found.");
 
@@ -77,14 +79,12 @@ export default class MysqlBackend extends SQLBackend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
       inserted_at: new Date(),
     };
-  
+
     try {
       const insertedJob = await this.knex.transaction(async (trx) => {
         const [insertedId] = await trx("sidequest_jobs").insert(data);
 
-        const inserted = await trx<JobData>("sidequest_jobs")
-          .where({ id: insertedId })
-          .first();
+        const inserted = await trx<JobData>("sidequest_jobs").where({ id: insertedId }).first();
 
         if (!inserted) throw new Error("Failed to create job.");
 
@@ -94,12 +94,13 @@ export default class MysqlBackend extends SQLBackend {
       return insertedJob;
     } catch (error) {
       if (
-        error instanceof Error && (error.message?.includes("sidequest_jobs.unique_digest") ||
+        error instanceof Error &&
+        (error.message?.includes("sidequest_jobs.unique_digest") ||
           ("constraint" in error && error.constraint === "sidequest_jobs_unique_digest_active_idx"))
       ) {
         throw new DuplicatedJobError(job as JobData);
       }
-  
+
       throw error;
     }
   }
@@ -115,13 +116,9 @@ export default class MysqlBackend extends SQLBackend {
     };
 
     const updatedJob = await this.knex.transaction(async (trx) => {
-      await trx("sidequest_jobs")
-        .where({ id: job.id })
-        .update(data);
+      await trx("sidequest_jobs").where({ id: job.id }).update(data);
 
-      const updated = await trx<JobData>("sidequest_jobs")
-        .where({ id: job.id })
-        .first();
+      const updated = await trx<JobData>("sidequest_jobs").where({ id: job.id }).first();
 
       if (!updated) throw new Error("Cannot update job, not found.");
 
@@ -155,7 +152,7 @@ export default class MysqlBackend extends SQLBackend {
       whereOrWhereIn(query, "class", jobClass);
       whereOrWhereIn(query, "state", state);
 
-      if (args) query.whereRaw('JSON_CONTAINS(args, ?)', [JSON.stringify(args)]);
+      if (args) query.whereRaw("JSON_CONTAINS(args, ?)", [JSON.stringify(args)]);
       if (timeRange?.from) query.andWhere("attempted_at", ">=", timeRange.from);
       if (timeRange?.to) query.andWhere("attempted_at", "<=", timeRange.to);
     }

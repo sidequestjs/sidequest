@@ -77,7 +77,9 @@ program
       const example =
         backend === "@sidequest/postgres-backend"
           ? "postgres://user:password@localhost:5432/dbname"
-          : backend === "@sidequest/mysql-backend" ? "mysql://root:mysql@localhost:3306/dbname": "file:./mydb.sqlite";
+          : backend === "@sidequest/mysql-backend"
+            ? "mysql://root:mysql@localhost:3306/dbname"
+            : "file:./mydb.sqlite";
 
       const { manualConn } = (await inquirer.prompt([
         {
