@@ -5,9 +5,9 @@ import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
 import { initBackend } from "./backend-driver";
 import { DashboardConfig } from "./config";
+import dashboardRouter from "./resources/dashboard";
 import jobsRouter from "./resources/jobs";
 import queuesRouter from "./resources/queues";
-import dashboardRouter from "./resources/dashboard";
 
 export class SidequestDashboard {
   static async start(config?: DashboardConfig) {

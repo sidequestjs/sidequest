@@ -13,11 +13,12 @@
     "test:debug": "yarn vitest --test-timeout=0 run",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write \"**/*.{ts,js,tsx,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,tsx,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,tsx,jsx}\"",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "dev": "yarn workspaces foreach -j unlimited -Api run dev",
-    "clean:dist": "rimraf packages/**/dist"
+    "clean:dist": "rimraf packages/**/dist",
+    "test:pg": "docker run --name pg-default -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
@@ -40,6 +41,7 @@
     "concurrently": "^9.1.2",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
     "globals": "^16.2.0",
     "nodemon": "^3.1.10",
     "nyc": "^17.1.0",

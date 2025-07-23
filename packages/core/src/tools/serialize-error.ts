@@ -8,6 +8,8 @@ import { ErrorData } from "../schema/error-data";
  *   const foo = { ...err };        // foo is {}
  *   JSON.stringify(err);           // returns '{}'
  * This function extracts all own properties, making the error serializable for logs and transport.
+ * @param err The error object to serialize.
+ * @returns A serializable error data object.
  */
 export function serializeError(err: Error): ErrorData {
   const plain = {

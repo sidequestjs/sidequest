@@ -4,7 +4,23 @@ import { hostname } from "os";
 import { Backend, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
 import { safeParseJobData, whereOrWhereIn } from "./utils";
 
+/**
+ * Abstract base class for SQL-backed implementations of the {@link Backend} interface.
+ *
+ * Provides common methods for managing job queues and jobs using a SQL database via Knex.js.
+ * Handles queue configuration, job creation, claiming, updating, and cleanup, as well as
+ * database migrations and connection management.
+ *
+ * @remarks
+ * This class is intended to be extended by concrete backend implementations.
+ *
+ * @see {@link Backend}
+ */
 export abstract class SQLBackend implements Backend {
+  /**
+   * Creates a new SQLBackend instance.
+   * @param knex The Knex.js instance for database access.
+   */
   constructor(public knex: Knex) {}
 
   async setup(): Promise<void> {

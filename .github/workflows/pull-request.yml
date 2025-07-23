@@ -47,6 +47,9 @@ jobs:
       - name: Build project
         run: yarn build
 
+      - name: Run format checker
+        run: yarn format:check
+
       - name: Run linter
         run: yarn lint
 

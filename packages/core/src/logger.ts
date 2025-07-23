@@ -2,11 +2,21 @@ import winston from "winston";
 
 let _logger: winston.Logger;
 
+/**
+ * Options for configuring the logger.
+ */
 export interface LoggerOptions {
+  /** The minimum log level (e.g., 'info', 'debug', 'error'). */
   level: string;
+  /** Whether to output logs in JSON format. */
   json?: boolean;
 }
 
+/**
+ * Configures and creates a Winston logger for Sidequest.
+ * @param options Logger configuration options.
+ * @returns The configured Winston logger instance.
+ */
 export function configureLogger(options: LoggerOptions) {
   const colors = {
     error: "red",
@@ -25,6 +35,10 @@ export function configureLogger(options: LoggerOptions) {
     transports: [new winston.transports.Console()],
   });
 
+  /**
+   * Builds the log format based on options.
+   * @returns The Winston log format.
+   */
   function buildFormat() {
     const addProcessInfo = winston.format((info) => {
       info.pid = process.pid;
@@ -61,8 +75,13 @@ export function configureLogger(options: LoggerOptions) {
   return newLogger;
 }
 
+// Default logger instance for Sidequest.
 _logger = configureLogger({ level: "info", json: false });
 
+/**
+ * Returns the default logger instance.
+ * @returns The Winston logger instance.
+ */
 export function logger(): winston.Logger {
   return _logger;
 }

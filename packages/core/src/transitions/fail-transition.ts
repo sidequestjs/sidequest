@@ -4,14 +4,27 @@ import { ErrorData } from "../schema/error-data";
 import { toErrorData } from "../tools/parse-error-data";
 import { JobTransition } from "./transition";
 
+/**
+ * Transition for marking a job as failed.
+ */
 export class FailTransition extends JobTransition {
+  /** The reason for failure. */
   reason: ErrorData | Error | string;
 
+  /**
+   * Creates a new FailTransition.
+   * @param reason The reason for the job failure.
+   */
   constructor(reason: ErrorData | Error | string) {
     super();
     this.reason = reason;
   }
 
+  /**
+   * Applies the failure transition to the job.
+   * @param job The job data to update.
+   * @returns The updated job data.
+   */
   apply(job: JobData): JobData {
     logger().error(this.reason);
     const error = toErrorData(this.reason);
