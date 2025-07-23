@@ -1,5 +1,6 @@
 import { SQLBackend } from "@sidequest/backend";
-import { Request, Response } from "express";
+import { Engine } from "@sidequest/engine";
+import { Request, Response, Router } from "express";
 
 export async function renderQueuesTable(backend: SQLBackend, req: Request, res: Response) {
   const queues = await backend.listQueues({ column: "name", order: "asc" });
@@ -16,3 +17,19 @@ export async function renderQueuesTable(backend: SQLBackend, req: Request, res: 
     res.render("pages/queues", { title: "Queues", queues: parsedQueues });
   }
 }
+
+const queuesRouter = Router();
+
+queuesRouter.get("/", async (req, res) => {
+  const backend = Engine.getBackend()!;
+  await renderQueuesTable(backend, req, res);
+});
+
+queuesRouter.patch("/:name/toggle", async (req, res) => {
+  const backend = Engine.getBackend()!;
+  const queue = await backend.getQueueConfig(req.params.name);
+  await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
+  await renderQueuesTable(backend, req, res);
+});
+
+export default queuesRouter;

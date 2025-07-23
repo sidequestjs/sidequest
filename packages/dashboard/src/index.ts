@@ -1,11 +1,11 @@
-import { JobState, logger } from "@sidequest/core";
-import { Engine } from "@sidequest/engine";
+import { logger } from "@sidequest/core";
 import express from "express";
 import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
 import { DashboardConfig } from "./config";
-import { renderQueuesTable } from "./utils/queue";
+import jobsRouter from "./resources/jobs";
+import queuesRouter from "./resources/queues";
 
 export class SidequestDashboard {
   static start(config?: DashboardConfig) {
@@ -14,6 +14,15 @@ export class SidequestDashboard {
 
     const app = express();
 
+    this.setupAuth(app, config);
+    this.setupEJS(app);
+    this.setupHomepage(app);
+    this.setupRoutes(app);
+
+    this.listen(app, config);
+  }
+
+  static setupAuth(app: express.Express, config?: DashboardConfig) {
     if (config?.auth) {
       const auth = config.auth;
       const users = {};
@@ -25,82 +34,28 @@ export class SidequestDashboard {
         }),
       );
     }
+  }
 
+  static setupEJS(app: express.Express) {
     app.use(expressLayouts);
     app.set("view engine", "ejs");
     app.set("views", path.join(import.meta.dirname, "views"));
     app.set("layout", path.join(import.meta.dirname, "views", "layout"));
-
     app.use("/public", express.static(path.join(import.meta.dirname, "public")));
+  }
 
+  static setupHomepage(app: express.Express) {
     app.get("/", function (req, res) {
       res.render("pages/index", { title: "Sidequest Dashboard" });
     });
+  }
 
-    app.get("/jobs", async (req, res) => {
-      const { status, time, start, end, sinceId, queue, class: klass } = req.query;
-      const backend = Engine.getBackend();
+  static setupRoutes(app: express.Express) {
+    app.use("/jobs", jobsRouter);
+    app.use("/queues", queuesRouter);
+  }
 
-      const filters: {
-        queue?: string;
-        jobClass?: string;
-        state?: JobState;
-        sinceId?: number;
-        limit?: number;
-        args?: unknown[];
-        timeRange?: {
-          from?: Date;
-          to?: Date;
-        };
-      } = {
-        limit: 20,
-        queue: typeof queue === "string" && queue.trim() !== "" ? queue : undefined,
-        jobClass: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
-        state: status as JobState,
-        sinceId: sinceId ? parseInt(sinceId as string, 10) : undefined,
-      };
-
-      if (time === "15m") {
-        filters.timeRange = { from: new Date(Date.now() - 15 * 60 * 1000) };
-      } else if (time === "1d") {
-        filters.timeRange = { from: new Date(Date.now() - 24 * 60 * 60 * 1000) };
-      } else if (time === "custom" && typeof start === "string" && typeof end === "string") {
-        filters.timeRange = {
-          from: new Date(start),
-          to: new Date(end),
-        };
-      }
-
-      const jobs = await backend?.listJobs(filters);
-
-      res.render("pages/jobs", {
-        title: "Jobs",
-        jobs,
-        filters: {
-          status: status ?? "",
-          time: time ?? "",
-          start: start ?? "",
-          end: end ?? "",
-          queue: queue ?? "",
-          class: klass ?? "",
-        },
-      });
-    });
-
-    app.get("/queues", async (req, res) => {
-      const backend = Engine.getBackend()!;
-      await renderQueuesTable(backend, req, res);
-    });
-
-    app.patch("/queues/:name/toggle", async (req, res) => {
-      const backend = Engine.getBackend()!;
-
-      const queue = await backend.getQueueConfig(req.params.name);
-      await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
-
-      await renderQueuesTable(backend, req, res);
-    });
-
+  static listen(app: express.Express, config?: DashboardConfig) {
     const port = config?.port ?? 8678;
     app.listen(port, (error) => {
       if (error) {
