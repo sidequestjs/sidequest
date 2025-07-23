@@ -1,12 +1,10 @@
 import { NewQueueData } from "@sidequest/backend";
-import { DuplicatedJobError, JobData } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { Engine, JobClassType, SidequestConfig } from "../engine";
+import { Engine, SidequestConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
-import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
-import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
-import { JobBuilder } from "../job/job-builder";
+import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
+import { releaseStaleJobs } from "../routines/release-stale-jobs";
 import { runWorker, startCron } from "./main";
 
 const runMock = vi.fn();
@@ -25,6 +23,14 @@ vi.mock("node-cron", () => ({
   default: {
     schedule: cronMocks.schedule,
   },
+}));
+
+vi.mock("../routines/cleanup-finished-job", () => ({
+  cleanupFinishedJobs: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../routines/release-stale-jobs", () => ({
+  releaseStaleJobs: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("main.ts", () => {
@@ -56,99 +62,43 @@ describe("main.ts", () => {
   });
 
   describe("startCron", () => {
-    it("should schedule a cron job to run every 5 minutes", () => {
+    it("should schedule both cron jobs", () => {
       startCron(config);
 
-      expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
+      expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
+      expect(cronMocks.schedule).toHaveBeenCalledWith("0 * * * *", expect.any(Function));
     });
 
-    it("should enqueue ReleaseStaleJob when cron job executes", async () => {
-      const mockEnqueue = vi.fn().mockResolvedValue(undefined);
-      const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
-      const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
-      const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
-      const mockBuild = vi
-        .spyOn(Engine, "build")
-        .mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
-
+    it("should call releaseStaleJobs when release cron executes", async () => {
       startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
       await cronCallback();
 
-      expect(mockBuild).toHaveBeenCalledWith(ReleaseStaleJob);
-      expect(mockQueue).toHaveBeenCalledWith("sidequest_internal");
-      expect(mockUnique).toHaveBeenCalledWith({ period: "second" });
-      expect(mockTimeout).toHaveBeenCalledWith(10_000);
-      expect(mockEnqueue).toHaveBeenCalled();
+      expect(releaseStaleJobs).toHaveBeenCalledWith(Engine.getBackend());
     });
 
-    it("should enqueue CleanupFinishedJobs when cron job executes", async () => {
-      const mockEnqueue = vi.fn().mockResolvedValue(undefined);
-      const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
-      const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
-      const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
-      const mockBuild = vi
-        .spyOn(Engine, "build")
-        .mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
-
+    it("should call cleanupFinishedJobs when cleanup cron executes", async () => {
       startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
 
       await cronCallback();
 
-      expect(mockBuild).toHaveBeenCalledWith(CleanupFinishedJobs);
-      expect(mockQueue).toHaveBeenCalledWith("sidequest_internal");
-      expect(mockUnique).toHaveBeenCalledWith({ period: "hour" });
-      expect(mockTimeout).toHaveBeenCalledWith(10_000);
-      expect(mockEnqueue).toHaveBeenCalled();
+      expect(cleanupFinishedJobs).toHaveBeenCalledWith(Engine.getBackend());
     });
 
-    it("should handle DuplicatedJobError gracefully", async () => {
-      const mockEnqueue = vi.fn().mockRejectedValue(
-        new DuplicatedJobError({
-          class: "class",
-          constructor_args: [],
-          state: "waiting",
-          args: [],
-          queue: "default",
-          script: "",
-          attempt: 1,
-          max_attempts: 5,
-        } as unknown as JobData),
-      );
-      const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
-      const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
-      const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
-      vi.spyOn(Engine, "build").mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
+    it("should handle errors and log them when releaseStaleJobs fails", async () => {
+      const error = new Error("fail");
+      (releaseStaleJobs as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(error);
 
       startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
       await expect(cronCallback()).resolves.toBeUndefined();
-    });
-
-    it("should handle other errors and log them", async () => {
-      const testError = new Error("Test error");
-
-      const mockEnqueue = vi.fn().mockRejectedValue(testError);
-      const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
-      const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
-      const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
-      vi.spyOn(Engine, "build").mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
-
-      startCron(config);
-
-      const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
-
-      await expect(cronCallback()).resolves.toBeUndefined();
+      expect(releaseStaleJobs).toHaveBeenCalled();
     });
   });
 
@@ -161,7 +111,7 @@ describe("main.ts", () => {
       await runWorker(config);
 
       expect(WorkerSpy).toHaveBeenCalled();
-      expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
+      expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
     });
 
     it("should handle errors and exit process", async () => {

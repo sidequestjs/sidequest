@@ -1,11 +1,11 @@
-import { DuplicatedJobError, logger } from "@sidequest/core";
+import { logger } from "@sidequest/core";
 import cron from "node-cron";
 import { Engine, SidequestConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
 import { ExecutorManager } from "../execution/executor-manager";
 import { QueueManager } from "../execution/queue-manager";
-import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
-import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
+import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
+import { releaseStaleJobs } from "../routines/release-stale-jobs";
 import { gracefulShutdown } from "../utils/shutdown";
 
 let shuttingDown = false;
@@ -23,7 +23,7 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
     );
     dispatcher.start();
 
-    startCron(sidequestConfig);
+    startCron();
   } catch (error) {
     logger().error(error);
     process.exit(1);
@@ -38,38 +38,20 @@ async function shutdown() {
   }
 }
 
-export function startCron(config: SidequestConfig) {
-  const releaseTask = cron.schedule("*/5 * * * *", async () => {
+export function startCron() {
+  const releaseTask = cron.schedule("0 * * * *", async () => {
     try {
-      await Engine.build(ReleaseStaleJob)
-        .with(config)
-        .queue("sidequest_internal")
-        .unique({ period: "second" })
-        .timeout(10_000)
-        .enqueue();
+      await releaseStaleJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      if (error instanceof DuplicatedJobError) {
-        logger().debug("ReleaseStaleJob already scheduled by another worker");
-      } else {
-        logger().error("Error on enqueuing ReleaseStaleJob!", error);
-      }
+      logger().error("Error on enqueuing ReleaseStaleJob!", error);
     }
   });
 
   const cleanupTask = cron.schedule("0 * * * *", async () => {
     try {
-      await Engine.build(CleanupFinishedJobs)
-        .with(config)
-        .queue("sidequest_internal")
-        .unique({ period: "hour" })
-        .timeout(10_000)
-        .enqueue();
+      await cleanupFinishedJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      if (error instanceof DuplicatedJobError) {
-        logger().debug("CleanupJob already scheduled by another worker");
-      } else {
-        logger().error("Error on enqueuing CleanupJob!", error);
-      }
+      logger().error("Error on enqueuing CleanupJob!", error);
     }
   });
 
