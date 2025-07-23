@@ -14,7 +14,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w"
   },
-  "license": "ISC",
+  "license": "LGPL-3.0-or-later",
   "dependencies": {
     "@sidequest/core": "workspace:*",
     "knex": "^3.1.0"

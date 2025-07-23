@@ -14,8 +14,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w"
   },
-  "author": "Lucas Merencia <lucas@merencia.com>",
-  "license": "ISC",
+  "license": "LGPL-3.0-or-later",
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",

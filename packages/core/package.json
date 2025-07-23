@@ -14,7 +14,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w"
   },
-  "license": "ISC",
+  "license": "LGPL-3.0-or-later",
   "dependencies": {
     "safe-stable-stringify": "^2.5.0",
     "winston": "^3.17.0"

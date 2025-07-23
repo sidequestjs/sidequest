@@ -14,7 +14,7 @@
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w"
   },
-  "license": "ISC",
+  "license": "LGPL-3.0-or-later",
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
