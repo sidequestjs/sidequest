@@ -7,7 +7,7 @@
     "packages/backends/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach -Apti run build",
+    "build": "yarn workspaces foreach -Api --topological-dev run build",
     "test": "yarn vitest",
     "test:ci": "yarn vitest run",
     "test:debug": "yarn vitest --test-timeout=0 run",
@@ -16,7 +16,8 @@
     "format:check": "prettier --check \"**/*.{ts,js,tsx,jsx,json,md}\"",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "dev": "yarn workspaces foreach -j unlimited -Api run dev"
+    "dev": "yarn workspaces foreach -j unlimited -Api run dev",
+    "clean:dist": "rimraf packages/**/dist"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
@@ -45,6 +46,7 @@
     "postcss": "^8.5.5",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
+    "rimraf": "^6.0.1",
     "rollup": "^4.43.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-copy-watch": "^0.0.1",

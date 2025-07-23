@@ -1,5 +1,8 @@
+import { BackendConfig } from "@sidequest/backend";
+
 export interface DashboardConfig {
-  enabled: boolean;
+  backendConfig?: BackendConfig;
+  enabled?: boolean;
   port?: number;
   auth?: {
     user: string;

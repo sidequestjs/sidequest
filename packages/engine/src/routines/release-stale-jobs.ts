@@ -1,7 +1,7 @@
 import { logger } from "@sidequest/core";
-import { SQLBackend } from "@sidequest/backend";
+import { Backend } from "@sidequest/backend";
 
-export async function releaseStaleJobs(backend: SQLBackend) {
+export async function releaseStaleJobs(backend: Backend) {
   const staleJobs = await backend.staleJobs();
 
   if (staleJobs.length > 0) {

@@ -1,0 +1,76 @@
+import { JobState } from "@sidequest/core";
+import { Router } from "express";
+import { getBackend } from "../backend-driver";
+
+const jobsRouter = Router();
+
+jobsRouter.get("/", async (req, res) => {
+  const { status, time, start, end, sinceId, queue, class: klass } = req.query;
+  const backend = getBackend();
+
+  const filters: {
+    queue?: string;
+    jobClass?: string;
+    state?: JobState;
+    sinceId?: number;
+    limit?: number;
+    args?: unknown[];
+    timeRange?: {
+      from?: Date;
+      to?: Date;
+    };
+  } = {
+    limit: 20,
+    queue: typeof queue === "string" && queue.trim() !== "" ? queue : undefined,
+    jobClass: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
+    state: status as JobState,
+    sinceId: sinceId ? parseInt(sinceId as string, 10) : undefined,
+  };
+
+  if (time === "15m") {
+    filters.timeRange = { from: new Date(Date.now() - 15 * 60 * 1000) };
+  } else if (time === "1d") {
+    filters.timeRange = { from: new Date(Date.now() - 24 * 60 * 60 * 1000) };
+  } else if (time === "custom" && typeof start === "string" && typeof end === "string") {
+    filters.timeRange = {
+      from: new Date(start),
+      to: new Date(end),
+    };
+  }
+
+  const jobs = await backend?.listJobs(filters);
+
+  res.render("pages/jobs", {
+    title: "Jobs",
+    jobs,
+    filters: {
+      status: status ?? "",
+      time: time ?? "",
+      start: start ?? "",
+      end: end ?? "",
+      queue: queue ?? "",
+      class: klass ?? "",
+    },
+  });
+});
+
+jobsRouter.get("/:id", async (req, res) => {
+  const backend = getBackend();
+
+  const jobId = parseInt(req.params.id);
+  const job = await backend?.getJob(jobId);
+
+  const isHtmx = req.get("HX-Request");
+
+  if (job) {
+    res.render("pages/job", {
+      title: `Job #${job.id}`,
+      job,
+      layout: !isHtmx,
+    });
+  } else {
+    res.status(404).send("Job not found!");
+  }
+});
+
+export default jobsRouter;
