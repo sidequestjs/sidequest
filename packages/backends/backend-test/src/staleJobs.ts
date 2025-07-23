@@ -205,7 +205,7 @@ export default function defineStaleJobsTestSuite() {
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "running", attempted_at: new Date() });
 
-      const result = await backend.staleJobs(0, 0);
+      const result = await backend.staleJobs(-1, -1);
       expect(result).toHaveLength(3);
     });
   });
