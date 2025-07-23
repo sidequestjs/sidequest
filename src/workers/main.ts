@@ -63,8 +63,15 @@ export class Worker {
               activeJobs.delete(child);
             });
       
+            const timeout = setTimeout(async () => {
+              logger().error(`timeout on starting executor for job ${job.script}`);
+              child.kill();
+              job.state = 'pending';
+              await backend.updateJob(job);
+            }, 2000);
+
             child.on('message', (msg) => {
-              // TODO: add timeout
+              clearTimeout(timeout);
               if (msg === 'ready') {
                 child.send({job, config: sidequestConfig});
               }
