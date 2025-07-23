@@ -9,16 +9,17 @@
       <th class="px-4 py-3">Available At</th>
       <th class="px-4 py-3">Completed At</th>
       <th class="px-4 py-3">Claimed By</th>
+      <th class="px-4 py-3"></th>
     </tr>
   </thead>
   <tbody>
     <% jobs.forEach(job => { %>
-      <tr class="hover:bg-base-300">
-        <td class="px-4 py-3 text-base-content"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
-        <td class="px-4 py-3 text-base-content"><%= job.class %></td>
-        <td class="px-4 py-3"><%= job.queue %></td>
-        <td class="px-4 py-3">
-          <span class="badge <%= {
+    <tr class="hover:bg-base-300">
+      <td class="px-4 py-3 text-base-content"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
+      <td class="px-4 py-3 text-base-content"><%= job.class %></td>
+      <td class="px-4 py-3"><%= job.queue %></td>
+      <td class="px-4 py-3">
+        <span class="badge <%= {
             completed: 'badge-success',
             failed: 'badge-error',
             canceled: 'badge-neutral',
@@ -26,30 +27,29 @@
             claimed: 'badge-info',
             running: 'badge-primary',
           }[job.state] || 'badge-neutral' %>">
-            <%= job.state.charAt(0).toUpperCase() + job.state.slice(1) %>
-          </span>
-        </td>
-        <td class="px-4 py-3"><%= job.attempt %> / <%= job.max_attempts %></td>
-        <td class="px-4 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
-        <td class="px-4 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
-        <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
-      </tr>
+          <%= job.state.charAt(0).toUpperCase() + job.state.slice(1) %>
+        </span>
+      </td>
+      <td class="px-4 py-3"><%= job.attempt %> / <%= job.max_attempts %></td>
+      <td class="px-4 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
+      <td class="px-4 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
+      <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
+      <% if (job.available_at > new Date()) { %>
+      <td class="px-4 py-3">
+        <button type="button" class="btn btn-sm" hx-post="/jobs/<%= job.id %>/run">Run</button>
+      </td>
+      <% } %>
+    </tr>
     <% }) %>
   </tbody>
 </table>
 
 <div class="join mt-4">
   <% if (pagination.page > 1) { %>
-    <button
-      type="button"
-      class="join-item btn btn-sm"
-      hx-get="/jobs"
-      hx-target="#jobs-table"
-      hx-include="#filter-form"
-      hx-vals='{"page": <%= pagination.page - 1 %>}'
-    >«</button>
+  <button type="button" class="join-item btn btn-sm" hx-get="/jobs" hx-target="#jobs-table" hx-include="#filter-form"
+    hx-vals='{"page": <%= pagination.page - 1 %>}'>«</button>
   <% } else { %>
-    <button class="join-item btn btn-sm btn-disabled">«</button>
+  <button class="join-item btn btn-sm btn-disabled">«</button>
   <% } %>
 
   <button class="join-item btn btn-sm btn-active" data-current-page="<%= pagination.page %>">
@@ -57,16 +57,10 @@
   </button>
 
   <% if (pagination.hasNextPage) { %>
-    <button
-      type="button"
-      class="join-item btn btn-sm"
-      hx-get="/jobs"
-      hx-target="#jobs-table"
-      hx-include="#filter-form"
-      hx-vals='{"page": <%= pagination.page + 1 %>}'
-    >»</button>
+  <button type="button" class="join-item btn btn-sm" hx-get="/jobs" hx-target="#jobs-table" hx-include="#filter-form"
+    hx-vals='{"page": <%= pagination.page + 1 %>}'>»</button>
   <% } else { %>
-    <button class="join-item btn btn-sm btn-disabled">»</button>
+  <button class="join-item btn btn-sm btn-disabled">»</button>
   <% } %>
 </div>
 

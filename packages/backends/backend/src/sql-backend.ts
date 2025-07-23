@@ -109,12 +109,12 @@ export abstract class SQLBackend implements Backend {
       trx("sidequest_jobs")
         .update({
           claimed_by: workerName,
-          claimed_at: new Date().toISOString(),
+          claimed_at: new Date(),
           state: "claimed",
         })
         .where("state", "waiting")
         .andWhere("queue", queue)
-        .andWhere("available_at", "<=", new Date().toISOString())
+        .andWhere("available_at", "<=", new Date())
         .orderBy("inserted_at")
         .limit(quantity)
         .returning("*"),
