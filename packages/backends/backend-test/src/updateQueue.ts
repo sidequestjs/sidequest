@@ -13,7 +13,7 @@ export default function defineUpdateQueueTestSuite() {
         priority: 1,
         state: "active",
       };
-      const insertedQueue = await backend.insertQueueConfig(queue);
+      const insertedQueue = await backend.createNewQueue(queue);
       const updatedQueue = await backend.updateQueue({ id: insertedQueue.id });
       expect(updatedQueue).toMatchObject(insertedQueue);
     });
@@ -26,7 +26,7 @@ export default function defineUpdateQueueTestSuite() {
         priority: 3,
         state: "active",
       };
-      const insertedQueue = await backend.insertQueueConfig(queue);
+      const insertedQueue = await backend.createNewQueue(queue);
       const newData: QueueConfig = {
         id: insertedQueue.id,
         name: "updatedQueue",

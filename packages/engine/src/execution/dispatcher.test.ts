@@ -1,5 +1,5 @@
 import { CompletedResult, JobData } from "@sidequest/core";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Dispatcher } from "./dispatcher";
 import { ExecutorManager } from "./executor-manager";
@@ -30,7 +30,7 @@ async function createJob(queue = "default") {
 
 describe("Dispatcher", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
     queues: [
       { name: "default", concurrency: 1 },

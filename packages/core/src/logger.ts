@@ -40,14 +40,8 @@ export function configureLogger(options: LoggerOptions) {
    * @returns The Winston log format.
    */
   function buildFormat() {
-    const addProcessInfo = winston.format((info) => {
-      info.pid = process.pid;
-      return info;
-    });
-
     if (options.json) {
       return winston.format.combine(
-        addProcessInfo(),
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         winston.format.label({ label: "Sidequest" }),
@@ -56,15 +50,14 @@ export function configureLogger(options: LoggerOptions) {
     }
 
     return winston.format.combine(
-      addProcessInfo(),
       winston.format.colorize(),
       winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
       winston.format.errors({ stack: true }),
       winston.format.label({ label: "Sidequest" }),
-      winston.format.printf(({ timestamp, level, message, label, stack, pid, scope, ...metadata }) => {
+      winston.format.printf(({ timestamp, level, message, label, stack, scope, ...metadata }) => {
         const metaStr = Object.keys(metadata).length ? `\n${JSON.stringify(metadata, null, 2)}` : "";
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        const base = `[${level}] [${timestamp}] [pid:${pid}] [${label}] ${scope ? `[${scope as string}] ` : ""}: ${message}${metaStr}`;
+        const base = `[${level}] [${timestamp}] [${label}] ${scope ? `[${scope as string}] ` : ""}: ${message}${metaStr}`;
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
         return stack ? `${base}\n${stack}` : base;
       }),

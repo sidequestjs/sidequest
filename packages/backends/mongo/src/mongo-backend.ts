@@ -1,0 +1,485 @@
+import {
+  Backend,
+  formatDateForBucket,
+  JOB_FALLBACK,
+  JobCounts,
+  NewJobData,
+  NewQueueData,
+  QUEUE_FALLBACK,
+  UpdateJobData,
+  UpdateQueueData,
+} from "@sidequest/backend";
+import { JobData, JobState, QueueConfig } from "@sidequest/core";
+import { Collection, Db, Filter, MongoClient } from "mongodb";
+
+export default class MongoBackend implements Backend {
+  private client: MongoClient;
+  private db: Db;
+  private jobs: Collection<JobData>;
+  private queues: Collection<QueueConfig>;
+  private counters: Collection<{ _id: string; seq: number }>;
+  private _connected: boolean;
+
+  constructor(mongoUrl: string) {
+    const url = new URL(mongoUrl);
+    const dbName = url.pathname && url.pathname !== "/" ? url.pathname.replace(/^\//, "") : "test";
+    this.client = new MongoClient(mongoUrl, { ignoreUndefined: true });
+    this.db = this.client.db(dbName);
+    this.jobs = this.db.collection<JobData>("sidequest_jobs");
+    this.queues = this.db.collection<QueueConfig>("sidequest_queues");
+    this.counters = this.db.collection("sidequest_counters");
+    this._connected = false;
+  }
+
+  private async nextId(key: string): Promise<number> {
+    const result = await this.counters.findOneAndUpdate(
+      { _id: key },
+      { $inc: { seq: 1 } },
+      { upsert: true, returnDocument: "after" },
+    );
+    return result!.seq;
+  }
+
+  private async ensureConnected() {
+    if (!this._connected) {
+      await this.client.connect();
+      this._connected = true;
+    }
+  }
+
+  async migrate(): Promise<void> {
+    await this.ensureConnected();
+    await this.jobs.createIndex({ queue: 1, state: 1, available_at: 1 });
+    await this.jobs.createIndex(
+      { unique_digest: 1 },
+      {
+        unique: true,
+        partialFilterExpression: {
+          unique_digest: { $exists: true, $type: "string" },
+        },
+      },
+    );
+    await this.queues.createIndex({ name: 1 }, { unique: true });
+  }
+
+  async rollbackMigration(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  async close(): Promise<void> {
+    await this.client.close();
+  }
+
+  async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
+    await this.ensureConnected();
+    const id = await this.nextId("queue");
+    const doc: QueueConfig = {
+      ...QUEUE_FALLBACK,
+      ...queueConfig,
+      id,
+      name: queueConfig.name,
+    };
+    await this.queues.insertOne(doc);
+    return doc;
+  }
+
+  async getQueue(queue: string): Promise<QueueConfig | undefined> {
+    await this.ensureConnected();
+    return (await this.queues.findOne({ name: queue })) as QueueConfig | undefined;
+  }
+
+  async getQueuesFromJobs(): Promise<string[]> {
+    await this.ensureConnected();
+    const queues = await this.jobs.distinct("queue");
+    return queues;
+  }
+
+  async listQueues(orderBy?: { column: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]> {
+    await this.ensureConnected();
+    const sort: Record<string, 1 | -1> = {};
+    sort[orderBy?.column ?? "priority"] = (orderBy?.order ?? "desc") === "asc" ? 1 : -1;
+    return await this.queues.find().sort(sort).toArray();
+  }
+
+  async updateQueue(queueData: UpdateQueueData): Promise<QueueConfig> {
+    await this.ensureConnected();
+    const { id, ...updates } = queueData;
+    const res = await this.queues.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: "after" });
+    if (!res) throw new Error("Queue not found");
+    return res as QueueConfig;
+  }
+
+  async createNewJob(job: NewJobData): Promise<JobData> {
+    await this.ensureConnected();
+    const id = await this.nextId("job");
+    const now = new Date();
+    const doc: JobData = {
+      ...JOB_FALLBACK,
+      ...job,
+      id,
+      inserted_at: now,
+      available_at: job.available_at ?? now,
+    };
+    await this.jobs.insertOne(doc);
+    return doc;
+  }
+
+  async getJob(id: number): Promise<JobData | undefined> {
+    await this.ensureConnected();
+    const job = (await this.jobs.findOne({ id })) as JobData | undefined;
+    if (job) return job;
+  }
+
+  async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
+    await this.ensureConnected();
+    const now = new Date();
+    const claimed: JobData[] = [];
+    for (let i = 0; i < quantity; i++) {
+      const res = await this.jobs.findOneAndUpdate(
+        {
+          queue,
+          state: "waiting",
+          available_at: { $lte: now },
+        },
+        {
+          $set: {
+            state: "claimed",
+            claimed_at: now,
+            claimed_by: `sidequest@${process.pid}`,
+          },
+        },
+        { returnDocument: "after", sort: { inserted_at: 1, id: 1 } },
+      );
+      if (res) claimed.push(res as JobData);
+      else break;
+    }
+    return claimed;
+  }
+
+  async updateJob(job: UpdateJobData): Promise<JobData> {
+    await this.ensureConnected();
+    const { id, ...updates } = job;
+    const res = await this.jobs.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: "after" });
+    if (!res) throw new Error("Job not found");
+    return res as JobData;
+  }
+
+  async listJobs(params?: {
+    queue?: string | string[];
+    jobClass?: string | string[];
+    state?: JobState | JobState[];
+    limit?: number;
+    offset?: number;
+    args?: unknown[];
+    timeRange?: { from?: Date; to?: Date };
+  }): Promise<JobData[]> {
+    await this.ensureConnected();
+    const filter: Filter<JobData> = {};
+    if (params?.queue) filter.queue = Array.isArray(params.queue) ? { $in: params.queue } : params.queue;
+    if (params?.jobClass) filter.class = Array.isArray(params.jobClass) ? { $in: params.jobClass } : params.jobClass;
+    if (params?.state) filter.state = Array.isArray(params.state) ? { $in: params.state } : params.state;
+    if (params?.args) filter.args = params.args;
+    if (params?.timeRange?.from || params?.timeRange?.to) {
+      filter.attempted_at = {};
+      if (params.timeRange.from) filter.attempted_at.$gte = params.timeRange.from;
+      if (params.timeRange.to) filter.attempted_at.$lte = params.timeRange.to;
+    }
+    const limit = params?.limit ?? 50;
+    const offset = params?.offset ?? 0;
+    return await this.jobs.find(filter).sort({ id: -1 }).skip(offset).limit(limit).toArray();
+  }
+
+  async countJobs(timeRange?: { from?: Date; to?: Date }): Promise<JobCounts> {
+    await this.ensureConnected();
+
+    const pipeline: object[] = [];
+
+    // If timeRange is specified, add computed timestamp field and match stage
+    if (timeRange?.from || timeRange?.to) {
+      // Add computed field for the relevant timestamp (first non-null value)
+      pipeline.push(this.coalesceDates());
+
+      // Apply time range filter to the computed timestamp
+      const timeMatch: Record<string, object> = {};
+      if (timeRange.from) {
+        timeMatch.$gte = timeRange.from;
+      }
+      if (timeRange.to) {
+        timeMatch.$lte = timeRange.to;
+      }
+
+      pipeline.push({
+        $match: {
+          timestamp: timeMatch,
+        },
+      });
+    }
+
+    // Group by state and count
+    pipeline.push({
+      $group: {
+        _id: "$state",
+        count: { $sum: 1 },
+      },
+    });
+
+    const results = (await this.jobs.aggregate(pipeline).toArray()) as { _id: JobState; count: number }[];
+
+    const counts: JobCounts = {
+      total: 0,
+      waiting: 0,
+      claimed: 0,
+      running: 0,
+      completed: 0,
+      failed: 0,
+      canceled: 0,
+    };
+
+    results.forEach((row) => {
+      const count = row.count;
+      counts[row._id] = count;
+      counts.total += count;
+    });
+
+    return counts;
+  }
+
+  async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
+    await this.ensureConnected();
+
+    // Parse time range (e.g., "12m", "12h", "12d")
+    const match = /^(\d+)([mhd])$/.exec(timeRange);
+    if (!match) {
+      throw new Error("Invalid time range format. Use format like '12m', '12h', or '12d'");
+    }
+
+    const amount = parseInt(match[1], 10);
+    const unit = match[2] as "m" | "h" | "d";
+
+    let intervalMs: number;
+    let granularityMs: number;
+    let dateGrouping: Record<string, object>;
+
+    switch (unit) {
+      case "m":
+        intervalMs = amount * 60 * 1000; // minutes to ms
+        granularityMs = 60 * 1000; // 1 minute
+        dateGrouping = {
+          year: { $year: "$timestamp" },
+          month: { $month: "$timestamp" },
+          day: { $dayOfMonth: "$timestamp" },
+          hour: { $hour: "$timestamp" },
+          minute: { $minute: "$timestamp" },
+        };
+        break;
+      case "h":
+        intervalMs = amount * 60 * 60 * 1000; // hours to ms
+        granularityMs = 60 * 60 * 1000; // 1 hour
+        dateGrouping = {
+          year: { $year: "$timestamp" },
+          month: { $month: "$timestamp" },
+          day: { $dayOfMonth: "$timestamp" },
+          hour: { $hour: "$timestamp" },
+        };
+        break;
+      case "d":
+        intervalMs = amount * 24 * 60 * 60 * 1000; // days to ms
+        granularityMs = 24 * 60 * 60 * 1000; // 1 day
+        dateGrouping = {
+          year: { $year: "$timestamp" },
+          month: { $month: "$timestamp" },
+          day: { $dayOfMonth: "$timestamp" },
+        };
+        break;
+    }
+
+    const now = new Date();
+    const startTime = new Date(now.getTime() - intervalMs);
+
+    // Create aggregation pipeline
+    const pipeline = [
+      // Add a computed field for the relevant timestamp
+      this.coalesceDates(),
+      // Filter by time range
+      {
+        $match: {
+          timestamp: {
+            $gte: startTime,
+            $lte: now,
+          },
+        },
+      },
+      // Group by time bucket and state
+      {
+        $group: {
+          _id: {
+            timeBucket: dateGrouping,
+            state: "$state",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      // Group again to reshape the data
+      {
+        $group: {
+          _id: "$_id.timeBucket",
+          states: {
+            $push: {
+              state: "$_id.state",
+              count: "$count",
+            },
+          },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ];
+
+    interface AggregationResult {
+      _id: {
+        year: number;
+        month: number;
+        day: number;
+        hour?: number;
+        minute?: number;
+      };
+      states: {
+        state: JobState;
+        count: number;
+      }[];
+    }
+
+    const results = (await this.jobs.aggregate(pipeline).toArray()) as AggregationResult[];
+
+    // Generate all time buckets in the range
+    const timeBuckets: Date[] = [];
+    for (
+      let time = new Date(startTime.getTime() + granularityMs);
+      time <= now;
+      time = new Date(time.getTime() + granularityMs)
+    ) {
+      // Round down to the appropriate granularity
+      const bucket = new Date(time);
+      switch (unit) {
+        case "m":
+          bucket.setUTCSeconds(0, 0);
+          break;
+        case "h":
+          bucket.setUTCMinutes(0, 0, 0);
+          break;
+        case "d":
+          bucket.setUTCHours(0, 0, 0, 0);
+          break;
+      }
+      timeBuckets.push(bucket);
+    }
+
+    // Create a map of results for easy lookup
+    const resultMap = new Map<string, Map<JobState, number>>();
+    results.forEach((row) => {
+      // Reconstruct the date from the grouped components
+      const { year, month, day, hour = 0, minute = 0 } = row._id;
+      const date = new Date(Date.UTC(year, month - 1, day, hour, minute));
+      const timeKey = formatDateForBucket(date, unit);
+
+      if (!resultMap.has(timeKey)) {
+        resultMap.set(timeKey, new Map());
+      }
+
+      row.states.forEach((stateData) => {
+        resultMap.get(timeKey)!.set(stateData.state, stateData.count);
+      });
+    });
+
+    // Build the final result array with all time buckets
+    return timeBuckets.map((timestamp) => {
+      const timeKey = formatDateForBucket(timestamp, unit);
+      const stateMap = resultMap.get(timeKey) ?? new Map<JobState, number>();
+
+      const counts: JobCounts = {
+        total: 0,
+        waiting: Number(stateMap.get("waiting") ?? 0),
+        claimed: Number(stateMap.get("claimed") ?? 0),
+        running: Number(stateMap.get("running") ?? 0),
+        completed: Number(stateMap.get("completed") ?? 0),
+        failed: Number(stateMap.get("failed") ?? 0),
+        canceled: Number(stateMap.get("canceled") ?? 0),
+      };
+
+      counts.total =
+        counts.waiting + counts.claimed + counts.running + counts.completed + counts.failed + counts.canceled;
+
+      return {
+        timestamp,
+        ...counts,
+      };
+    });
+  }
+
+  private coalesceDates() {
+    return {
+      $addFields: {
+        timestamp: {
+          $ifNull: [
+            "$completed_at",
+            {
+              $ifNull: [
+                "$failed_at",
+                {
+                  $ifNull: [
+                    "$canceled_at",
+                    {
+                      $ifNull: [
+                        "$attempted_at",
+                        {
+                          $ifNull: ["$claimed_at", "$inserted_at"],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    };
+  }
+
+  async staleJobs(maxStaleMs = 60_000, maxClaimedMs = 5 * 60_000): Promise<JobData[]> {
+    await this.ensureConnected();
+    const now = Date.now();
+    const runningJobs = await this.jobs
+      .find({
+        state: "running",
+        attempted_at: { $lt: new Date(now - maxStaleMs) },
+      })
+      .toArray();
+    const claimedJobs = await this.jobs
+      .find({
+        state: "claimed",
+        claimed_at: { $lt: new Date(now - maxClaimedMs) },
+      })
+      .toArray();
+    return [...runningJobs, ...claimedJobs];
+  }
+
+  async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
+    await this.ensureConnected();
+    await this.jobs.deleteMany({
+      $or: [
+        { completed_at: { $lt: cutoffDate } },
+        { failed_at: { $lt: cutoffDate } },
+        { canceled_at: { $lt: cutoffDate } },
+      ],
+    });
+  }
+
+  async truncate(): Promise<void> {
+    await this.ensureConnected();
+    await this.jobs.deleteMany({});
+    await this.queues.deleteMany({});
+    await this.counters.deleteMany({});
+  }
+}

@@ -1,8 +1,4 @@
 import createConfig from "../../rollup.config.base.js";
 import pkg from "./package.json" with { type: "json" };
 
-export default createConfig(pkg, {
-  engine: "src/engine.ts",
-  "workers/main": "src/workers/main.ts",
-  "shared-runner/runner": "src/shared-runner/runner.ts",
-});
+export default createConfig(pkg);

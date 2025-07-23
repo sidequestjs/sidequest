@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "dev": "npx rollup -c -w"
+    "dev": "npx rollup -c -w",
+    "test:ci": "npx vitest run"
   },
   "dependencies": {
     "@sidequest/core": "workspace:*",

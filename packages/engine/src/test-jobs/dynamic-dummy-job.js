@@ -1,4 +1,4 @@
-import { Job } from "../engine";
+import { Job } from "../job";
 
 export class DynamicDummyJob extends Job {
   async run() {

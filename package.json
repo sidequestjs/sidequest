@@ -25,7 +25,7 @@
     "format:check": "prettier --check \"**/*.{ts,js,mts,tsx,jsx}\"",
     "lint": "eslint . --ext .ts,.mts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.mts,.js,.tsx,.jsx --fix",
-    "dev": "turbo run dev --concurrency 12",
+    "dev": "turbo run dev --concurrency 13",
     "clean:dist": "rimraf packages/**/dist",
     "clean:turbo": "rimraf **/.turbo",
     "db:pg": "docker run --name pg-default -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres",

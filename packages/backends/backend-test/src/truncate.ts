@@ -13,7 +13,7 @@ export default function defineTruncateTestSuite() {
         script: "test.js",
         attempt: 0,
       });
-      const insertedQueue = await backend.insertQueueConfig({
+      const insertedQueue = await backend.createNewQueue({
         name: "default",
         concurrency: 100,
         priority: 10,
@@ -23,7 +23,7 @@ export default function defineTruncateTestSuite() {
       await backend.truncate();
 
       expect(await backend.getJob(insertedJob.id)).toBeFalsy();
-      expect(await backend.getQueueConfig(insertedQueue.name)).toBeFalsy();
+      expect(await backend.getQueue(insertedQueue.name)).toBeFalsy();
     });
   });
 }

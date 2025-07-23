@@ -14,7 +14,7 @@ vi.mock("piscina", () => {
 });
 
 import EventEmitter from "events";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 
 describe("RunnerPool", () => {
@@ -22,7 +22,7 @@ describe("RunnerPool", () => {
   let jobData: JobData;
 
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 

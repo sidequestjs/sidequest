@@ -1,6 +1,3 @@
-import { access } from "fs/promises";
-import { pathToFileURL } from "url";
-
 import {
   CompletedResult,
   FailedResult,
@@ -11,6 +8,8 @@ import {
   SnoozeResult,
   toErrorData,
 } from "@sidequest/core";
+import { access } from "fs/promises";
+import { pathToFileURL } from "url";
 
 /**
  * Type for a job class constructor.

@@ -92,18 +92,18 @@ export interface Backend {
   close(): Promise<void>;
 
   /**
-   * Inserts a new queue configuration.
-   * @param queueConfig The new queue configuration.
-   * @returns The created queue configuration.
+   * Creates a new queue.
+   * @param queueConfig The new queue.
+   * @returns The created queue.
    */
-  insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig>;
+  createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig>;
 
   /**
-   * Gets the configuration for a specific queue.
+   * Gets the queue by its name.
    * @param queue The queue name.
-   * @returns The queue configuration, if found.
+   * @returns The queue, if found.
    */
-  getQueueConfig(queue: string): Promise<QueueConfig | undefined>;
+  getQueue(queue: string): Promise<QueueConfig | undefined>;
 
   /**
    * Gets the list of queue names from jobs.
@@ -116,7 +116,7 @@ export interface Backend {
    * @param orderBy Optional ordering options.
    * @returns An array of queue configurations.
    */
-  listQueues(orderBy?: { column: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]>;
+  listQueues(orderBy?: { column?: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]>;
 
   /**
    * Updates a queue configuration.

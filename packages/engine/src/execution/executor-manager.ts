@@ -1,5 +1,5 @@
 import { Backend } from "@sidequest/backend";
-import { JobData, JobTransitionFactory, logger, QueueConfig, RunningTransition } from "@sidequest/core";
+import { JobData, JobTransitionFactory, logger, QueueConfig, RunTransition, SnoozeTransition } from "@sidequest/core";
 import EventEmitter from "events";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
@@ -81,11 +81,16 @@ export class ExecutorManager {
       this.activeByQueue[queueConfig.name] = new Set();
     }
 
-    // TODO: add availabilith check
+    if (this.availableSlotsByQueue(queueConfig) <= 0 || this.availableSlotsGlobal() <= 0) {
+      logger("Executor Manager").debug(`No available slots for job ${job.id} in queue ${queueConfig.name}`);
+      await JobTransitioner.apply(job, new SnoozeTransition(0));
+      return;
+    }
+
     this.activeByQueue[queueConfig.name].add(job.id);
     this.activeJobs.add(job.id);
 
-    job = await JobTransitioner.apply(job, new RunningTransition());
+    job = await JobTransitioner.apply(job, new RunTransition());
 
     const signal = new EventEmitter();
 

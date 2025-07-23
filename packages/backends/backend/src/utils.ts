@@ -76,3 +76,32 @@ export function whereOrWhereIn(queryBuilder: Knex.QueryBuilder, column: string, 
   }
   return queryBuilder;
 }
+
+/**
+ * Formats a Date object into a string representation suitable for time-based bucketing operations.
+ * The output format varies based on the specified time unit, truncating precision to align with bucket boundaries.
+ *
+ * @param date - The Date object to format
+ * @param unit - The time unit for bucketing:
+ *   - "m": minute-level precision (YYYY-MM-DD HH:mm:00)
+ *   - "h": hour-level precision (YYYY-MM-DD HH:00:00)
+ *   - "d": day-level precision (YYYY-MM-DD 00:00:00)
+ * @returns A formatted date string with precision truncated to the specified unit
+ */
+export function formatDateForBucket(date: Date | string | number, unit: "m" | "h" | "d"): string {
+  date = new Date(date);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const hour = String(date.getUTCHours()).padStart(2, "0");
+  const minute = String(date.getUTCMinutes()).padStart(2, "0");
+
+  switch (unit) {
+    case "m":
+      return `${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
+    case "h":
+      return `${year}-${month}-${day}T${hour}:00:00.000Z`;
+    case "d":
+      return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+}

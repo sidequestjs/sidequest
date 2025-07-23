@@ -1,7 +1,7 @@
 import { JobData } from "../schema";
-import { RunningTransition } from "./running-transition";
+import { RunTransition } from "./run-transition";
 
-describe("RunningTransition", () => {
+describe("RunTransition", () => {
   let jobData: JobData;
   beforeEach(() => {
     jobData = {
@@ -17,7 +17,7 @@ describe("RunningTransition", () => {
   });
 
   it("sets job data as running", () => {
-    expect(new RunningTransition().apply(jobData)).toEqual({
+    expect(new RunTransition().apply(jobData)).toEqual({
       queue: "default",
       script: "./dummy-script.js",
       class: "DummyClass",

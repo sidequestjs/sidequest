@@ -1,7 +1,7 @@
 import { NewQueueData } from "@sidequest/backend";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
 import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
 import { releaseStaleJobs } from "../routines/release-stale-jobs";
@@ -47,7 +47,7 @@ describe("main.ts", () => {
   ];
 
   const dbLocation = ":memory:";
-  const config: SidequestConfig = { queues, backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+  const config: EngineConfig = { queues, backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
 
   beforeAll(async () => {
     await Engine.configure(config);

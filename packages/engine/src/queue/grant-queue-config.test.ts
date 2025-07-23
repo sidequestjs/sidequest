@@ -1,6 +1,6 @@
 import { Backend } from "@sidequest/backend";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { grantQueueConfig, QueueDefaults } from "./grant-queue-config";
 
 describe("grantQueueConfig", () => {
@@ -8,7 +8,7 @@ describe("grantQueueConfig", () => {
 
   beforeAll(async () => {
     const dbLocation = ":memory:";
-    const config: SidequestConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+    const config: EngineConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
     await Engine.configure(config);
   });
 

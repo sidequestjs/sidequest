@@ -9,14 +9,14 @@ export default function defineListQueuesTestSuite() {
     });
 
     it("should list multiple queues in priority order", async () => {
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "default",
         concurrency: 100,
         priority: 10,
         state: "active",
       });
 
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "default2",
         concurrency: 100,
         priority: 100,
@@ -30,13 +30,13 @@ export default function defineListQueuesTestSuite() {
     });
 
     it("should list queues in ascending priority order", async () => {
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "asc1",
         concurrency: 10,
         priority: 1,
         state: "active",
       });
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "asc2",
         concurrency: 10,
         priority: 2,
@@ -47,13 +47,13 @@ export default function defineListQueuesTestSuite() {
     });
 
     it("should list queues in descending concurrency order", async () => {
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "con1",
         concurrency: 5,
         priority: 1,
         state: "active",
       });
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "con2",
         concurrency: 20,
         priority: 2,
@@ -64,13 +64,13 @@ export default function defineListQueuesTestSuite() {
     });
 
     it("should list queues in ascending name order", async () => {
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "bqueue",
         concurrency: 1,
         priority: 1,
         state: "active",
       });
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "aqueue",
         concurrency: 1,
         priority: 2,

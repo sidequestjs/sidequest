@@ -1,6 +1,6 @@
 import { logger } from "@sidequest/core";
 import cron from "node-cron";
-import { Engine, NonNullableSidequestConfig, SidequestConfig } from "../engine";
+import { Engine, EngineConfig, NonNullableEngineConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
 import { ExecutorManager } from "../execution/executor-manager";
 import { QueueManager } from "../execution/queue-manager";
@@ -15,7 +15,7 @@ let dispatcher: Dispatcher | undefined;
  * Starts a Sidequest worker process with the given configuration.
  * @param sidequestConfig The Sidequest configuration for the worker.
  */
-export async function runWorker(sidequestConfig: SidequestConfig) {
+export async function runWorker(sidequestConfig: EngineConfig) {
   try {
     const nonNullConfig = await Engine.configure(sidequestConfig);
     const backend = Engine.getBackend()!;
@@ -127,7 +127,7 @@ if (isChildProcess) {
   process.on(
     "message",
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async ({ type, sidequestConfig }: { type: string; sidequestConfig?: NonNullableSidequestConfig }) => {
+    async ({ type, sidequestConfig }: { type: string; sidequestConfig?: NonNullableEngineConfig }) => {
       if (type === "start") {
         if (!sidequestConfig) {
           throw new Error("No Sidequest configuration provided to worker!");

@@ -2215,9 +2215,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/mongo-backend@workspace:packages/backends/mongodb":
+"@sidequest/mongo-backend@workspace:packages/backends/mongo":
   version: 0.0.0-use.local
-  resolution: "@sidequest/mongo-backend@workspace:packages/backends/mongodb"
+  resolution: "@sidequest/mongo-backend@workspace:packages/backends/mongo"
   dependencies:
     "@sidequest/backend": "workspace:*"
     "@sidequest/backend-test": "workspace:*"

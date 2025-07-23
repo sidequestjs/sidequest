@@ -27,7 +27,7 @@ export default class MysqlBackend extends SQLBackend {
     super(knex);
   }
 
-  async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
+  async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
     const data: NewQueueData = {
       ...QUEUE_FALLBACK,
       ...queueConfig,

@@ -19,14 +19,14 @@ import { gracefulShutdown } from "./utils/shutdown";
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
 let _backend: Backend | undefined;
-let _config: NonNullableSidequestConfig | undefined;
+let _config: NonNullableEngineConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 let shuttingDown = false;
 
 /**
  * Configuration options for the Sidequest engine.
  */
-export interface SidequestConfig {
+export interface EngineConfig {
   /** Backend configuration. Defaults to `@sidequest/sqlite-backend` and `./sidequest.sqlite` file */
   backend?: BackendConfig;
   /** List of queue configurations. Defaults to `[]` */
@@ -74,13 +74,13 @@ export interface SidequestConfig {
 }
 
 /**
- * Non-nullable version of the SidequestConfig type.
+ * Non-nullable version of the EngineConfig type.
  * Ensures all properties are defined and not null.
  *
- * @see {@link SidequestConfig} for the original type.
+ * @see {@link EngineConfig} for the original type.
  */
-export type NonNullableSidequestConfig = {
-  [P in keyof SidequestConfig]-?: NonNullable<SidequestConfig[P]>;
+export type NonNullableEngineConfig = {
+  [P in keyof EngineConfig]-?: NonNullable<EngineConfig[P]>;
 };
 
 /**
@@ -92,7 +92,7 @@ export class Engine {
    * @param config Optional configuration object.
    * @returns The resolved configuration.
    */
-  static async configure(config?: SidequestConfig): Promise<NonNullableSidequestConfig> {
+  static async configure(config?: EngineConfig): Promise<NonNullableEngineConfig> {
     if (_config) {
       logger("Engine").debug("Sidequest already configured");
       return _config;
@@ -155,7 +155,7 @@ export class Engine {
    * Starts the Sidequest engine and worker process.
    * @param config Optional configuration object.
    */
-  static async start(config: SidequestConfig): Promise<void> {
+  static async start(config: EngineConfig): Promise<void> {
     config = await Engine.configure(config);
 
     logger("Engine").info(`Starting Sidequest using backend ${config.backend?.driver}`);
@@ -228,9 +228,9 @@ export class Engine {
    * @param queue The queue name.
    * @returns The queue configuration, if found.
    */
-  static async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
+  static async getQueue(queue: string): Promise<QueueConfig | undefined> {
     if (!_backend) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
-    return _backend.getQueueConfig(queue);
+    return _backend.getQueue(queue);
   }
 
   /**
@@ -257,6 +257,3 @@ export class Engine {
     return new JobBuilder(JobClass, _config.jobDefaults);
   }
 }
-
-export { Job, JobClassType } from "./job/job";
-export type { JobBuilder } from "./job/job-builder";

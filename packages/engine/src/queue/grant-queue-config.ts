@@ -35,7 +35,7 @@ export function differentQueueConfig(queue: NewQueueData, queueConfig: QueueConf
  * @returns The queue configuration.
  */
 export async function grantQueueConfig(backend: Backend, queue: NewQueueData, defaults?: QueueDefaults) {
-  const queueConfig = await backend?.getQueueConfig(queue.name);
+  const queueConfig = await backend?.getQueue(queue.name);
   if (queueConfig) {
     if (differentQueueConfig(queue, queueConfig)) {
       logger("Engine").warn(
@@ -54,5 +54,5 @@ export async function grantQueueConfig(backend: Backend, queue: NewQueueData, de
 
   logger("Engine").info(`Creating queue config for ${queue.name}`);
 
-  return backend?.insertQueueConfig(newConfig);
+  return backend?.createNewQueue(newConfig);
 }

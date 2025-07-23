@@ -1,10 +1,10 @@
 import { JobData } from "@sidequest/core";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { releaseStaleJobs } from "./release-stale-jobs";
 
 describe("release-stale-jobs.ts", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 

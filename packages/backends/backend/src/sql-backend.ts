@@ -3,7 +3,7 @@ import { Knex } from "knex";
 import { hostname } from "os";
 import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
 import { JOB_FALLBACK, MISC_FALLBACK, QUEUE_FALLBACK } from "./constants";
-import { safeParseJobData, whereOrWhereIn } from "./utils";
+import { formatDateForBucket, safeParseJobData, whereOrWhereIn } from "./utils";
 
 /**
  * Abstract base class for SQL-backed implementations of the {@link Backend} interface.
@@ -59,7 +59,7 @@ export abstract class SQLBackend implements Backend {
     await this.knex.destroy();
   }
 
-  async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
+  async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
     const data: NewQueueData = {
       ...QUEUE_FALLBACK,
       ...queueConfig,
@@ -72,7 +72,7 @@ export abstract class SQLBackend implements Backend {
     return newConfig[0];
   }
 
-  async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
+  async getQueue(queue: string): Promise<QueueConfig | undefined> {
     return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig | undefined>;
   }
 
@@ -81,7 +81,7 @@ export abstract class SQLBackend implements Backend {
     return queues.map((q) => q.queue);
   }
 
-  async listQueues(orderBy?: { column: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]> {
+  async listQueues(orderBy?: { column?: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]> {
     return (await this.knex("sidequest_queues")
       .select("*")
       .orderBy(orderBy?.column ?? "priority", orderBy?.order ?? "desc")) as QueueConfig[];
@@ -352,7 +352,7 @@ export abstract class SQLBackend implements Backend {
     // Create a map of results for easy lookup
     const resultMap = new Map<string, Map<JobState, number>>();
     results.forEach((row) => {
-      const timeKey = this.formatDateForBucket(row.time_bucket, unit);
+      const timeKey = formatDateForBucket(row.time_bucket, unit);
       if (!resultMap.has(timeKey)) {
         resultMap.set(timeKey, new Map());
       }
@@ -361,7 +361,7 @@ export abstract class SQLBackend implements Backend {
 
     // Build the final result array with all time buckets
     return timeBuckets.map((timestamp) => {
-      const timeKey = this.formatDateForBucket(timestamp, unit);
+      const timeKey = formatDateForBucket(timestamp, unit);
       const stateMap = resultMap.get(timeKey) ?? new Map<JobState, number>();
 
       const counts: JobCounts = {
@@ -393,43 +393,6 @@ export abstract class SQLBackend implements Backend {
    * @returns A SQL query string that truncates the date.
    */
   abstract truncDate(date: string, unit: "m" | "h" | "d"): string;
-
-  /**
-   * Formats a Date object into a string representation suitable for time-based bucketing operations.
-   * The output format varies based on the specified time unit, truncating precision to align with bucket boundaries.
-   *
-   * @param date - The Date or string object to format
-   * @param unit - The time unit for bucketing:
-   *   - "m": minute-level precision (YYYY-MM-DD HH:mm:00)
-   *   - "h": hour-level precision (YYYY-MM-DD HH:00:00)
-   *   - "d": day-level precision (YYYY-MM-DD 00:00:00)
-   * @returns A formatted date string with precision truncated to the specified unit
-   *
-   * @example
-   * ```typescript
-   * const date = new Date('2023-12-25T14:30:45');
-   * formatDateForBucket(date, 'm'); // Returns "2023-12-25 14:30:00"
-   * formatDateForBucket(date, 'h'); // Returns "2023-12-25 14:00:00"
-   * formatDateForBucket(date, 'd'); // Returns "2023-12-25 00:00:00"
-   * ```
-   */
-  private formatDateForBucket(date: Date | string, unit: "m" | "h" | "d"): string {
-    date = new Date(date);
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    const hour = String(date.getUTCHours()).padStart(2, "0");
-    const minute = String(date.getUTCMinutes()).padStart(2, "0");
-
-    switch (unit) {
-      case "m":
-        return `${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
-      case "h":
-        return `${year}-${month}-${day}T${hour}:00:00.000Z`;
-      case "d":
-        return `${year}-${month}-${day}T00:00:00.000Z`;
-    }
-  }
 
   async staleJobs(
     maxStaleMs = MISC_FALLBACK.maxStaleMs,

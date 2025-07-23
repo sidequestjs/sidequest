@@ -1,11 +1,11 @@
 import { FailedResult, JobData } from "@sidequest/core";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import run from "./runner";
 
 describe("runner.ts", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 

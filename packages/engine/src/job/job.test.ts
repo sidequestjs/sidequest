@@ -1,11 +1,12 @@
 import { CompletedResult, JobState, RetryResult, SnoozeResult, UniquenessFactory } from "@sidequest/core";
-import { Engine, Job, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
+import { Job } from "./job";
 import { JobBuilder } from "./job-builder";
 
 describe("job.ts", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 

@@ -1,9 +1,9 @@
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { cleanupFinishedJobs } from "./cleanup-finished-job";
 
 describe("cleanup-finished-job.ts", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 

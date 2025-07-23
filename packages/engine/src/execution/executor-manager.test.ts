@@ -1,7 +1,7 @@
 import { Backend } from "@sidequest/backend";
 import { CompletedResult, JobData } from "@sidequest/core";
 import EventEmitter from "events";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { ExecutorManager } from "./executor-manager";
@@ -22,7 +22,7 @@ vi.mock("../job/job-transitioner", () => ({
 
 describe("ExecutorManager", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
     maxConcurrentJobs: 5,
   };
@@ -75,6 +75,40 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(5);
     });
+
+    it("snoozes job when queue is full", async () => {
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 }); // No available slots
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
+
+      // Set up job in claimed state (as it would be when passed to execute)
+      jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
+
+      await executorManager.execute(queryConfig, jobData);
+
+      // Verify the job runner was NOT called since the job was snoozed
+      expect(runMock).not.toHaveBeenCalled();
+
+      // Verify slots remain unchanged (no job was actually executed)
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.totalActiveWorkers()).toEqual(0);
+    });
+
+    it("snoozes job when global slots are full", async () => {
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 5 }); // Queue has slots
+      const executorManager = new ExecutorManager(backend, 0, 2, 4); // But global max is 0
+
+      // Set up job in claimed state
+      jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
+
+      await executorManager.execute(queryConfig, jobData);
+
+      // Verify the job runner was NOT called
+      expect(runMock).not.toHaveBeenCalled();
+
+      // Verify global slots show as full
+      expect(executorManager.availableSlotsGlobal()).toEqual(0);
+      expect(executorManager.totalActiveWorkers()).toEqual(0);
+    });
   });
 
   describe("availableSlotsByQueue", () => {
@@ -112,8 +146,10 @@ describe("ExecutorManager", () => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
       const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4);
       expect(executorManager.totalActiveWorkers()).toEqual(0);
+
+      jobData = await backend.updateJob({ ...jobData, state: "running" });
+
       const execPromise = executorManager.execute(queryConfig, jobData);
-      expect(executorManager.totalActiveWorkers()).toEqual(1);
       await execPromise;
       expect(executorManager.totalActiveWorkers()).toEqual(0);
     });

@@ -7,6 +7,15 @@ import { JobTransition } from "./transition";
 
 /**
  * Transition for retrying a failed job.
+ *
+ * This transition will:
+ * - If the job has reached its maximum attempts, it will mark it as failed.
+ * - If not, it will log the reason for retrying, add the error to the job's errors,
+ *   and set the job state to "waiting" with an available_at time
+ *   based on an exponential backoff strategy.
+ * - The delay can be specified or calculated using exponential backoff with jitter.
+ *
+ * This transition can only be applied to jobs that are currently running.
  */
 export class RetryTransition extends JobTransition {
   /** Optional delay in milliseconds before retrying. */
@@ -25,11 +34,6 @@ export class RetryTransition extends JobTransition {
     this.reason = reason;
   }
 
-  /**
-   * Applies the retry transition to the job.
-   * @param job The job data to update.
-   * @returns The updated job data.
-   */
   apply(job: JobData): JobData {
     if (job.attempt >= job.max_attempts) {
       return new FailTransition(this.reason).apply(job);
@@ -66,5 +70,9 @@ export class RetryTransition extends JobTransition {
   private calculateBackoff(attempt: number, baseDelay = 1000, maxDelay = 3600000): number {
     const jitter = Math.random() + 0.5;
     return Math.round(Math.min(baseDelay * Math.pow(2, attempt - 1) * jitter, maxDelay));
+  }
+
+  shouldRun(job: JobData): boolean {
+    return job.state === "running";
   }
 }

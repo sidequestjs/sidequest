@@ -1,5 +1,5 @@
 import { JobData, JobResult, logger, toErrorData } from "@sidequest/core";
-import { Job, JobClassType } from "../engine";
+import { Job, JobClassType } from "../job/job";
 
 /**
  * Runs a job by dynamically importing its script and executing the specified class.

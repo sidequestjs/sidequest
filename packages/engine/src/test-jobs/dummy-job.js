@@ -1,4 +1,4 @@
-import { Job } from "../engine";
+import { Job } from "../job";
 
 export class DummyJob extends Job {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

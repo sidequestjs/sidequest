@@ -6,6 +6,12 @@ import { JobTransition } from "./transition";
 
 /**
  * Transition for marking a job as failed.
+ *
+ * This transition sets the job state to "failed" and records the
+ * failure reason and timestamp. It also stores the error data in the job's errors array.
+ * Failed jobs will not be retried or processed again.
+ *
+ * This transition can only be applied to jobs that are currently running.
  */
 export class FailTransition extends JobTransition {
   /** The reason for failure. */
@@ -20,11 +26,6 @@ export class FailTransition extends JobTransition {
     this.reason = reason;
   }
 
-  /**
-   * Applies the failure transition to the job.
-   * @param job The job data to update.
-   * @returns The updated job data.
-   */
   apply(job: JobData): JobData {
     logger().error(this.reason);
     const error = toErrorData(this.reason);
@@ -39,5 +40,9 @@ export class FailTransition extends JobTransition {
     job.state = "failed";
     job.failed_at = new Date();
     return job;
+  }
+
+  shouldRun(job: JobData): boolean {
+    return job.state === "running";
   }
 }

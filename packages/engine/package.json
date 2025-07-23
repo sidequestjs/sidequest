@@ -2,13 +2,13 @@
   "name": "@sidequest/engine",
   "version": "1.0.0-alpha.1",
   "type": "module",
-  "main": "./dist/engine.cjs",
-  "module": "./dist/engine.js",
-  "types": "./dist/engine.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    "import": "./dist/engine.js",
-    "require": "./dist/engine.cjs",
-    "types": "./dist/engine.d.ts"
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs",
+    "types": "./dist/index.d.ts"
   },
   "scripts": {
     "build": "npx rollup -c",

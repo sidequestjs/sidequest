@@ -1,4 +1,4 @@
-import { JobData } from "packages/core/dist";
+import { JobData } from "@sidequest/core";
 import type { NewQueueData } from "./backend";
 
 /**
@@ -30,7 +30,7 @@ export const JOB_FALLBACK: Required<
     | "attempted_at"
     | "completed_at"
     | "failed_at"
-    | "cancelled_at"
+    | "canceled_at"
     | "claimed_at"
     | "claimed_by"
   >
@@ -49,7 +49,7 @@ export const JOB_FALLBACK: Required<
   attempted_at: null,
   completed_at: null,
   failed_at: null,
-  cancelled_at: null,
+  canceled_at: null,
   claimed_at: null,
   claimed_by: null,
 };

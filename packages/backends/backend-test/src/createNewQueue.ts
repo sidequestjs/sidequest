@@ -2,9 +2,9 @@ import { describe, it } from "vitest";
 import { backend } from "./backend";
 
 export default function defineInsertQueueConfigTestSuite() {
-  describe("insertQueueConfig / getQueueConfig", () => {
+  describe("createNewQueue / getQueue", () => {
     it("should insert new queue with bare minimum", async () => {
-      let insertedQueue = await backend.insertQueueConfig({
+      let insertedQueue = await backend.createNewQueue({
         name: "default",
       });
       expect(insertedQueue).toMatchObject({
@@ -14,7 +14,7 @@ export default function defineInsertQueueConfigTestSuite() {
         state: "active",
       });
 
-      insertedQueue = (await backend.getQueueConfig("default"))!;
+      insertedQueue = (await backend.getQueue("default"))!;
       expect(insertedQueue).toMatchObject({
         name: "default",
         concurrency: 10,
@@ -24,7 +24,7 @@ export default function defineInsertQueueConfigTestSuite() {
     });
 
     it("should insert new queue with all optionals", async () => {
-      let insertedQueue = await backend.insertQueueConfig({
+      let insertedQueue = await backend.createNewQueue({
         name: "default",
         concurrency: 100,
         priority: 100,
@@ -37,7 +37,7 @@ export default function defineInsertQueueConfigTestSuite() {
         state: "paused",
       });
 
-      insertedQueue = (await backend.getQueueConfig("default"))!;
+      insertedQueue = (await backend.getQueue("default"))!;
       expect(insertedQueue).toMatchObject({
         name: "default",
         concurrency: 100,
@@ -47,14 +47,14 @@ export default function defineInsertQueueConfigTestSuite() {
     });
 
     it("should not insert duplicated queue", async () => {
-      await backend.insertQueueConfig({
+      await backend.createNewQueue({
         name: "default",
         concurrency: 100,
         priority: 100,
         state: "active",
       });
       await expect(
-        backend.insertQueueConfig({
+        backend.createNewQueue({
           name: "default",
           concurrency: 100,
           priority: 100,

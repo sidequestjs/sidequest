@@ -1,13 +1,13 @@
 import { Backend } from "@sidequest/backend";
 import { beforeEach, describe, expect, it } from "vitest";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, EngineConfig } from "../engine";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { QueueManager } from "./queue-manager";
 
 describe("QueueManager", () => {
   const dbLocation = ":memory:";
-  const config: SidequestConfig = {
+  const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 
