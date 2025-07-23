@@ -14,7 +14,7 @@ describe("JobTransitioner", () => {
   });
 
   beforeEach(async () => {
-    jobData = await Engine.getBackend().insertJob({
+    jobData = await Engine.getBackend()!.insertJob({
       queue: "default",
       script: "./dummy-script.js",
       class: "DummyClass",
@@ -27,7 +27,7 @@ describe("JobTransitioner", () => {
 
   it("applies a transition and saves the updated jobData", async () => {
     await JobTransitioner.apply(jobData, new RunningTransition());
-    const updatedJobData = await Engine.getBackend().getJob(jobData.id ?? 0);
+    const updatedJobData = await Engine.getBackend()!.getJob(jobData.id ?? 0);
     expect(updatedJobData.state).toEqual("running");
     expect(updatedJobData.attempt).toEqual(2);
   });

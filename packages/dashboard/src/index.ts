@@ -68,7 +68,7 @@ export class SidequestDashboard {
         };
       }
 
-      const jobs = await backend.listJobs(filters);
+      const jobs = await backend?.listJobs(filters);
 
       res.render("pages/jobs", {
         title: "Jobs",
@@ -86,7 +86,7 @@ export class SidequestDashboard {
 
     app.get("/queues", async (req, res) => {
       const backend = Engine.getBackend();
-      const queues = await backend.listQueues();
+      const queues = await backend?.listQueues();
 
       res.render("pages/queues", {
         title: "Queues",

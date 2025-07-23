@@ -1,14 +1,17 @@
 import { DuplicatedJobError, JobData, logger, QueueConfig, RetryTransition } from "@sidequest/core";
 import { fork } from "child_process";
+import cron from "node-cron";
 import path from "path";
 import { Engine, SidequestConfig } from "../engine";
+import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
-
-import cron from "node-cron";
-import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
+import { gracefulShutdown } from "../utils/shutdown";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
+
+let shuttingDown = false;
+let worker: Worker | undefined;
 
 export class Worker {
   timeout?: NodeJS.Timeout;
@@ -24,13 +27,16 @@ export class Worker {
     const maxConcurrentJobs = sidequestConfig.maxConcurrentJobs ?? 10;
 
     const heartBeat = async () => {
+      logger().debug("Worker heart beat...");
       try {
         const backend = Engine.getBackend();
-        const queueNames = await backend.getQueuesFromJobs();
+        const queueNames = await backend!.getQueuesFromJobs();
         const queues: QueueConfig[] = [];
         for (const queue of queueNames) {
           const queueConfig = await grantQueueConfig(queue, sidequestConfig?.queues?.[queue]);
-          queues.push(queueConfig);
+          if (queueConfig) {
+            queues.push(queueConfig);
+          }
         }
         queues.sort((a, b) => {
           return (b.priority ?? 0) - (a.priority ?? 0);
@@ -57,7 +63,7 @@ export class Worker {
 
           const availableSlots = limit - activeJobs.size;
 
-          const jobs: JobData[] = await backend.claimPendingJob(queueConfig.queue, availableSlots);
+          const jobs: JobData[] = await backend!.claimPendingJob(queueConfig.queue, availableSlots);
 
           for (const job of jobs) {
             const child = fork(executorPath);
@@ -74,7 +80,7 @@ export class Worker {
               child.kill();
               // TODO: create a JobTransition for this.
               job.state = "waiting";
-              void backend.updateJob(job);
+              void backend!.updateJob(job);
             }, 2000);
 
             child.on("message", (msg) => {
@@ -86,7 +92,6 @@ export class Worker {
                 child.on("exit", (code) => {
                   if (jobTimeout) clearTimeout(jobTimeout);
                   if (code && code > 0 && !timedOut) {
-                    logger().error(`Executor for job ${job.script} exited with code ${code}`);
                     void JobTransitioner.apply(
                       job,
                       new RetryTransition(new Error(`Executor exited with code ${code}`)),
@@ -94,15 +99,14 @@ export class Worker {
                   }
                 });
 
-                child.send({ job, config: sidequestConfig });
+                child.send({ type: "execute", job, config: sidequestConfig });
 
                 if (job.timeout) {
                   jobTimeout = setTimeout(() => {
-                    child.kill();
                     timedOut = true;
+                    child.send({ type: "shutdown" });
                     const error = `Executor for job ${job.script} timed out after ${job.timeout}ms`;
-                    logger().error(error);
-                    void JobTransitioner.apply(job, new RetryTransition(new Error(error)));
+                    void JobTransitioner.apply(job, new RetryTransition(error));
                   }, job.timeout);
                 }
               }
@@ -113,7 +117,7 @@ export class Worker {
         logger().error(error);
       }
 
-      if (this.isRunning) {
+      if (this.isRunning && !shuttingDown) {
         this.timeout = setTimeout(() => void heartBeat(), 500);
       }
     };
@@ -126,11 +130,29 @@ export class Worker {
     this.isRunning = false;
     clearTimeout(this.timeout);
   }
+
+  async shutdown() {
+    shuttingDown = true;
+    logger().info(`Shutting down worker... Awaiting for ${this.allActiveJobs.size} active jobs to finish...`);
+    await new Promise<void>((resolve) => {
+      const checkJobs = () => {
+        if (this.allActiveJobs.size === 0) {
+          logger().info("All active jobs finished. Worker shutdown complete.");
+          resolve();
+        } else {
+          logger().info(`Waiting for ${this.allActiveJobs.size} active jobs to finish...`);
+          setTimeout(checkJobs, 1000);
+        }
+      };
+
+      checkJobs();
+    });
+  }
 }
 
 export async function runWorker(sidequestConfig: SidequestConfig) {
   try {
-    const worker = new Worker();
+    worker = new Worker();
     await worker.run(sidequestConfig);
 
     startCron();
@@ -140,10 +162,17 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
   }
 }
 
+async function shutdown() {
+  if (!shuttingDown) {
+    await worker?.shutdown();
+    await Engine.close();
+  }
+}
+
 export function startCron() {
   cron.schedule("*/5 * * * *", async () => {
     try {
-      await Engine.build(ReleaseStaleJob).queue("sidequest_internal").unique(true).timeout(10_000).enqueue();
+      await Engine.build(ReleaseStaleJob)!.queue("sidequest_internal").unique(true).timeout(10_000).enqueue();
     } catch (error: unknown) {
       if (error instanceof DuplicatedJobError) {
         logger().debug("ReleaseStaleJob already scheduled by another worker");
@@ -157,7 +186,20 @@ export function startCron() {
 const isChildProcess = !!process.send;
 
 if (isChildProcess) {
-  process.on("message", (sidequestConfig: SidequestConfig) => void runWorker(sidequestConfig));
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  process.on("message", async ({ type, sidequestConfig }: { type: string; sidequestConfig?: SidequestConfig }) => {
+    if (type === "shutdown") {
+      logger().info("Received shutdown signal, stopping worker...");
+      await shutdown();
+    } else if (type === "start") {
+      if (!shuttingDown) {
+        logger().info("Starting worker with provided configuration...");
+        return await runWorker(sidequestConfig!);
+      } else {
+        logger().warn("Worker is already shutting down, ignoring start signal.");
+      }
+    }
+  });
 
   process.on("disconnect", () => {
     logger().error("Parent process disconnected, exiting...");
@@ -165,4 +207,6 @@ if (isChildProcess) {
   });
 
   if (process.send) process.send("ready");
+
+  gracefulShutdown(shutdown, "Worker");
 }

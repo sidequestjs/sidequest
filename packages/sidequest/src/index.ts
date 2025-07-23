@@ -11,7 +11,7 @@ export class Sidequest {
     return engine;
   }
 
-  static build(JobClass: JobClassType) {
+  static build<T extends JobClassType>(JobClass: T) {
     return Engine.build(JobClass);
   }
 }

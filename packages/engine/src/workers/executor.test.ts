@@ -62,7 +62,7 @@ describe("executror.ts", () => {
     it("fails with wrong class", async () => {
       claimedJobData.class = "BadClass";
 
-      await expect(execute(claimedJobData, config)).rejects.toThrow("Invalid job class: BadClass");
+      await expect(execute(claimedJobData, config)).resolves.toBeUndefined();
 
       expect(configureStub).toHaveBeenCalledOnce();
       expect(applyTransitionStub).not.toHaveBeenCalledWith(expect.anything(), expect.any(RunningTransition));

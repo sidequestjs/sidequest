@@ -4,12 +4,14 @@ import path from "path";
 import { JobClassType } from "./job/job";
 import { JobBuilder } from "./job/job-builder";
 import { grantQueueConfig } from "./queue/grant-queue-config";
+import { gracefulShutdown } from "./utils/shutdown";
 
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
-let _backend: Backend;
+let _backend: Backend | undefined;
 let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
+let shuttingDown = false;
 
 export interface BackendConfig {
   driver: "@sidequest/postgres-backend" | "@sidequest/sqlite-backend";
@@ -71,19 +73,32 @@ export class Engine {
           _mainWorker = fork(workerPath);
           _mainWorker.on("message", (msg) => {
             if (msg === "ready") {
-              _mainWorker?.send(config);
+              _mainWorker?.send({ type: "start", config });
               clearTimeout(timeout);
               resolve();
             }
           });
 
           _mainWorker.on("exit", () => {
-            logger().error("sidequest main exited, creating new...");
-            runWorker();
+            if (!shuttingDown) {
+              logger().error("sidequest main exited, creating new...");
+              runWorker();
+            }
           });
         };
 
         runWorker();
+
+        gracefulShutdown(async () => {
+          shuttingDown = true;
+          if (_mainWorker) {
+            _mainWorker.send({ type: "shutdown" });
+            await new Promise((resolve) => {
+              _mainWorker?.on("exit", resolve);
+            });
+          }
+          await Engine.close();
+        }, "Engine");
       }
     });
   }
@@ -93,18 +108,25 @@ export class Engine {
   }
 
   static async getQueueConfig(queue: string): Promise<QueueConfig> {
+    if (!_backend) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
     return _backend.getQueueConfig(queue);
   }
 
   static async close() {
     _config = undefined;
-    return _backend.close();
+    return _backend?.close();
   }
 
-  static build(JobClass: JobClassType) {
+  static build<T extends JobClassType>(JobClass: T) {
+    if (!_config) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
+    if (shuttingDown) {
+      logger().error("Engine is shutting down, cannot build job.");
+      return;
+    }
     return new JobBuilder(JobClass);
   }
 }
 
 export { DeduplicationStrategy, DefaultDeduplicationStrategy } from "./deduplication";
 export { Job, JobClassType } from "./job/job";
+export type { JobBuilder } from "./job/job-builder";

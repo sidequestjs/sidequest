@@ -52,7 +52,7 @@ export class JobBuilder<T extends JobClassType> {
       throw new Error(`Error on starting job ${job.className} could not detect source file.`);
     }
 
-    const backend = Engine.getBackend();
+    const backend = Engine.getBackend()!;
     const jobData: JobData = {
       queue: this.queueName,
       script: job.script,

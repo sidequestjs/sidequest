@@ -31,7 +31,7 @@ describe("job.ts", () => {
 
   it("should enqueue job", async () => {
     await new JobBuilder(DummyJob).enqueue();
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -40,7 +40,7 @@ describe("job.ts", () => {
 
   it("should enqueue job in different queue", async () => {
     await new JobBuilder(DummyJob).queue("test-queue").enqueue();
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
       queue: "test-queue",
     });
@@ -50,7 +50,7 @@ describe("job.ts", () => {
 
   it("should enqueue job with timeout", async () => {
     await new JobBuilder(DummyJob).timeout(100).enqueue();
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -61,7 +61,7 @@ describe("job.ts", () => {
   it("should be able to enqueue duplicated jobs", async () => {
     await new JobBuilder(DummyJob).enqueue();
     await new JobBuilder(DummyJob).unique(false).enqueue();
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -72,7 +72,7 @@ describe("job.ts", () => {
     await new JobBuilder(DummyJob).unique(true).enqueue();
     await expect(new JobBuilder(DummyJob).unique(true).enqueue()).rejects.toThrow();
 
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -83,7 +83,7 @@ describe("job.ts", () => {
     await new JobBuilder(DummyJob).unique(true).enqueue();
     await expect(new JobBuilder(DummyJob).unique(true).enqueue("arg1")).rejects.toThrow();
 
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -94,7 +94,7 @@ describe("job.ts", () => {
     await new JobBuilder(DummyJob).enqueue();
     await new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1");
 
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -107,7 +107,7 @@ describe("job.ts", () => {
       new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1"),
     ).rejects.toThrow();
 
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -124,7 +124,7 @@ describe("job.ts", () => {
   ] as [number, JobState][])("should have %i jobs if first job is %s", async (expected, state) => {
     const job1 = await new JobBuilder(DummyJob).unique(true).enqueue();
 
-    await Engine.getBackend().updateJob({ ...job1, state });
+    await Engine.getBackend()!.updateJob({ ...job1, state });
 
     try {
       await new JobBuilder(DummyJob).unique(true).enqueue();
@@ -132,7 +132,7 @@ describe("job.ts", () => {
       // noop
     }
 
-    const jobData = await Engine.getBackend().listJobs({
+    const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
 

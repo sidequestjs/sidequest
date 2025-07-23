@@ -75,7 +75,7 @@ describe("main.ts", () => {
 
     if (jobData.id) {
       await vi.waitUntil(async () => {
-        const job = await Engine.getBackend().getJob(jobData.id!);
+        const job = await Engine.getBackend()!.getJob(jobData.id!);
         return job.state === "completed";
       });
     }

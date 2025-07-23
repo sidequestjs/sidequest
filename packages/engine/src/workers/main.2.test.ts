@@ -88,11 +88,12 @@ describe("main.ts", () => {
 
   it("should timeout", async () => {
     const kilFn = vi.fn();
+    const sendFn = vi.fn(() => {
+      // We never call the exit handler here to simulate a timeout
+      return true;
+    });
     mockChildProcess({
-      send: vi.fn(() => {
-        // We never call the exit handler here to simulate a timeout
-        return true;
-      }),
+      send: sendFn,
       kill: kilFn,
     });
 
@@ -102,14 +103,14 @@ describe("main.ts", () => {
     await new JobBuilder(DummyJob).timeout(50).queue(lowQueueName).enqueue();
 
     await vi.waitUntil(async () => {
-      const [job] = await Engine.getBackend().listJobs({ jobClass: DummyJob.name, state: "waiting" });
+      const [job] = await Engine.getBackend()!.listJobs({ jobClass: DummyJob.name, state: "waiting" });
       return job?.errors?.[0].message?.includes("timed out");
     });
 
     worker.stop();
 
     expect(childProcess.fork).toHaveBeenCalled();
-    expect(kilFn).toHaveBeenCalled();
+    expect(sendFn).toHaveBeenCalledWith({ type: "shutdown" });
   });
 
   it("should exit with code !== 0", async () => {
@@ -135,7 +136,7 @@ describe("main.ts", () => {
     await new JobBuilder(DummyJob).timeout(0).queue(lowQueueName).enqueue();
 
     await vi.waitUntil(async () => {
-      const [job] = await Engine.getBackend().listJobs({ jobClass: DummyJob.name, state: "waiting" });
+      const [job] = await Engine.getBackend()!.listJobs({ jobClass: DummyJob.name, state: "waiting" });
       return job?.errors?.[0].message?.includes("exited with code");
     });
 

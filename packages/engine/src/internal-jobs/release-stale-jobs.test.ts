@@ -30,8 +30,8 @@ describe("release-stale-jobs.ts", () => {
 
     it("should do nothing when no stale jobs are found", async () => {
       const backend = Engine.getBackend();
-      const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([]);
-      const updateJobSpy = vi.spyOn(backend, "updateJob");
+      const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
+      const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
       const job = new ReleaseStaleJob();
       await job.run();
@@ -69,8 +69,8 @@ describe("release-stale-jobs.ts", () => {
       ];
 
       const backend = Engine.getBackend();
-      const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue(mockStaleJobs);
-      const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job));
+      const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
+      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job));
 
       const job = new ReleaseStaleJob();
       await job.run();
@@ -102,8 +102,8 @@ describe("release-stale-jobs.ts", () => {
       };
 
       const backend = Engine.getBackend();
-      const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
-      const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job));
+      const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([mockStaleJob]);
+      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job));
 
       const job = new ReleaseStaleJob();
       await job.run();
@@ -130,8 +130,8 @@ describe("release-stale-jobs.ts", () => {
       ];
 
       const backend = Engine.getBackend();
-      const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue(mockStaleJobs);
-      const updateJobSpy = vi.spyOn(backend, "updateJob").mockRejectedValue(new Error("Database error"));
+      const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
+      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockRejectedValue(new Error("Database error"));
 
       const job = new ReleaseStaleJob();
 
@@ -145,8 +145,8 @@ describe("release-stale-jobs.ts", () => {
 
     it("should handle staleJobs backend error", async () => {
       const backend = Engine.getBackend();
-      const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockRejectedValue(new Error("Failed to fetch stale jobs"));
-      const updateJobSpy = vi.spyOn(backend, "updateJob");
+      const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockRejectedValue(new Error("Failed to fetch stale jobs"));
+      const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
       const job = new ReleaseStaleJob();
 
