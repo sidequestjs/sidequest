@@ -29,7 +29,6 @@ document.addEventListener("htmx:configRequest", (evt) => {
   }
 });
 
-
 document.addEventListener("htmx:afterRequest", (evt) => {
   const form = document.getElementById("filter-form");
   if (!form) return;

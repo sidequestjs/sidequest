@@ -138,7 +138,7 @@ export default function defineListJobsTestSuite() {
       expect(listJobs).toHaveLength(1);
       expect(listJobs[0]).toMatchObject(insertedJob);
 
-      listJobs = await backend.listJobs({ offset: 1 });
+      listJobs = await backend.listJobs({ offset: 0, limit: 1 });
       expect(listJobs).toHaveLength(1);
       expect(listJobs[0]).toMatchObject(insertedJob2);
     });

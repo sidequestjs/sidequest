@@ -8,10 +8,7 @@ jobsRouter.get("/", async (req, res) => {
   const { status, start, end, queue, class: jobClass } = req.query;
   const backend = getBackend();
 
-  const time =
-    typeof req.query.time === "string" && req.query.time.trim()
-      ? req.query.time
-      : "30m";
+  const time = typeof req.query.time === "string" && req.query.time.trim() ? req.query.time : "30m";
 
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 30;
   const page = req.query.page ? Math.max(parseInt(req.query.page as string, 10), 1) : 1;
@@ -38,16 +35,17 @@ jobsRouter.get("/", async (req, res) => {
 
   filters.timeRange = computeTimeRange(time, start, end);
 
-  const timeRangeStrings = filters.timeRange ? {
-      from: filters.timeRange.from!.toISOString(),
-      to: (filters.timeRange.to || new Date()).toISOString(),
-    } : undefined;
-
+  const timeRangeStrings = filters.timeRange
+    ? {
+        from: filters.timeRange.from!.toISOString(),
+        to: (filters.timeRange.to ?? new Date()).toISOString(),
+      }
+    : undefined;
 
   const [jobs, queues, nextPageJobs] = await Promise.all([
     backend?.listJobs(filters),
     backend?.getQueuesFromJobs(),
-    backend?.listJobs({...filters, limit: 1, offset: page * pageSize}),
+    backend?.listJobs({ ...filters, limit: 1, offset: page * pageSize }),
   ]);
 
   const isHtmx = req.get("hx-request");
@@ -58,9 +56,9 @@ jobsRouter.get("/", async (req, res) => {
       pagination: {
         page,
         pageSize,
-        hasNextPage: nextPageJobs.length > 0
+        hasNextPage: nextPageJobs.length > 0,
       },
-      layout: false
+      layout: false,
     });
   } else {
     res.render("pages/jobs", {
@@ -78,8 +76,8 @@ jobsRouter.get("/", async (req, res) => {
       pagination: {
         page,
         pageSize,
-        hasNextPage: nextPageJobs.length > 0
-      }
+        hasNextPage: nextPageJobs.length > 0,
+      },
     });
   }
 });
