@@ -13,7 +13,7 @@ describe("SnoozeTransition", () => {
       constructor_args: [],
       attempt: 1,
       max_attempts: 10,
-    };
+    } as unknown as JobData;
   });
 
   it("snoozes a job", () => {

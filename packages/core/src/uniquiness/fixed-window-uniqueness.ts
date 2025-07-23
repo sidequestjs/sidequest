@@ -1,7 +1,7 @@
 import { Uniqueness } from "./uniqueness";
 
 import crypto from "crypto";
-import stableStringify from "json-stable-stringify";
+import { stringify } from "safe-stable-stringify";
 import { JobData } from "../schema";
 
 export type TimePeriod = "second" | "minute" | "hour" | "day" | "week" | "month";
@@ -21,8 +21,8 @@ export class FixedWindowUniqueness implements Uniqueness {
     let key = `${jobData.class}::time=${timeString}`;
 
     if (this.config.withArgs) {
-      key += "::args=" + stableStringify(jobData.args ?? []);
-      key += "::ctor=" + stableStringify(jobData.constructor_args ?? []);
+      key += "::args=" + stringify(jobData.args ?? []);
+      key += "::ctor=" + stringify(jobData.constructor_args ?? []);
     }
 
     return crypto.createHash("sha256").update(key).digest("hex");

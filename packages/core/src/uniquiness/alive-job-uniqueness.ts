@@ -1,7 +1,7 @@
 import { Uniqueness } from "./uniqueness";
 
 import crypto from "crypto";
-import stableStringify from "json-stable-stringify";
+import { stringify } from "safe-stable-stringify";
 import { JobData, JobState } from "../schema";
 
 const aliveStates: JobState[] = ["waiting", "claimed", "running"];
@@ -18,8 +18,8 @@ export class AliveJobUniqueness implements Uniqueness {
     if (aliveStates.includes(jobData.state)) {
       let key = jobData.class;
       if (this.config.withArgs) {
-        key += "::args=" + stableStringify(jobData.args ?? []);
-        key += "::ctor=" + stableStringify(jobData.constructor_args ?? []);
+        key += "::args=" + stringify(jobData.args ?? []);
+        key += "::ctor=" + stringify(jobData.constructor_args ?? []);
       }
       return crypto.createHash("sha256").update(key).digest("hex");
     }

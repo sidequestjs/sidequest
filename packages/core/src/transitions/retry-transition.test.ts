@@ -15,7 +15,7 @@ describe("RetryTransition", () => {
       max_attempts: 10,
       claimed_by: "node@worker",
       attempted_at: new Date(),
-    };
+    } as unknown as JobData;
   });
 
   it("allows retry setting a message", () => {
