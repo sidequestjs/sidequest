@@ -136,22 +136,35 @@ export abstract class SQLBackend implements Backend {
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
     const workerName = `sidequest@${hostname()}-${process.pid}`;
 
-    const result = (await this.knex.transaction(async (trx) =>
-      trx("sidequest_jobs")
-        .update({
-          claimed_by: workerName,
-          claimed_at: new Date(),
-          state: "claimed",
-        })
+    const jobs = await this.knex.transaction(async (trx) => {
+      const selected: JobData[] = await trx<JobData>("sidequest_jobs")
+        .select("*")
         .where("state", "waiting")
         .andWhere("queue", queue)
         .andWhere("available_at", "<=", new Date())
         .orderBy("inserted_at")
         .limit(quantity)
-        .returning("*"),
-    )) as JobData[];
+        .forUpdate()
+        .skipLocked();
 
-    return result.map(safeParseJobData);
+      if (selected.length === 0) {
+        return [];
+      }
+
+      const ids = selected.map((job) => job.id);
+
+      await trx<JobData>("sidequest_jobs").whereIn("id", ids).update({
+        claimed_by: workerName,
+        claimed_at: new Date(),
+        state: "claimed",
+      });
+
+      const updated = await trx<JobData>("sidequest_jobs").whereIn("id", ids).select("*");
+
+      return updated;
+    });
+
+    return jobs.map(safeParseJobData);
   }
 
   async updateJob(job: UpdateJobData): Promise<JobData> {
