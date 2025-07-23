@@ -9,6 +9,14 @@ import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { JobBuilder } from "../job/job-builder";
 import { runWorker, startCron } from "./main";
 
+const runMock = vi.fn();
+
+vi.mock("../shared-runner", () => ({
+  RunnerPool: vi.fn().mockImplementation(() => ({
+    run: runMock,
+  })),
+}));
+
 const cronMocks = vi.hoisted(() => ({
   schedule: vi.fn().mockReturnValue({ execute: vi.fn() }),
 }));
