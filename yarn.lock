@@ -1629,6 +1629,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/cli@workspace:packages/sidequest-cli"
   dependencies:
+    "@sidequest/backend": "workspace:*"
     commander: "npm:^14.0.0"
     inquirer: "npm:^12.7.0"
   bin:
