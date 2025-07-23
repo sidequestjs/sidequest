@@ -48,6 +48,7 @@ export class RetryTransition extends JobTransition {
 
     if (job.attempt >= job.max_attempts) {
       job.state = "failed";
+      job.failed_at = new Date();
     } else {
       job.state = "waiting";
       job.available_at = new Date(Date.now() + delay);

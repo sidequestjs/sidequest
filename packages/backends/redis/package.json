@@ -1,0 +1,26 @@
+{
+  "name": "@sidequest/redis-backend",
+  "version": "1.0.0-alpha.1",
+  "license": "LGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/redis-backend.cjs",
+  "module": "./dist/redis-backend.js",
+  "types": "./dist/redis-backend.d.ts",
+  "exports": {
+    "import": "./dist/redis-backend.js",
+    "require": "./dist/redis-backend.cjs",
+    "types": "./dist/redis-backend.d.ts"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "@sidequest/core": "workspace:*",
+    "ioredis": "^5.6.1"
+  },
+  "devDependencies": {
+    "@sidequest/backend-test": "workspace:*"
+  }
+}

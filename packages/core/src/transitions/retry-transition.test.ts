@@ -109,4 +109,33 @@ describe("RetryTransition", () => {
     });
     expect(result.available_at?.getTime()).toBeGreaterThanOrEqual(inAlmostOneHour.getTime());
   });
+
+  it("marks job as failed when max attempts reached", () => {
+    jobData.attempt = 10;
+    const result = new RetryTransition("max attempts reached").apply(jobData);
+
+    expect(result).toEqual({
+      queue: "default",
+      script: "./dummy-script.js",
+      class: "DummyClass",
+      args: [],
+      constructor_args: [],
+      attempt: 10,
+      claimed_by: "node@worker",
+      attempted_at: jobData.attempted_at,
+      max_attempts: 10,
+      state: "failed",
+      failed_at: expect.any(Date) as Date,
+      errors: [
+        {
+          attempt: 10,
+          attempt_by: "node@worker",
+          attempted_at: jobData.attempted_at,
+          message: "max attempts reached",
+        },
+      ],
+    });
+
+    expect(result.failed_at?.getTime()).toBeLessThanOrEqual(Date.now());
+  });
 });

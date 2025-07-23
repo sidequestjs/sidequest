@@ -42,6 +42,16 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -66,7 +76,10 @@ jobs:
       - name: Run linter
         run: yarn lint
 
-      - name: Wait for PostgreSQL and MySQL to be ready
+      - name: Install redis-cli
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
+      - name: Wait for PostgreSQL, MySQL and Redis to be ready
         run: |
           until pg_isready -h localhost -U postgres; do
             echo "Waiting for PostgreSQL..."
@@ -76,9 +89,14 @@ jobs:
             echo "Waiting for MySQL..."
             sleep 2
           done
+          until redis-cli -h 127.0.0.1 ping | grep PONG; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
 
       - name: Run tests
         env:
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
           MYSQL_URL: mysql://root:root@127.0.0.1:3306/test
+          REDIS_URL: redis://127.0.0.1:6379
         run: yarn test:all:ci

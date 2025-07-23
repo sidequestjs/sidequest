@@ -11,7 +11,7 @@ description: Overview of Sidequest.js, a robust distributed job processing libra
 ## ✨ Features
 
 - 🚀 **High Performance** - Worker threads for non-blocking job processing
-- 🗄️ **Multiple Backends** - SQLite, PostgreSQL, MySQL support out of the box
+- 🗄️ **Multiple Backends** - SQLite, PostgreSQL, MySQL, Redis support out of the box
 - ✅ **ESM and CJS support** - Fully compatible with modern JavaScript
 - 📝 **Support for TypeScript** - Supports TypeScript jobs by default if you are using [Node.js >= 24](https://nodejs.org/api/typescript.html#modules-typescript)
 - 📊 **Web Dashboard** - Beautiful, responsive dashboard for monitoring jobs and queues
