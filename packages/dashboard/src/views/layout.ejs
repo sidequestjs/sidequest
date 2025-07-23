@@ -7,20 +7,20 @@
     <link href="/public/css/styles.css" rel="stylesheet" />
     <script src="/public/js/htmx.js"></script>
   </head>
-  <body class="h-full bg-gray-900 text-gray-200">
+  <body class="h-full bg-base-100 text-base-content">
     <div class="flex h-full">
       <!-- Sidebar -->
-      <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
-        <div class="p-4 flex items-center gap-2 border-b border-gray-700">
+      <aside class="w-64 bg-neutral border-r border-base-100 flex flex-col">
+        <div class="p-4 flex items-center gap-2 border-b border-base-100">
           <img src="/public/img/logo.png" alt="Sidequest Logo" class="h-14 w-auto" />
-          <span class="text-xl font-semibold text-indigo-400">Sidequest</span>
+          <span class="text-xl font-semibold text-primary">Sidequest</span>
         </div>
         <nav class="flex-1 p-4 space-y-2 text-sm">
-          <a href="/dashboard" class="block px-3 py-2 rounded hover:bg-gray-700">Dashboard</a>
-          <a href="/jobs" class="block px-3 py-2 rounded hover:bg-gray-700">Jobs</a>
-          <a href="/queues" class="block px-3 py-2 rounded hover:bg-gray-700">Queues</a>
+          <a href="/dashboard" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Dashboard</a>
+          <a href="/jobs" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Jobs</a>
+          <a href="/queues" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Queues</a>
         </nav>
-        <div class="p-4 border-t border-gray-700 text-xs text-gray-500">
+        <div class="p-4 border-t border-base-100 text-xs text-neutral-content">
           v0.1.0 — OSS Edition
         </div>
       </aside>
