@@ -15,7 +15,7 @@ describe("FailTransition", () => {
       max_attempts: 10,
       claimed_by: "node@worker",
       attempted_at: new Date(),
-    };
+    } as unknown as JobData;
   });
 
   it("sets job data as faild setting a message", () => {

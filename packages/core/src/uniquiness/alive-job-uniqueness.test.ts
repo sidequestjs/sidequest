@@ -4,17 +4,18 @@ import { JobData, JobState } from "../schema";
 import { AliveJobConfig, AliveJobUniqueness } from "./alive-job-uniqueness";
 
 describe("AliveJobUniqueness", () => {
-  const createJobData = (overrides: Partial<JobData> = {}): JobData => ({
-    class: "TestJob",
-    state: "waiting",
-    queue: "default",
-    script: "test-script.js",
-    attempt: 1,
-    max_attempts: 3,
-    args: [],
-    constructor_args: [],
-    ...overrides,
-  });
+  const createJobData = (overrides: Partial<JobData> = {}): JobData =>
+    ({
+      class: "TestJob",
+      state: "waiting",
+      queue: "default",
+      script: "test-script.js",
+      attempt: 1,
+      max_attempts: 3,
+      args: [],
+      constructor_args: [],
+      ...overrides,
+    }) as unknown as JobData;
 
   describe("constructor", () => {
     it("should store config correctly", () => {
