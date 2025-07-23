@@ -58,6 +58,50 @@ describe('MasterWorker', () => {
             content = fs.readFileSync(testFile);
             assert.equal(content, "Temp File"); 
             done();
+        }, 2500);
+    });
+
+    it('should terminate all schedulers on scheduler fail', (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker();
+        masterWorker.register( {
+            "name": "Write File",
+            "path": "./test/test_assets/write_file.js",
+            "cron": "* X * * * *"
+        });
+        
+        setTimeout(() => {
+            masterWorker.schedulers().forEach(scheduler => {
+                console.log(`scheduler ${scheduler.id()} - ${ scheduler.isDead()}`)
+                assert.isTrue(scheduler.isDead());
+            });
+            done();
         }, 2000);
+    });
+
+    it('should distribute tasks', (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker();
+        
+        let tasksRegistred = 0;
+        
+        for(let i = 0; i < cpus * 2; i++){
+            masterWorker.register( {
+                "name": "Write File",
+                "path": "./test/test_assets/write_file.js",
+                "cron": "* * * * * *"
+            });
+        }
+
+        masterWorker.on('task-registred', () => {
+            tasksRegistred++;
+            if(tasksRegistred == cpus * 2){
+                masterWorker.schedulers().forEach((scheduler) => {
+                    assert.lengthOf(scheduler.tasks(), 2);
+                });
+                done();
+            }
+        });
+
     });
 });

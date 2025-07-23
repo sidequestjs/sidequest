@@ -44,15 +44,17 @@ function Scheduler(){
     }
 
     this.terminate = () => {
-        forkProcess.kill();
+        if(forkProcess.connected){
+            forkProcess.disconnect();
+        }
     }
     
     this.isDead = () => {
-        return forkProcess.killed;
+        return !this.isAlive();
     }
     
     this.isAlive = () => {
-        return !this.isDead();
+        return forkProcess.exitCode == null;
     }
 
     this.tasks = () => {
