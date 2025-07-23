@@ -1,4 +1,4 @@
-import { SQLBackend } from "@sidequest/backend";
+import { Backend } from "@sidequest/backend";
 import { backend, setTestBackend } from "./backend";
 import defineClaimPendingJobTestSuite from "./claimPendingJob";
 import defineCreateNewJobTestSuite from "./createNewJob";
@@ -12,7 +12,7 @@ import defineStaleJobsTestSuite from "./staleJobs";
 import defineTruncateTestSuite from "./truncate";
 import defineUpdateJobTestSuite from "./updateJob";
 
-export function testBackend<P>(config: P, backendFactory: (config: P) => SQLBackend) {
+export function testBackend<P>(config: P, backendFactory: (config: P) => Backend) {
   beforeEach(async () => {
     setTestBackend(backendFactory(config));
     await backend.setup();

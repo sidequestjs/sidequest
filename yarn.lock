@@ -1338,7 +1338,6 @@ __metadata:
     "@highlightjs/cdn-assets": "npm:^11.11.1"
     "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
-    "@sidequest/engine": "workspace:*"
     "@types/feather-icons": "npm:^4"
     daisyui: "npm:^5.0.43"
     ejs: "npm:^3.1.10"
@@ -1347,7 +1346,6 @@ __metadata:
     express-ejs-layouts: "npm:^2.5.1"
     feather-icons: "npm:^4.29.2"
     htmx.org: "npm:^2.0.4"
-    tsx: "npm:^4.20.3"
   languageName: unknown
   linkType: soft
 
@@ -8128,7 +8126,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.4, tsx@npm:^4.20.3":
+"tsx@npm:^4.19.4":
   version: 4.20.3
   resolution: "tsx@npm:4.20.3"
   dependencies:
