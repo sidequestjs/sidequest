@@ -96,6 +96,22 @@ export class SidequestDashboard {
       });
     });
 
+    app.get("/job/:id", async (req, res) => {
+      const backend = Engine.getBackend();
+
+      const jobId = parseInt(req.params.id);
+      const job = await backend?.getJob(jobId);
+
+      if(job){
+        res.render("pages/job", {
+          title: `Job #${job.id}`,
+          job,
+        });
+      } else {
+        res.status(404).send("Job not found!")
+      }
+    });
+
     const port = config?.port ?? 8678;
     app.listen(port, (error) => {
       if (error) {

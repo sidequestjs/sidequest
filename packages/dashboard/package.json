@@ -16,6 +16,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@highlightjs/cdn-assets": "^11.11.1",
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
     "daisyui": "^5.0.43",
@@ -23,7 +24,11 @@
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
     "express-ejs-layouts": "^2.5.1",
+    "feather-icons": "^4.29.2",
     "htmx.org": "^2.0.4"
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "devDependencies": {
+    "@types/feather-icons": "^4"
+  }
 }

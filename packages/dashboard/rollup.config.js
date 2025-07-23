@@ -22,6 +22,16 @@ const configs = createConfig(
           dest: "dist/public/js",
           rename: "htmx.js",
         },
+        {
+          src: path.join(rootDir, "node_modules/feather-icons/dist/feather.min.js"),
+          dest: "dist/public/js",
+          rename: "feather-icons.js",
+        },
+        {
+          src: path.join(rootDir, "node_modules/@highlightjs/cdn-assets/highlight.min.js"),
+          dest: "dist/public/js",
+          rename: "highlight.js",
+        },
       ],
     }),
   ],

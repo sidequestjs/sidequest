@@ -7,34 +7,34 @@
   prefersdark: true;
   color-scheme: "dark";
 
-  --color-base-100: #0b1220;
-  --color-base-200: #10182b;
-  --color-base-300: #172035;
-  --color-base-content: #f5f7fa;
+  --color-base-100: #0c1226;
+  --color-base-200: #182038;
+  --color-base-300: #2a3b5f;
+  --color-base-content: #cdd5e0;
 
   --color-primary: #2b7cd3;
   --color-primary-content: #ffffff;
 
-  --color-secondary: #1e3a5f;
-  --color-secondary-content: #f5f7fa;
+  --color-secondary: #2b4d78;
+  --color-secondary-content: #cdd5e0;
 
-  --color-accent: #2f5eaa;
-  --color-accent-content: #f5f7fa;
+  --color-accent: #4c5faf;
+  --color-accent-content: #cdd5e0;
 
-  --color-neutral: #1a1f2e;
-  --color-neutral-content: #f5f7fa;
+  --color-neutral: #2c3448;
+  --color-neutral-content: #cdd5e0;
 
-  --color-info: #4e94ec;
-  --color-info-content: #0b1220;
+  --color-info: #3d7dd8;
+  --color-info-content: #0c1226;
 
   --color-success: #4faf75;
-  --color-success-content: #0b1220;
+  --color-success-content: #0c1226;
 
   --color-warning: #d2a94c;
-  --color-warning-content: #0b1220;
+  --color-warning-content: #0c1226;
 
   --color-error: #b75252;
-  --color-error-content: #0b1220;
+  --color-error-content: #0c1226;
 
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;
@@ -47,3 +47,23 @@
   --depth: 1;
   --noise: 0;
 }
+
+
+pretty-json {
+  --key-color: #7aa2f7;
+  --arrow-color: #6c6c6c;
+  --brace-color: #4c566a;
+  --bracket-color: #4c566a;
+  --string-color: #9ece6a;
+  --number-color: #7dcfff;
+  --null-color: #a9a9a9;
+  --boolean-color: #bb9af7;
+  --comma-color: #5e5e5e;
+  --ellipsis-color: #7e7e7e;
+  --indent: 2rem;
+  --font-family: monospace;
+  --font-size: 0.875rem;
+}
+
+
+@import "./highlight-theme.css";

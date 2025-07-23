@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="/public/css/styles.css" rel="stylesheet" />
     <script src="/public/js/htmx.js"></script>
+    <script src="/public/js/feather-icons.js"></script>
+    <script src="/public/js/highlight.js"></script>
   </head>
   <body class="h-full bg-base-100 text-base-content">
     <div class="flex h-full">
@@ -27,13 +29,13 @@
 
       <!-- Main content -->
       <main class="flex-1 p-6 overflow-y-auto">
-        <header class="mb-6">
-          <h1 class="text-2xl font-bold"><%= title || 'Dashboard' %></h1>
-        </header>
-        <section>
-          <%- body %>
-        </section>
+        <%- body %>
       </main>
     </div>
+
+    <script>
+      feather.replace();
+      hljs.highlightAll();
+    </script>
   </body>
 </html>

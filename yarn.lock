@@ -527,6 +527,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@highlightjs/cdn-assets@npm:^11.11.1":
+  version: 11.11.1
+  resolution: "@highlightjs/cdn-assets@npm:11.11.1"
+  checksum: 10c0/2c7d3bef6bcd4942fdfe531a9b11f38a085ce4cd7ebfae0cf93541f79ad717d80b7a3629b09fa832838874508b80eecc989d16178a27158f037465b0ace63a4a
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -1312,13 +1319,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/dashboard@workspace:packages/dashboard"
   dependencies:
+    "@highlightjs/cdn-assets": "npm:^11.11.1"
     "@sidequest/core": "workspace:*"
     "@sidequest/engine": "workspace:*"
+    "@types/feather-icons": "npm:^4"
     daisyui: "npm:^5.0.43"
     ejs: "npm:^3.1.10"
     express: "npm:^5.1.0"
     express-basic-auth: "npm:^1.2.1"
     express-ejs-layouts: "npm:^2.5.1"
+    feather-icons: "npm:^4.29.2"
     htmx.org: "npm:^2.0.4"
   languageName: unknown
   linkType: soft
@@ -1669,6 +1679,13 @@ __metadata:
     "@types/express-serve-static-core": "npm:^5.0.0"
     "@types/serve-static": "npm:*"
   checksum: 10c0/f0fbc8daa7f40070b103cf4d020ff1dd08503477d866d1134b87c0390bba71d5d7949cb8b4e719a81ccba89294d8e1573414e6dcbb5bb1d097a7b820928ebdef
+  languageName: node
+  linkType: hard
+
+"@types/feather-icons@npm:^4":
+  version: 4.29.4
+  resolution: "@types/feather-icons@npm:4.29.4"
+  checksum: 10c0/756e33dd395a57fb6b6e55a72834e3eb47cf4ce97bca2c8f7d8b44845c38b0cd397555824b09e562567191aa1d578779d8cde28f52b89fa7a00b7b9298e159b8
   languageName: node
   linkType: hard
 
@@ -2628,6 +2645,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"classnames@npm:^2.2.5":
+  version: 2.5.1
+  resolution: "classnames@npm:2.5.1"
+  checksum: 10c0/afff4f77e62cea2d79c39962980bf316bacb0d7c49e13a21adaadb9221e1c6b9d3cdb829d8bb1b23c406f4e740507f37e1dcf506f7e3b7113d17c5bab787aa69
+  languageName: node
+  linkType: hard
+
 "clean-stack@npm:^2.0.0":
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
@@ -2852,6 +2876,13 @@ __metadata:
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.1.3":
+  version: 3.43.0
+  resolution: "core-js@npm:3.43.0"
+  checksum: 10c0/9d4ad66296e60380777de51d019b5c3e6cce023b7999750a5094f9a4b0ea53bf3600beb4ef11c56548f2c8791d43d4056e270d1cf55ba87273011aa7d4597871
   languageName: node
   linkType: hard
 
@@ -3764,6 +3795,16 @@ __metadata:
     picomatch:
       optional: true
   checksum: 10c0/45b559cff889934ebb8bc498351e5acba40750ada7e7d6bde197768d2fa67c149be8ae7f8ff34d03f4e1eb20f2764116e56440aaa2f6689e9a4aa7ef06acafe9
+  languageName: node
+  linkType: hard
+
+"feather-icons@npm:^4.29.2":
+  version: 4.29.2
+  resolution: "feather-icons@npm:4.29.2"
+  dependencies:
+    classnames: "npm:^2.2.5"
+    core-js: "npm:^3.1.3"
+  checksum: 10c0/a23f8fbb6e96c901290308bb96267660ddd32c367074411e6a641c030448eff8041072c46e82cbf3bb3c4b2440df107e8defed09ff068e55117db6b867ca7b32
   languageName: node
   linkType: hard
 
