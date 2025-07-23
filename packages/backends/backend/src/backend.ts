@@ -17,7 +17,7 @@ export interface Backend {
 
   insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig>;
 
-  getQueueConfig(queue: string): Promise<QueueConfig>;
+  getQueueConfig(queue: string): Promise<QueueConfig | undefined>;
 
   getQueuesFromJobs(): Promise<string[]>;
 
@@ -25,7 +25,7 @@ export interface Backend {
 
   updateQueue(queueData: UpdateQueueData): Promise<QueueConfig>;
 
-  getJob(id: number): Promise<JobData>;
+  getJob(id: number): Promise<JobData | undefined>;
 
   createNewJob(job: NewJobData): Promise<JobData>;
 

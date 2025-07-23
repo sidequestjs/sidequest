@@ -106,9 +106,12 @@ jobsRouter.post("/:id/run", async (req, res) => {
   const jobId = parseInt(req.params.id);
   const job = await backend?.getJob(jobId);
 
-  await backend.updateJob({ id: job.id, available_at: new Date() });
-
-  res.header("HX-Trigger", "runJob").status(200).end();
+  if (job) {
+    await backend.updateJob({ id: job.id, available_at: new Date() });
+    res.header("HX-Trigger", "runJob").status(200).end();
+  } else {
+    res.status(404).end();
+  }
 });
 
 function computeTimeRange(time?: unknown, start?: unknown, end?: unknown) {
