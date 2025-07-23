@@ -16,6 +16,7 @@ async function start(queueName: string) {
   if(isNaN(batchSize)) batchSize = 10;
 
   const queue = new Queue(queueName);
+  const failedQueue = new Queue(`failed-${queueName}`)
 
   const loop = async () => {
       const result = await queue.pop(batchSize, new Date().getTime());
@@ -26,6 +27,7 @@ async function start(queueName: string) {
             await processTask(result[i]);
           } catch (error){
             console.error(error);
+            failedQueue.push(result[i], new Date().getTime());
           }
         }
       }
