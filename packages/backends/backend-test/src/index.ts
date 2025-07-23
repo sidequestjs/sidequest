@@ -1,11 +1,20 @@
 import { SQLBackend } from "@sidequest/backend";
-import baseTestSuite from "./base";
-
-export let backend: SQLBackend;
+import { backend, setTestBackend } from "./backend";
+import defineClaimPendingJobTestSuite from "./claimPendingJob";
+import defineCreateNewJobTestSuite from "./createNewJob";
+import defineDeleteFinishedJobsTestSuite from "./deleteFinishedJobs";
+import defineGetJobTestSuite from "./getJob";
+import defineGetQueuesFromJobsTestSuite from "./getQueuesFromJobs";
+import defineInsertQueueConfigTestSuite from "./insertQueueConfig";
+import defineListJobsTestSuite from "./listJobs";
+import defineListQueuesTestSuite from "./listQueues";
+import defineStaleJobsTestSuite from "./staleJobs";
+import defineTruncateTestSuite from "./truncate";
+import defineUpdateJobTestSuite from "./updateJob";
 
 export function testBackend<P>(config: P, backendFactory: (config: P) => SQLBackend) {
   beforeEach(async () => {
-    backend = backendFactory(config);
+    setTestBackend(backendFactory(config));
     await backend.setup();
   });
 
@@ -14,5 +23,15 @@ export function testBackend<P>(config: P, backendFactory: (config: P) => SQLBack
     await backend.close();
   });
 
-  baseTestSuite();
+  defineTruncateTestSuite();
+  defineClaimPendingJobTestSuite();
+  defineCreateNewJobTestSuite();
+  defineDeleteFinishedJobsTestSuite();
+  defineGetJobTestSuite();
+  defineGetQueuesFromJobsTestSuite();
+  defineInsertQueueConfigTestSuite();
+  defineListQueuesTestSuite();
+  defineListJobsTestSuite();
+  defineStaleJobsTestSuite();
+  defineUpdateJobTestSuite();
 }

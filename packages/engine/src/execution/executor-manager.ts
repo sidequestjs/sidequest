@@ -17,10 +17,10 @@ export class ExecutorManager {
   }
 
   availableSlotsByQueue(queueConfig: QueueConfig) {
-    if (!this.activeByQueue[queueConfig.queue]) {
-      this.activeByQueue[queueConfig.queue] = new Set();
+    if (!this.activeByQueue[queueConfig.name]) {
+      this.activeByQueue[queueConfig.name] = new Set();
     }
-    const activeJobs = this.activeByQueue[queueConfig.queue];
+    const activeJobs = this.activeByQueue[queueConfig.name];
     const limit = queueConfig.concurrency ?? 10;
 
     const availableSlots = limit - activeJobs.size;
@@ -44,12 +44,12 @@ export class ExecutorManager {
   }
 
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
-    if (!this.activeByQueue[queueConfig.queue]) {
-      this.activeByQueue[queueConfig.queue] = new Set();
+    if (!this.activeByQueue[queueConfig.name]) {
+      this.activeByQueue[queueConfig.name] = new Set();
     }
 
     // TODO: add availabilith check
-    this.activeByQueue[queueConfig.queue].add(job.id);
+    this.activeByQueue[queueConfig.name].add(job.id);
     this.activeJobs.add(job.id);
 
     job = await JobTransitioner.apply(job, new RunningTransition());
@@ -59,7 +59,7 @@ export class ExecutorManager {
 
     await JobTransitioner.apply(job, transition);
 
-    this.activeByQueue[queueConfig.queue].delete(job.id);
+    this.activeByQueue[queueConfig.name].delete(job.id);
     this.activeJobs.delete(job.id);
   }
 }

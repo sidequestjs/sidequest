@@ -1,4 +1,5 @@
-import { DuplicatedJobError, JobData, QueueConfig } from "@sidequest/core";
+import { NewQueueData } from "@sidequest/backend";
+import { DuplicatedJobError, JobData } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { Engine, JobClassType, SidequestConfig } from "../engine";
@@ -7,6 +8,14 @@ import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
 import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { JobBuilder } from "../job/job-builder";
 import { runWorker, startCron } from "./main";
+
+const runMock = vi.fn();
+
+vi.mock("../shared-runner", () => ({
+  RunnerPool: vi.fn().mockImplementation(() => ({
+    run: runMock,
+  })),
+}));
 
 const cronMocks = vi.hoisted(() => ({
   schedule: vi.fn().mockReturnValue({ execute: vi.fn() }),
@@ -24,11 +33,11 @@ describe("main.ts", () => {
   const lowQueueName = `low-${randomUUID()}`;
   const singleQueueName = `single-${randomUUID()}`;
 
-  const queues: QueueConfig[] = [
-    { queue: highQueueName, priority: 10 },
-    { queue: mediumQueueName, priority: 5 },
-    { queue: lowQueueName },
-    { queue: singleQueueName, concurrency: 1 },
+  const queues: NewQueueData[] = [
+    { name: highQueueName, priority: 10 },
+    { name: mediumQueueName, priority: 5 },
+    { name: lowQueueName },
+    { name: singleQueueName, concurrency: 1 },
   ];
 
   const dbLocation = ":memory:";

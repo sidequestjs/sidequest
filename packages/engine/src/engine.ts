@@ -1,4 +1,4 @@
-import { SQLBackend } from "@sidequest/backend";
+import { NewQueueData, SQLBackend } from "@sidequest/backend";
 import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
@@ -21,7 +21,7 @@ export interface BackendConfig {
 
 export interface SidequestConfig {
   backend?: BackendConfig;
-  queues?: QueueConfig[];
+  queues?: NewQueueData[];
   logger?: LoggerOptions;
   maxConcurrentJobs?: number;
 }
@@ -49,7 +49,7 @@ export class Engine {
     await _backend.setup();
     if (_config.queues) {
       for (const queue of _config.queues) {
-        await grantQueueConfig(queue.queue, queue);
+        await grantQueueConfig(queue.name, queue);
       }
     }
 

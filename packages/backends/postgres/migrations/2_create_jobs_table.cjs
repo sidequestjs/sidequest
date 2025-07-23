@@ -12,8 +12,8 @@ exports.up = async function(knex) {
     table.integer('timeout').nullable();
     table.integer('attempt').notNullable();
     table.integer('max_attempts').notNullable();
-    table.specificType('result', 'jsonb').nullable();
-    table.specificType('errors', 'jsonb[]').nullable();
+    table.jsonb('result').nullable();
+    table.jsonb('errors').nullable();
 
     table.timestamp('inserted_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('attempted_at').nullable();

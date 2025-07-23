@@ -1,7 +1,7 @@
 import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import { Knex } from "knex";
 import { hostname } from "os";
-import { safeParseJobData } from "./utils";
+import { safeParseJobData, whereOrWhereIn } from "./utils";
 
 export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "constructor_args"> &
   Partial<Pick<JobData, "max_attempts" | "available_at" | "timeout" | "unique_digest" | "uniqueness_config">> & {
@@ -10,6 +10,8 @@ export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "
   };
 
 export type UpdateJobData = Pick<JobData, "id"> & Partial<Omit<JobData, "id">>;
+
+export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig, "queue" | "id">>;
 
 export abstract class SQLBackend {
   constructor(public knex: Knex) {}
@@ -30,17 +32,24 @@ export abstract class SQLBackend {
     await this.knex.destroy();
   }
 
-  async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
+  async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
+    const data: NewQueueData = {
+      name: queueConfig.name,
+      concurrency: queueConfig.concurrency ?? 10,
+      priority: queueConfig.priority ?? 0,
+      state: queueConfig.state ?? "active",
+    };
+
+    const newConfig = await this.knex("sidequest_queues").insert(data).returning("*");
     return newConfig[0] as QueueConfig;
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ queue }).first() as Promise<QueueConfig>;
+    return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig>;
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
-    const queues: QueueConfig[] = await this.knex("sidequest_jobs").select("queue").distinct();
+    const queues: { queue: string }[] = await this.knex("sidequest_jobs").select("queue").distinct();
     return queues.map((q) => q.queue);
   }
 
@@ -57,15 +66,15 @@ export abstract class SQLBackend {
       queue: job.queue,
       script: job.script,
       class: job.class,
-      args: this.knex.raw("?", [JSON.stringify(job.args)]),
-      constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
+      args: JSON.stringify(job.args ?? []),
+      constructor_args: JSON.stringify(job.constructor_args ?? []),
       state: job.state,
       attempt: job.attempt,
       max_attempts: job.max_attempts ?? 5,
       available_at: job.available_at ?? new Date(),
       timeout: job.timeout ?? null,
       unique_digest: job.unique_digest ?? null,
-      uniqueness_config: job.uniqueness_config ? this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]) : null,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
       inserted_at: new Date(),
     };
 
@@ -107,22 +116,86 @@ export abstract class SQLBackend {
     return result.map(safeParseJobData);
   }
 
-  abstract updateJob(job: UpdateJobData): Promise<JobData>;
+  async updateJob(job: UpdateJobData): Promise<JobData> {
+    const data = {
+      ...job,
+      args: job.args ? JSON.stringify(job.args) : job.args,
+      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
+      result: job.result ? JSON.stringify(job.result) : job.result,
+      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
+    };
 
-  abstract listJobs(params: {
-    queue?: string;
-    jobClass?: string;
+    const [updated] = (await this.knex("sidequest_jobs")
+      .where({ id: job.id })
+      .update(data)
+      .returning("*")) as JobData[];
+
+    if (!updated) throw new Error("Cannot update job, not found.");
+
+    return safeParseJobData(updated);
+  }
+
+  async listJobs(params?: {
+    queue?: string | string[];
+    jobClass?: string | string[];
     state?: JobState | JobState[];
     sinceId?: number;
     limit?: number;
-    args?: unknown;
+    args?: unknown[];
     timeRange?: {
       from?: Date;
       to?: Date;
     };
-  }): Promise<JobData[]>;
+  }): Promise<JobData[]> {
+    const limit = params?.limit ?? 50;
+    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit);
 
-  abstract staleJobs(maxStaleMs?: number, maxClaimedMs?: number): Promise<JobData[]>;
+    if (params) {
+      const { queue, jobClass, state, sinceId, timeRange, args } = params;
+
+      whereOrWhereIn(query, "queue", queue);
+      whereOrWhereIn(query, "class", jobClass);
+      whereOrWhereIn(query, "state", state);
+
+      if (sinceId) query.where("id", ">=", sinceId);
+      if (args) query.where("args", JSON.stringify(args));
+      if (timeRange?.from) query.andWhere("attempted_at", ">=", timeRange.from);
+      if (timeRange?.to) query.andWhere("attempted_at", "<=", timeRange.to);
+    }
+
+    const rawJobs = (await query) as JobData[];
+
+    return rawJobs.map(safeParseJobData);
+  }
+
+  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+    const now = new Date();
+    const jobs = (await this.knex("sidequest_jobs")
+      .select("*")
+      .where((qb) => {
+        qb.where("state", "claimed")
+          .andWhereNot("claimed_at", null)
+          .andWhere("claimed_at", "<", new Date(now.getTime() - maxClaimedMs));
+      })
+      .orWhere((qb) => {
+        qb.where("state", "running").andWhereNot("attempted_at", null);
+      })) as JobData[];
+
+    const parsedJobs = jobs.map(safeParseJobData);
+
+    // We filter the running here to account for timeout and different DBs
+    const filtered = parsedJobs.filter((job) => {
+      if (job.state === "running" && job.timeout != null) {
+        return new Date(job.attempted_at!).getTime() < now.getTime() - job.timeout;
+      }
+      if (job.state === "running" && job.timeout == null) {
+        return new Date(job.attempted_at!).getTime() < now.getTime() - maxStaleMs;
+      }
+      return true; // already filtered `claimed` by SQL
+    });
+    return filtered;
+  }
 
   async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
     await this.knex("sidequest_jobs")

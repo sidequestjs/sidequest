@@ -14,7 +14,7 @@ export class QueueManager {
 
     const queues: QueueConfig[] = [];
     for (const queue of queueNames) {
-      const fromConfig = this.config?.queues?.find((q) => q.queue === queue);
+      const fromConfig = this.config?.queues?.find((q) => q.name === queue);
       const queueConfig = await grantQueueConfig(queue, fromConfig);
       if (queueConfig) {
         queues.push(queueConfig);
