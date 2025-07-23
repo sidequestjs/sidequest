@@ -15,6 +15,7 @@ export interface JobData {
   script: string;
   class: string;
   args: unknown[];
+  constructor_args: unknown[];
   timeout?: number;
   attempt: number;
   max_attempts: number;

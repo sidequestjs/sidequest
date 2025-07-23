@@ -4,7 +4,6 @@ import eslint from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-
 export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
@@ -21,6 +20,9 @@ export default tseslint.config(
         ...globals.node,
       },
     },
+    rules: {
+      "no-console": "error"
+    },
   },
   {
     files: ["**/*.ts", "**/*.mts", "**/*.cts", "**/*.tsx"],
@@ -31,6 +33,9 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
         sourceType: "module",
       },
+    },
+    rules: {
+     "no-console": "error"
     },
   },
 );

@@ -1,4 +1,4 @@
-import { logger } from "@sidequest/core";
+import { JobState, logger } from "@sidequest/core";
 import { Engine } from "@sidequest/engine";
 import express from "express";
 import expressLayouts from "express-ejs-layouts";
@@ -29,10 +29,11 @@ export class SidequestDashboard {
 
       const filters: {
         queue?: string;
-        state?: string;
+        jobClass?: string;
+        state?: JobState;
         sinceId?: number;
-        limit: number;
-        class?: string;
+        limit?: number;
+        args?: unknown;
         timeRange?: {
           from?: Date;
           to?: Date;
@@ -40,8 +41,8 @@ export class SidequestDashboard {
       } = {
         limit: 20,
         queue: typeof queue === "string" && queue.trim() !== "" ? queue : undefined,
-        class: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
-        state: typeof status === "string" && status.trim() !== "" ? status : undefined,
+        jobClass: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
+        state: status as JobState,
         sinceId: sinceId ? parseInt(sinceId as string, 10) : undefined,
       };
 

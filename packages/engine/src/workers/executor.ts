@@ -1,25 +1,24 @@
 import { JobData, logger } from "@sidequest/core";
 import { Engine, SidequestConfig } from "../engine";
-import { Job, JobOptions } from "../job/job";
+import { Job, JobClassType } from "../job/job";
 import { JobActions } from "../job/job-actions";
 
 export async function execute(jobData: JobData, config: SidequestConfig): Promise<void> {
   await Engine.configure(config);
 
-  const script = (await import(jobData.script)) as Record<string, new (jobOptions?: JobOptions) => Job>;
+  const script = (await import(jobData.script)) as Record<string, JobClassType>;
   const JobClass = script[jobData.class] ?? script.default;
 
   if (!JobClass || typeof JobClass !== "function") {
     throw new Error(`Invalid job class: ${jobData.class}`);
   }
 
-  const args = jobData.args;
-  const job: Job = new JobClass({ queue: jobData.queue, timeout: jobData.timeout });
+  const job: Job = new JobClass(jobData.constructor_args);
 
   jobData = await JobActions.setRunning(jobData);
   try {
     logger().info(`Running job ${jobData.class} with args: ${JSON.stringify(jobData.args)}`);
-    const result = await executeTask(job, args, jobData.timeout);
+    const result = await executeTask(job, jobData);
     jobData = await JobActions.setComplete(jobData, result);
     logger().info(`Job ${jobData.class} has completed with args: ${JSON.stringify(jobData.args)}`);
   } catch (error) {
@@ -28,19 +27,18 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
   }
 }
 
-export function executeTask(job: Job, args: unknown[], timeout?: number) {
+export function executeTask(job: Job, jobData: JobData) {
   const promises: Promise<unknown>[] = [];
-
-  if (timeout) {
+  if (jobData.timeout) {
     const timeoutPromise = new Promise((resolve, reject) =>
       setTimeout(() => {
-        reject(new Error(`Job ${job.class} timed out: ${JSON.stringify(job)}`));
-      }, timeout),
+        reject(new Error(`Job ${job.className} timed out: ${JSON.stringify(job)}`));
+      }, jobData.timeout),
     );
     promises.push(timeoutPromise);
   }
 
-  const run = Promise.resolve().then(() => job.run(...args));
+  const run = Promise.resolve().then(() => job.run(...jobData.args));
 
   promises.push(run);
 

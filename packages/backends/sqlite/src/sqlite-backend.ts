@@ -51,6 +51,7 @@ export default class SqliteBackend implements Backend {
     const data = {
       ...job,
       args: JSON.stringify(job.args),
+      constructor_args: JSON.stringify(job.constructor_args),
       result: job.result ? JSON.stringify(job.result) : null,
       errors: job.errors ? JSON.stringify(job.errors) : null,
       state: job.state ?? "waiting",
@@ -60,7 +61,13 @@ export default class SqliteBackend implements Backend {
 
     const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
 
-    return inserted[0] as JobData;
+    return {
+      ...inserted[0],
+      args: safeParse(job.args),
+      constructor_args: safeParse(job.constructor_args),
+      result: safeParse(job.result),
+      errors: safeParse(job.errors),
+    } as JobData;
   }
 
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
@@ -100,6 +107,7 @@ export default class SqliteBackend implements Backend {
     const data = {
       ...job,
       args: job.args ? JSON.stringify(job.args) : null,
+      constructor_args: job.args ? JSON.stringify(job.constructor_args) : null,
       result: job.result ? JSON.stringify(job.result) : null,
       errors: job.errors ? JSON.stringify(job.errors) : null,
     };
@@ -160,6 +168,7 @@ export default class SqliteBackend implements Backend {
     return rawJobs.map((job) => ({
       ...job,
       args: safeParse(job.args),
+      constructor_args: safeParse(job.constructor_args),
       result: safeParse(job.result),
       errors: safeParse(job.errors),
     })) as JobData[];

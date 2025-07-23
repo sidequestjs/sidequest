@@ -4,6 +4,7 @@ import { unlink } from "node:fs";
 import { describe, it, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
 import { JobActions } from "../job/job-actions";
+import { JobBuilder } from "../job/job-builder";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Worker } from "./main";
 
@@ -51,7 +52,7 @@ describe("main.ts", () => {
   it("runs the worker", async () => {
     const worker = new Worker();
     await worker.run(config);
-    const jobData = await DummyJob.enqueue();
+    const jobData = await new JobBuilder(DummyJob).enqueue();
 
     mocks.fork.mockImplementation(() => {
       void JobActions.setComplete(jobData, "result");

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
+import { JobBuilder } from "../job/job-builder";
 import { DynamicDummyJob } from "../test-jobs/dynamic-dummy-job";
 import { Worker } from "./main";
 
@@ -70,9 +71,9 @@ describe("main.ts", () => {
     const worker = new Worker();
     await worker.run(config);
 
-    await DynamicDummyJob.enqueue({ queue: lowQueueName });
-    await DynamicDummyJob.enqueue({ queue: mediumQueueName });
-    await DynamicDummyJob.enqueue({ queue: highQueueName });
+    await new JobBuilder(DynamicDummyJob).queue(lowQueueName).enqueue();
+    await new JobBuilder(DynamicDummyJob).queue(mediumQueueName).enqueue();
+    await new JobBuilder(DynamicDummyJob).queue(highQueueName).enqueue();
 
     // Wait a bit to allow processing
     await new Promise((resolve) => setTimeout(resolve, 200));

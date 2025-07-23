@@ -1,6 +1,8 @@
 import { Backend, configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
+import { JobClassType } from "./job/job";
+import { JobBuilder } from "./job/job-builder";
 import { grantQueueConfig } from "./queue/grant-queue-config";
 
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
@@ -21,6 +23,10 @@ export interface SidequestConfig {
   maxConcurrentJobs?: number;
 }
 
+interface BackendModule {
+  default: new (...args: unknown[]) => Backend;
+}
+
 export class Engine {
   static async configure(config?: SidequestConfig) {
     if (_config) {
@@ -29,8 +35,7 @@ export class Engine {
     }
     _config = config ?? { queues: {} };
     const driver = config?.backend?.driver ?? "@sidequest/sqlite-backend";
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-    const mod: { default: new (...args: any) => Backend } = await import(driver);
+    const mod = (await import(driver)) as BackendModule;
     const BackendClass = mod.default;
     _backend = new BackendClass(config?.backend?.config);
 
@@ -95,6 +100,10 @@ export class Engine {
     _config = undefined;
     return _backend.close();
   }
+
+  static build(JobClass: JobClassType) {
+    return new JobBuilder(JobClass);
+  }
 }
 
-export { Job } from "./job/job";
+export { Job, JobClassType } from "./job/job";

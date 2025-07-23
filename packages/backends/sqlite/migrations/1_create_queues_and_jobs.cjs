@@ -6,6 +6,7 @@ exports.up = function(knex) {
       table.string('class');
       table.string('script');
       table.text('args');
+      table.text('constructor_args');
       table.text('result');
       table.text('errors');
       table.string('state').notNullable().defaultTo('waiting');

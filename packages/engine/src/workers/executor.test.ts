@@ -24,7 +24,7 @@ describe("executror.ts", () => {
         run: () => "ok",
       };
 
-      const result = await executeTask(job as Job, []);
+      const result = await executeTask(job as Job, { args: [] } as unknown as JobData);
       expect(result).toBe("ok");
     });
 
@@ -35,11 +35,13 @@ describe("executror.ts", () => {
         },
       };
 
-      await expect(executeTask(job as unknown as Job, [])).rejects.toThrow("fail");
+      await expect(executeTask(job as unknown as Job, { args: [] } as unknown as JobData)).rejects.toThrow("fail");
     });
 
     it("should reject with a timeout error if job.run() hangs", async () => {
       const job = {
+        script: "dumy-script",
+        className: "Dummy",
         run: async () =>
           new Promise(() => {
             // never resolves
@@ -47,7 +49,9 @@ describe("executror.ts", () => {
         class: "MyJob",
       };
 
-      await expect(executeTask(job as Job, [], 10)).rejects.toThrow(/timed out/);
+      await expect(executeTask(job as unknown as Job, { args: [], timeout: 10 } as unknown as JobData)).rejects.toThrow(
+        /timed out/,
+      );
     });
   });
 
@@ -76,6 +80,7 @@ describe("executror.ts", () => {
         script: `file://${path.resolve("packages/engine/src/test-jobs/dummy-job.js").replaceAll("\\\\", "/")}`,
         class: "DummyJob",
         args: [],
+        constructor_args: [],
         attempt: 0,
         max_attempts: 10,
         inserted_at: new Date(),
