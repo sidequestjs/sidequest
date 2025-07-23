@@ -31,9 +31,9 @@ export class JobActions {
     jobData.available_at = calculateBackoff(jobData.attempt);
     const max_attempts = jobData.max_attempts;
     if (jobData.attempt < max_attempts) {
-      jobData.state = "pending";
+      jobData.state = "waiting";
     } else {
-      jobData.state = "discarded";
+      jobData.state = "failed";
     }
     await backend.updateJob(jobData);
   }

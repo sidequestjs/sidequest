@@ -55,7 +55,7 @@ export default class SqliteBackend implements Backend {
       args: JSON.stringify(job.args),
       result: job.result ? JSON.stringify(job.result) : null,
       errors: job.errors ? JSON.stringify(job.errors) : null,
-      state: job.state || "pending",
+      state: job.state || "waiting",
       available_at: job.available_at || new Date().toISOString(),
       inserted_at: job.inserted_at || new Date().toISOString(),
       attempted_at: job.attempted_at,
@@ -78,7 +78,7 @@ export default class SqliteBackend implements Backend {
 
     return await this.knex.transaction(async (trx) => {
       const jobs = await trx("sidequest_jobs")
-        .where("state", "pending")
+        .where("state", "waiting")
         .andWhere("queue", queue)
         .andWhere("available_at", "<=", new Date().toISOString())
         .orderBy("inserted_at")

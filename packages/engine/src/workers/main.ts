@@ -68,7 +68,7 @@ export class Worker {
             const timeout = setTimeout(async () => {
               logger().error(`timeout on starting executor for job ${job.script}`);
               child.kill();
-              job.state = "pending";
+              job.state = "waiting";
               await backend.updateJob(job);
             }, 2000);
 

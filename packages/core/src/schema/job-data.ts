@@ -1,4 +1,10 @@
-export type JobState = "pending" | "claimed" | "running" | "discarded" | "completed" | "canceled";
+export type JobState =
+  | "waiting"     // Ready or scheduled for execution
+  | "claimed"     // Reserved by a worker
+  | "running"     // Currently executing
+  | "failed"      // Permanently failed (max attempts exceeded)
+  | "completed"   // Finished successfully
+  | "canceled";   // Manually canceled
 
 export interface JobData {
   id?: number;

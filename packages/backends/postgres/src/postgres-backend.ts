@@ -62,7 +62,7 @@ export default class PostgresBackend implements Backend {
         .whereIn("id", function () {
           this.select("id")
             .from("sidequest_jobs")
-            .where("state", "pending")
+            .where("state", "waiting")
             .where("queue", queue)
             .andWhere("available_at", "<=", trx.fn.now())
             .orderBy("inserted_at")

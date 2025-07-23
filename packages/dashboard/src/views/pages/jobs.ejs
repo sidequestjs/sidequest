@@ -6,7 +6,7 @@
       <select name="status" class="bg-gray-800 border border-gray-700 rounded px-3 py-2">
         <option value="">all</option>
 
-        <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>pending</option>
+        <option value="waiting" <%= filters.status === 'pending' ? 'selected' : '' %>>pending</option>
         <option value="claimed" <%= filters.status === 'claimed' ? 'selected' : '' %>>claimed</option>
         <option value="running" <%= filters.status === 'running' ? 'selected' : '' %>>running</option>
         <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>completed</option>
@@ -75,7 +75,7 @@
             <td class="px-4 py-2">
               <span class="px-2 py-1 rounded text-xs font-medium <%= {
                 completed: 'bg-green-700 text-green-200',
-                discarded: 'bg-red-700 text-red-200',
+                failed: 'bg-red-700 text-red-200',
                 canceled: ' bg-gray-400 text-red-100',
                 pending: 'bg-yellow-500 text-gray-200',
                 claimed: 'bg-blue-700 text-blue-200',
