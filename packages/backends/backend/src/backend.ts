@@ -11,7 +11,9 @@ export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig,
 export type UpdateQueueData = Pick<QueueConfig, "id"> & Partial<Omit<QueueConfig, "id">>;
 
 export interface Backend {
-  setup(): Promise<void>;
+  migrate(): Promise<void>;
+
+  rollbackMigration(): Promise<void>;
 
   close(): Promise<void>;
 

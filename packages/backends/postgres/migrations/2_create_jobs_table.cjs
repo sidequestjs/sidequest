@@ -37,7 +37,5 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-  await knex.schema
-    .dropTableIfExists('sidequest_jobs')
-    .dropTableIfExists('sidequest_queues');
+  await knex.schema.dropTableIfExists('sidequest_jobs');
 };

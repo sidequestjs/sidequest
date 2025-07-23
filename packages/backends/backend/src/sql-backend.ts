@@ -7,7 +7,7 @@ import { safeParseJobData, whereOrWhereIn } from "./utils";
 export abstract class SQLBackend implements Backend {
   constructor(public knex: Knex) {}
 
-  async setup(): Promise<void> {
+  async migrate(): Promise<void> {
     try {
       const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
       if (log.length > 0) {
@@ -16,6 +16,18 @@ export abstract class SQLBackend implements Backend {
       }
     } catch (err) {
       logger().error("Migration failed:", err);
+    }
+  }
+
+  async rollbackMigration(): Promise<void> {
+    try {
+      const [batchNo, log] = (await this.knex.migrate.rollback()) as [number, string[]];
+      if (log.length > 0) {
+        logger().info(`Rollback batch ${batchNo}:`);
+        log.forEach((file) => logger().info(`  - ${file}`));
+      }
+    } catch (err) {
+      logger().error("Rollback failed:", err);
     }
   }
 
