@@ -3,6 +3,185 @@ import { describe, it } from "vitest";
 import { backend } from ".";
 
 export default function defineTestSuite() {
+  describe("truncate", () => {
+    it("should truncate all tables", async () => {
+      const insertedJob = await backend.createNewJob({
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+      });
+      const insertedQueue = await backend.insertQueueConfig({
+        queue: "default",
+        concurrency: 100,
+        priority: 10,
+        state: "active",
+      });
+
+      await backend.truncate();
+
+      expect(await backend.getJob(insertedJob.id)).toBeFalsy();
+      expect(await backend.getQueueConfig(insertedQueue.queue)).toBeFalsy();
+    });
+  });
+
+  describe("insertQueueConfig / getQueueConfig", () => {
+    it("should insert new queue with bare minimum", async () => {
+      let insertedQueue = await backend.insertQueueConfig({
+        queue: "default",
+      });
+      expect(insertedQueue).toMatchObject({
+        queue: "default",
+        concurrency: 10,
+        priority: 0,
+        state: "active",
+      });
+
+      insertedQueue = await backend.getQueueConfig("default");
+      expect(insertedQueue).toMatchObject({
+        queue: "default",
+        concurrency: 10,
+        priority: 0,
+        state: "active",
+      });
+    });
+
+    it("should insert new queue with all optionals", async () => {
+      let insertedQueue = await backend.insertQueueConfig({
+        queue: "default",
+        concurrency: 100,
+        priority: 100,
+        state: "paused",
+      });
+      expect(insertedQueue).toMatchObject({
+        queue: "default",
+        concurrency: 100,
+        priority: 100,
+        state: "paused",
+      });
+
+      insertedQueue = await backend.getQueueConfig("default");
+      expect(insertedQueue).toMatchObject({
+        queue: "default",
+        concurrency: 100,
+        priority: 100,
+        state: "paused",
+      });
+    });
+
+    it("should not insert duplicated queue", async () => {
+      await backend.insertQueueConfig({
+        queue: "default",
+        concurrency: 100,
+        priority: 100,
+        state: "active",
+      });
+      await expect(
+        backend.insertQueueConfig({
+          queue: "default",
+          concurrency: 100,
+          priority: 100,
+          state: "active",
+        }),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("listQueues", () => {
+    it("should list no queue", async () => {
+      const queues = await backend.listQueues();
+      expect(queues).toHaveLength(0);
+    });
+
+    it("should list multiple queues in priority order", async () => {
+      await backend.insertQueueConfig({
+        queue: "default",
+        concurrency: 100,
+        priority: 10,
+        state: "active",
+      });
+
+      await backend.insertQueueConfig({
+        queue: "default2",
+        concurrency: 100,
+        priority: 100,
+        state: "active",
+      });
+
+      const queues = await backend.listQueues();
+      expect(queues).toHaveLength(2);
+      expect(queues[0].queue).toBe("default2");
+      expect(queues[1].queue).toBe("default");
+    });
+  });
+
+  describe("getJob", () => {
+    it("should get no job", async () => {
+      const job = await backend.getJob(-1);
+      expect(job).toBeFalsy();
+    });
+
+    it("should get a job", async () => {
+      // Insert a waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+      };
+
+      const insertedJob = await backend.createNewJob(job);
+
+      const foundJob = await backend.getJob(insertedJob.id);
+      expect(foundJob).toBeTruthy();
+    });
+  });
+
+  describe("getQueuesFromJobs", () => {
+    it("should find no queues from jobs when no jobs", async () => {
+      const queues = await backend.getQueuesFromJobs();
+      expect(queues).toHaveLength(0);
+    });
+
+    it("should find all queues of all jobs", async () => {
+      await backend.createNewJob({
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+      });
+
+      const secondJob = await backend.createNewJob({
+        queue: "default2",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+      });
+      await backend.updateJob({ id: secondJob.id, state: "failed" });
+
+      const queues = await backend.getQueuesFromJobs();
+      expect(queues).toHaveLength(2);
+      expect(queues[0]).toBe("default");
+      expect(queues[1]).toBe("default2");
+
+      // A job can exist without an existing queue
+      const queueNames = await backend.listQueues();
+      expect(queueNames).toHaveLength(0);
+    });
+  });
+
   describe("createNewJob", () => {
     it("should insert new job with bare minimum", async () => {
       // Insert a waiting job
@@ -143,7 +322,6 @@ export default function defineTestSuite() {
     });
 
     it("should not claim a job which is not in pending state", async () => {
-      // Insert a new waiting job
       const job: NewJobData = {
         queue: "default",
         class: "TestJob",
@@ -174,9 +352,147 @@ export default function defineTestSuite() {
       expect(claimedJob).toBe(undefined);
     });
 
+    it("should not claim a job of a different queue", async () => {
+      // Insert a new waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      await backend.createNewJob(job);
+      await backend.createNewJob({ ...job, queue: "default2" });
+
+      const claimedJobs = await backend.claimPendingJob("default2", 2);
+      expect(claimedJobs).toHaveLength(1);
+    });
+
+    it("should claim multiple jobs", async () => {
+      // Insert a new waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+
+      const claimedJobs = await backend.claimPendingJob("default", 10);
+      expect(claimedJobs).toHaveLength(2);
+    });
+
+    it("should not claim a job from a non-existing queue", async () => {
+      // Insert a new waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+
+      const claimedJobs = await backend.claimPendingJob("does_not_exist", 10);
+      expect(claimedJobs).toHaveLength(0);
+    });
+
     it("should not claim a job when not job is in the DB", async () => {
       const [claimedJob] = await backend.claimPendingJob("default");
       expect(claimedJob).toBe(undefined);
+    });
+  });
+
+  describe("deleteFinishedJobs", () => {
+    it("should delete failed, completed, and cancelled jobs", async () => {
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      let insertedJob = await backend.createNewJob(job);
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(0) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "claimed" });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(0) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(0) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "running" });
+
+      await backend.deleteFinishedJobs(new Date());
+
+      const allJobs = await backend.listJobs({});
+      expect(allJobs).toHaveLength(3);
+    });
+
+    it("should not delete failed, completed, and cancelled jobs if do not meet cutoff", async () => {
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      let insertedJob = await backend.createNewJob(job);
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(1) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "claimed" });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(1) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(1) });
+
+      insertedJob = await backend.createNewJob(job);
+      await backend.updateJob({ ...insertedJob, state: "running" });
+
+      await backend.deleteFinishedJobs(new Date(0));
+
+      const allJobs = await backend.listJobs({});
+      expect(allJobs).toHaveLength(6);
+    });
+
+    it("should not do anything if no jobs", async () => {
+      await backend.deleteFinishedJobs(new Date(0));
+      const allJobs = await backend.listJobs({});
+      expect(allJobs).toHaveLength(0);
     });
   });
 }

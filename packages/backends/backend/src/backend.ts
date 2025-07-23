@@ -11,6 +11,8 @@ export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "
 
 export type UpdateJobData = Pick<JobData, "id"> & Partial<Omit<JobData, "id">>;
 
+export type NewQueueData = Pick<QueueConfig, "queue"> & Partial<Omit<QueueConfig, "queue">>;
+
 export abstract class SQLBackend {
   constructor(public knex: Knex) {}
 
@@ -30,8 +32,15 @@ export abstract class SQLBackend {
     await this.knex.destroy();
   }
 
-  async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
+  async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
+    const data: QueueConfig = {
+      queue: queueConfig.queue,
+      concurrency: queueConfig.concurrency ?? 10,
+      priority: queueConfig.priority ?? 0,
+      state: queueConfig.state ?? "active",
+    };
+
+    const newConfig = await this.knex("sidequest_queues").insert(data).returning("*");
     return newConfig[0] as QueueConfig;
   }
 
