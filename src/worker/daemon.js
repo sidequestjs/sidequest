@@ -29,13 +29,15 @@ function executeTask(task){
             execution.then((result) => {
                 sendResult(task, result);
             }).catch((error) => {
+                console.error(error);
                 sendError(task, error);
             });
         } else {
             sendResult(task, execution);
         }
     } catch (error) {
-        sendError(task, error);
+        console.error(error);
+        sendError(task, error.message);
     }   
 }
 
