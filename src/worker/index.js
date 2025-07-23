@@ -4,7 +4,10 @@ const events = require('events');
 const id = require('../id');
 
 const daemonPath = `${__dirname}/daemon.js`;
-
+/**
+ * Worker is responsable to execute the `task.run` method especified
+ * at task file in a child process
+ */
 function Worker() {
     const forkProcess = fork(daemonPath);
     const workerId = id.generate();
@@ -23,6 +26,11 @@ function Worker() {
         }
     });
     
+    /**
+     * execute will request to the worker child process
+     * to execute the task.run method
+     * @param {*} task 
+     */
     this.execute = (task) => {
         forkProcess.send({
             type: 'execute',
@@ -30,22 +38,41 @@ function Worker() {
         });
     }
     
+    /**
+     * id returns the worker id
+     * @returns {string} worker id
+     */
     this.id = () => {
         return workerId;
     }
     
+    /**
+     * pid returns the child process pid
+     * @returns {string} child process pid
+     */
     this.pid = () => {
         return forkProcess.pid.toString();
     }
     
+    /**
+     * terminate sends a SIGTERM to chield process
+     */
     this.terminate = () => {
-        forkProcess.kill();
+        forkProcess.kill('SIGTERM');
     }
     
+    /**
+     * isDead returns true if the child process was terminated
+     * @returns {boolean} 
+     */
     this.isDead = () => {
         return forkProcess.killed;
     }
-    
+
+    /**
+     * isAlive returns true if the child process is running
+     * @returns {boolean}
+     */
     this.isAlive = () => {
         return !this.isDead();
     }
