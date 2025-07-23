@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "dev": "npx rollup -c -w"
+    "dev": "npx rollup -c -w",
+    "test:ci": "npx vitest run"
   },
   "license": "LGPL-3.0-or-later",
   "dependencies": {

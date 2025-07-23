@@ -9,6 +9,10 @@
       "dependsOn": ["^build"],
       "persistent": true,
       "cache": false
+    },
+    "test:ci": {
+      "env": ["POSTGRES_URL", "MYSQL_URL"],
+      "dependsOn": ["^build"]
     }
   }
 }
