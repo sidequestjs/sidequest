@@ -1,4 +1,4 @@
-name: build and test
+name: Build and Test
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
   pull_request:
     branches: [master]
     paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "**/*.MD"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE.md"
 
 jobs:
   build-and-test:
@@ -75,24 +75,6 @@ jobs:
 
       - name: Run linter
         run: yarn lint
-
-      - name: Install redis-cli
-        run: sudo apt-get update && sudo apt-get install -y redis-tools
-
-      - name: Wait for PostgreSQL, MySQL and Redis to be ready
-        run: |
-          until pg_isready -h localhost -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
-            echo "Waiting for MySQL..."
-            sleep 2
-          done
-          until redis-cli -h 127.0.0.1 ping | grep PONG; do
-            echo "Waiting for Redis..."
-            sleep 2
-          done
 
       - name: Run tests
         env:

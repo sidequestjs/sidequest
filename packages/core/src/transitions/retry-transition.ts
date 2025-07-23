@@ -2,6 +2,7 @@ import { logger } from "../logger";
 import { JobData } from "../schema";
 import { ErrorData } from "../schema/error-data";
 import { toErrorData } from "../tools/parse-error-data";
+import { FailTransition } from "./fail-transition";
 import { JobTransition } from "./transition";
 
 /**
@@ -30,6 +31,10 @@ export class RetryTransition extends JobTransition {
    * @returns The updated job data.
    */
   apply(job: JobData): JobData {
+    if (job.attempt >= job.max_attempts) {
+      return new FailTransition(this.reason).apply(job);
+    }
+
     logger().error(this.reason);
     const reason = toErrorData(this.reason);
 
@@ -45,14 +50,8 @@ export class RetryTransition extends JobTransition {
 
     job.errors ??= [];
     job.errors.push(errData);
-
-    if (job.attempt >= job.max_attempts) {
-      job.state = "failed";
-      job.failed_at = new Date();
-    } else {
-      job.state = "waiting";
-      job.available_at = new Date(Date.now() + delay);
-    }
+    job.state = "waiting";
+    job.available_at = new Date(Date.now() + delay);
     return job;
   }
 

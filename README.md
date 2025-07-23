@@ -93,8 +93,15 @@ export class EmailJob extends Job {
 // app.js
 import { Sidequest } from "sidequest";
 
-// Quick start Sidequest with default settings and Dashboard enabled
-await Sidequest.start();
+// Start Sidequest
+await Sidequest.start({
+  // You can leave the config empty to use the default SQLite backend.
+  // Make sure to install the SQLite backend driver if you want to use it.
+  backend: {
+    driver: "@sidequest/postgres-backend",
+    config: "postgres://postgres:postgres@localhost:5432",
+  },
+});
 
 console.log("Sidequest started! Dashboard: http://localhost:8678");
 ```
