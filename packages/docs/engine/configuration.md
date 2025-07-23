@@ -1,6 +1,6 @@
 ---
-outline: deep 
-title: Engine Configuration 
+outline: deep
+title: Engine Configuration
 description: How to configure the Sidequest engine, queues, backends, and dashboard
 ---
 
@@ -100,7 +100,6 @@ backend: {
 
 **See:** [Installation Guide](/installation#choose-your-backend) for details on installing drivers.
 
-
 ## 4. Full Example
 
 ::: code-group
@@ -195,4 +194,3 @@ Sidequest.start({
 - [Enqueueing Jobs](/engine/enqueue)
 - [Job Class Reference](/jobs/index)
 - [Monitoring Jobs with the Dashboard](/dashboard)
-

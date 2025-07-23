@@ -11,7 +11,7 @@ This guide will help you quickly set up Sidequest.js in your Node.js application
 ## 1. Installation
 
 To install Sidequest.js, check out [Installation Guide](/installation).
-If you are following this quick start till the end, you should install the SQLite backend driver, which is the default backend for Sidequest.js.
+If you are strictly following this quick start, you should install the SQLite backend driver, which is the default backend for Sidequest.js.
 
 ## 2. Job Creation
 
@@ -65,8 +65,9 @@ You can access the [Sidequest Dashboard](/dashboard) at `http://localhost:8678` 
 
 Now that you have a basic setup, you can explore more advanced features like:
 
-- Customizing job parameters
-- Configuring different backends (e.g., PostgreSQL, MongoDB)
-- Implementing job retries and error handling
+- Learn about [Jobs](/jobs/index) and how to create custom job classes
+- Learn about [Queues](/queues/index) and how to manage them
+- Learn how to configure and run the [Sidequest Engine](/engine/index)
+- Check [Sidequest's Dashboard](/dashboard) for monitoring and managing jobs
 
 Check the rest of the documentation for detailed guides on these topics.

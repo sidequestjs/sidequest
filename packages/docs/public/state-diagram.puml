@@ -1,0 +1,20 @@
+@startuml Job State Machine
+
+[*] --> waiting : Job enqueued
+
+waiting --> claimed : Dispatcher claims job
+waiting --> canceled : Manual cancellation
+
+claimed --> running : Worker starts processing
+claimed --> canceled : Manual cancellation
+
+running --> completed : Job finishes successfully
+running --> waiting : Job fails with retries remaining
+running --> failed : Job fails with no retries remaining
+running --> canceled : Manual cancellation
+
+completed --> [*]
+failed --> [*]
+canceled --> [*]
+
+@enduml

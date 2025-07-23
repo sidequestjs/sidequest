@@ -89,6 +89,10 @@ export default defineConfig({
             text: "Graceful Shutdown",
             link: "/graceful-shutdown",
           },
+          {
+            text: "Cleaning Up Jobs",
+            link: "/cleanup",
+          },
         ],
       },
       { text: "🌐 Dashboard", link: "/dashboard" },

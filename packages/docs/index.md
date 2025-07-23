@@ -25,5 +25,4 @@ features:
     details: Monitor, reprocess, and debug jobs in real time with a modern dashboard – Ready to use out of the box, no hidden paywalls.
   - title: 🛠️ Open Source & Developer-First
     details: 100% free, instant npm install, TypeScript-native API, and clear docs. Built for rapid adoption by ambitious teams.
-
 ---
