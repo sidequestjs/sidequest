@@ -2,16 +2,25 @@
   "name": "sidequest-monorepo",
   "private": true,
   "type": "module",
+  "version": "1.0.0",
+  "description": "Monorepo for Sidequest.js",
+  "engines": {
+    "node": ">=22.6.0"
+  },
   "workspaces": [
     "packages/*",
     "packages/backends/*"
   ],
   "scripts": {
     "build": "yarn workspaces foreach -Api --topological-dev run build",
-    "test": "yarn vitest",
-    "test:ci": "yarn vitest run",
-    "test:debug": "yarn vitest --test-timeout=0 run",
-    "test:coverage": "vitest run --coverage",
+    "test": "yarn vitest --exclude packages/backends",
+    "test:ci": "yarn vitest run --exclude packages/backends",
+    "test:debug": "yarn vitest --test-timeout=0 run --exclude packages/backends",
+    "test:coverage": "vitest run --coverage --exclude packages/backends",
+    "test:all": "yarn vitest",
+    "test:all:ci": "yarn vitest run",
+    "test:all:debug": "yarn vitest --test-timeout=0 run",
+    "test:all:coverage": "vitest run --coverage",
     "format": "prettier --write \"**/*.{ts,js,mts,tsx,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,.mts,tsx,jsx}\"",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
