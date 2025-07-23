@@ -180,4 +180,29 @@ describe('MasterWorker', () => {
         };
         masterWorker.register( task );
     });
+
+    it('should allows a task to be executed twice simultaneously with unsafe setted to true', (done) => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
+        let executions = 0;
+        let doneCalled = false;
+        masterWorker.on('task-done', (task, result) =>{
+            executions++;
+            if(executions === 2 && !doneCalled){
+                assert.isNotNull(task);
+                assert.equal(result, 'slow task executed');
+                assert.isAtLeast(executions, 2);
+                doneCalled = true;
+                done();
+            }
+        });
+
+        let task = {
+            'name': 'Write File',
+            'path': './test/test_assets/slow-task.js',
+            'cron': '* * * * * *',
+            'unsafe': true
+        };
+        masterWorker.register( task );
+    });
 });
