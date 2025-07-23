@@ -15,7 +15,7 @@ export default function defineTestSuite() {
         attempt: 0,
       });
       const insertedQueue = await backend.insertQueueConfig({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 10,
         state: "active",
@@ -24,17 +24,17 @@ export default function defineTestSuite() {
       await backend.truncate();
 
       expect(await backend.getJob(insertedJob.id)).toBeFalsy();
-      expect(await backend.getQueueConfig(insertedQueue.queue)).toBeFalsy();
+      expect(await backend.getQueueConfig(insertedQueue.name)).toBeFalsy();
     });
   });
 
   describe("insertQueueConfig / getQueueConfig", () => {
     it("should insert new queue with bare minimum", async () => {
       let insertedQueue = await backend.insertQueueConfig({
-        queue: "default",
+        name: "default",
       });
       expect(insertedQueue).toMatchObject({
-        queue: "default",
+        name: "default",
         concurrency: 10,
         priority: 0,
         state: "active",
@@ -42,7 +42,7 @@ export default function defineTestSuite() {
 
       insertedQueue = await backend.getQueueConfig("default");
       expect(insertedQueue).toMatchObject({
-        queue: "default",
+        name: "default",
         concurrency: 10,
         priority: 0,
         state: "active",
@@ -51,13 +51,13 @@ export default function defineTestSuite() {
 
     it("should insert new queue with all optionals", async () => {
       let insertedQueue = await backend.insertQueueConfig({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 100,
         state: "paused",
       });
       expect(insertedQueue).toMatchObject({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 100,
         state: "paused",
@@ -65,7 +65,7 @@ export default function defineTestSuite() {
 
       insertedQueue = await backend.getQueueConfig("default");
       expect(insertedQueue).toMatchObject({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 100,
         state: "paused",
@@ -74,14 +74,14 @@ export default function defineTestSuite() {
 
     it("should not insert duplicated queue", async () => {
       await backend.insertQueueConfig({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 100,
         state: "active",
       });
       await expect(
         backend.insertQueueConfig({
-          queue: "default",
+          name: "default",
           concurrency: 100,
           priority: 100,
           state: "active",
@@ -98,14 +98,14 @@ export default function defineTestSuite() {
 
     it("should list multiple queues in priority order", async () => {
       await backend.insertQueueConfig({
-        queue: "default",
+        name: "default",
         concurrency: 100,
         priority: 10,
         state: "active",
       });
 
       await backend.insertQueueConfig({
-        queue: "default2",
+        name: "default2",
         concurrency: 100,
         priority: 100,
         state: "active",
@@ -113,8 +113,8 @@ export default function defineTestSuite() {
 
       const queues = await backend.listQueues();
       expect(queues).toHaveLength(2);
-      expect(queues[0].queue).toBe("default2");
-      expect(queues[1].queue).toBe("default");
+      expect(queues[0].name).toBe("default2");
+      expect(queues[1].name).toBe("default");
     });
   });
 

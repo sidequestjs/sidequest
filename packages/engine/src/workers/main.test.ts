@@ -1,4 +1,5 @@
-import { CompleteTransition, DuplicatedJobError, JobData, QueueConfig } from "@sidequest/core";
+import { NewQueueData } from "@sidequest/backend";
+import { CompleteTransition, DuplicatedJobError, JobData } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -40,11 +41,11 @@ describe("main.ts", () => {
   const lowQueueName = `low-${randomUUID()}`;
   const singleQueueName = `single-${randomUUID()}`;
 
-  const queues: Record<string, QueueConfig> = {
-    [highQueueName]: { queue: highQueueName, priority: 10 },
-    [mediumQueueName]: { queue: mediumQueueName, priority: 5 },
-    [lowQueueName]: { queue: lowQueueName },
-    [singleQueueName]: { queue: singleQueueName, concurrency: 1 },
+  const queues: Record<string, NewQueueData> = {
+    [highQueueName]: { name: highQueueName, priority: 10 },
+    [mediumQueueName]: { name: mediumQueueName, priority: 5 },
+    [lowQueueName]: { name: lowQueueName },
+    [singleQueueName]: { name: singleQueueName, concurrency: 1 },
   };
 
   const dbLocation = "./sidequest-test.sqlite";

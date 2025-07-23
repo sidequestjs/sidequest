@@ -1,8 +1,9 @@
 export type QueueState = "active" | "paused";
 
 export interface QueueConfig {
-  queue: string;
-  concurrency?: number;
-  state?: QueueState;
-  priority?: number;
+  id: number;
+  name: string;
+  concurrency: number;
+  state: QueueState;
+  priority: number;
 }

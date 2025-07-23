@@ -11,7 +11,7 @@ export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "
 
 export type UpdateJobData = Pick<JobData, "id"> & Partial<Omit<JobData, "id">>;
 
-export type NewQueueData = Pick<QueueConfig, "queue"> & Partial<Omit<QueueConfig, "queue">>;
+export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig, "queue" | "id">>;
 
 export abstract class SQLBackend {
   constructor(public knex: Knex) {}
@@ -33,8 +33,8 @@ export abstract class SQLBackend {
   }
 
   async insertQueueConfig(queueConfig: NewQueueData): Promise<QueueConfig> {
-    const data: QueueConfig = {
-      queue: queueConfig.queue,
+    const data: NewQueueData = {
+      name: queueConfig.name,
       concurrency: queueConfig.concurrency ?? 10,
       priority: queueConfig.priority ?? 0,
       state: queueConfig.state ?? "active",
@@ -45,11 +45,11 @@ export abstract class SQLBackend {
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ queue }).first() as Promise<QueueConfig>;
+    return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig>;
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
-    const queues: QueueConfig[] = await this.knex("sidequest_jobs").select("queue").distinct();
+    const queues: { queue: string }[] = await this.knex("sidequest_jobs").select("queue").distinct();
     return queues.map((q) => q.queue);
   }
 

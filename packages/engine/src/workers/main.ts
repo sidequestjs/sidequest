@@ -44,27 +44,27 @@ export class Worker {
         });
 
         for (const queueConfig of queues) {
-          if (!this.activeJobsPerQueue[queueConfig.queue]) {
-            this.activeJobsPerQueue[queueConfig.queue] = new Set();
+          if (!this.activeJobsPerQueue[queueConfig.name]) {
+            this.activeJobsPerQueue[queueConfig.name] = new Set();
           }
-          const activeJobs = this.activeJobsPerQueue[queueConfig.queue];
+          const activeJobs = this.activeJobsPerQueue[queueConfig.name];
           const limit = queueConfig.concurrency ?? 10;
 
           if (activeJobs.size >= limit) {
-            logger().debug(`queue ${queueConfig.queue} limit reached!`);
+            logger().debug(`queue ${queueConfig.name} limit reached!`);
             continue;
           }
 
           if (this.allActiveJobs.size >= maxConcurrentJobs) {
             logger().debug(
-              `Concurrency limit reached (${maxConcurrentJobs} jobs). Skipping queue "${queueConfig.queue}" until slots free up.`,
+              `Concurrency limit reached (${maxConcurrentJobs} jobs). Skipping queue "${queueConfig.name}" until slots free up.`,
             );
             continue;
           }
 
           const availableSlots = limit - activeJobs.size;
 
-          const jobs: JobData[] = await backend!.claimPendingJob(queueConfig.queue, availableSlots);
+          const jobs: JobData[] = await backend!.claimPendingJob(queueConfig.name, availableSlots);
 
           for (const job of jobs) {
             const child = fork(executorPath);

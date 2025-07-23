@@ -1,4 +1,5 @@
-import { JobData, QueueConfig } from "@sidequest/core";
+import { NewQueueData } from "@sidequest/backend";
+import { JobData } from "@sidequest/core";
 import * as childProcess from "child_process";
 import { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -36,11 +37,11 @@ describe("main.ts", () => {
   const lowQueueName = `low-${randomUUID()}`;
   const singleQueueName = `single-${randomUUID()}`;
 
-  const queues: Record<string, QueueConfig> = {
-    [highQueueName]: { queue: highQueueName, priority: 10 },
-    [mediumQueueName]: { queue: mediumQueueName, priority: 5 },
-    [lowQueueName]: { queue: lowQueueName },
-    [singleQueueName]: { queue: singleQueueName, concurrency: 1 },
+  const queues: Record<string, NewQueueData> = {
+    [highQueueName]: { name: highQueueName, priority: 10 },
+    [mediumQueueName]: { name: mediumQueueName, priority: 5 },
+    [lowQueueName]: { name: lowQueueName },
+    [singleQueueName]: { name: singleQueueName, concurrency: 1 },
   };
 
   const dbLocation = "./sidequest-test.sqlite";

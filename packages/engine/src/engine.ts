@@ -1,4 +1,4 @@
-import { SQLBackend } from "@sidequest/backend";
+import { NewQueueData, SQLBackend } from "@sidequest/backend";
 import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
@@ -21,7 +21,7 @@ export interface BackendConfig {
 
 export interface SidequestConfig {
   backend?: BackendConfig;
-  queues?: Record<string, QueueConfig>;
+  queues?: Record<string, NewQueueData>;
   logger?: LoggerOptions;
   maxConcurrentJobs?: number;
 }

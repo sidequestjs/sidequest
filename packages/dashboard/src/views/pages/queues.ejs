@@ -12,9 +12,11 @@
         </tr>
       </thead>
       <tbody>
-        <% queues.forEach(queue => { %>
+        <% queues.forEach(queue=> { %>
           <tr class="border-t border-gray-800 hover:bg-gray-800">
-            <td class="px-4 py-2 font-mono text-gray-200"><%= queue.queue %></td>
+            <td class="px-4 py-2 font-mono text-gray-200">
+              <%= queue.name %>
+            </td>
             <td class="px-4 py-2">
               <span class="px-2 py-1 rounded text-xs font-medium <%= {
                 active: 'bg-green-700 text-green-200',
@@ -24,10 +26,14 @@
                 <%= queue.state %>
               </span>
             </td>
-            <td class="px-4 py-2"><%= queue.concurrency %></td>
-            <td class="px-4 py-2"><%= queue.priority %></td>
+            <td class="px-4 py-2">
+              <%= queue.concurrency %>
+            </td>
+            <td class="px-4 py-2">
+              <%= queue.priority %>
+            </td>
           </tr>
-        <% }) %>
+          <% }) %>
       </tbody>
     </table>
   </div>
