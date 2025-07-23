@@ -11,6 +11,9 @@
     "import": "./dist/sqlite-backend.js",
     "require": "./dist/sqlite-backend.cjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",

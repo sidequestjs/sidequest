@@ -11,6 +11,9 @@
     "import": "./dist/postgres-backend.js",
     "require": "./dist/postgres-backend.cjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",

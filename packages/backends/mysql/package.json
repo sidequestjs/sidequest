@@ -11,6 +11,9 @@
     "import": "./dist/mysql-backend.js",
     "require": "./dist/mysql-backend.cjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",
