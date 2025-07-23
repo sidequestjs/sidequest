@@ -15,7 +15,7 @@ describe('MasterWorker', () => {
                 }
             });
         }
-        masterWorker = new MasterWorker();
+        masterWorker = new MasterWorker({totalSchedulers: 2});
     });
     
     afterEach(() => {
@@ -30,7 +30,7 @@ describe('MasterWorker', () => {
     });
     
     it('should generate schedulers', () => {
-        assert.lengthOf(masterWorker.schedulers(), cpus);
+        assert.lengthOf(masterWorker.schedulers(), 2);
     });
     
     it('should register tasks', (done) => {
@@ -52,7 +52,7 @@ describe('MasterWorker', () => {
             assert.isNotNull(task);
             done();
         });
-        
+
         masterWorker.register({
             "name": "Write File",
             "path": "./test/test_assets/write_file.js",
@@ -62,7 +62,7 @@ describe('MasterWorker', () => {
 
     it('should terminate all schedulers on scheduler fail', (done) => {
         masterWorker.terminate();
-        masterWorker = new MasterWorker();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
         masterWorker.on('terminated',  () => {
             done();
         });
@@ -76,7 +76,7 @@ describe('MasterWorker', () => {
 
     it('should terminate all workers', () => {
         masterWorker.terminate();
-        masterWorker = new MasterWorker();
+        masterWorker = new MasterWorker({totalSchedulers: 1});
 
         let task = {
             "name": "Write File",
@@ -95,11 +95,11 @@ describe('MasterWorker', () => {
 
     it('should distribute tasks', (done) => {
         masterWorker.terminate();
-        masterWorker = new MasterWorker();
+        masterWorker = new MasterWorker({totalSchedulers: 2});
         
         let tasksRegistred = 0;
         
-        for(let i = 0; i < cpus * 2; i++){
+        for(let i = 0; i < 4; i++){
             masterWorker.register( {
                 "name": "Write File",
                 "path": "./test/test_assets/write_file.js",
@@ -109,7 +109,7 @@ describe('MasterWorker', () => {
 
         masterWorker.on('task-registred', () => {
             tasksRegistred++;
-            if(tasksRegistred == cpus * 2){
+            if(tasksRegistred == 4){
                 masterWorker.schedulers().forEach((scheduler) => {
                     assert.lengthOf(scheduler.tasks(), 2);
                 });
