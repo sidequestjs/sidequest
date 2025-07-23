@@ -8,6 +8,10 @@ function registerTask(task){
         });
     });
     console.info(`[SCHEDULER DAEMON ${process.pid}]: Task ${task.name} registred`);
+    process.send({
+        type: 'registred',
+        data: task
+    });
 };
 
 process.on('message', (message) => {

@@ -23,6 +23,12 @@ function Scheduler(){
                 break;
         }
     });
+
+    forkProcess.on('exit', (code) => {
+       if(code == 1){
+           this.emit('died', this);
+       }
+    });
     
 
     this.register = (task) => {
@@ -37,7 +43,7 @@ function Scheduler(){
         return forkProcess.pid.toString();;
     }
 
-    this.kill = () => {
+    this.terminate = () => {
         forkProcess.kill();
     }
     
@@ -47,6 +53,10 @@ function Scheduler(){
     
     this.isAlive = () => {
         return !this.isDead();
+    }
+
+    this.tasks = () => {
+        return tasks.slice(0);
     }
 }
 
