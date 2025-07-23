@@ -28,7 +28,8 @@ export class Sidequest {
 
   static start(config: SidequestConfig): Promise<void>{
     Sidequest.configure(config);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      await _backend.setup();
       const timeout = setTimeout(()=> {
         reject(new Error('timeout on starting sidequest fork!'))
       }, 5000);

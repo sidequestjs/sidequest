@@ -9,7 +9,8 @@ exports.up = async function(knex) {
     table.jsonb('args').notNullable();
 
     table.integer('attempt').notNullable().defaultTo(0);
-    table.integer('max_attempts').notNullable().defaultTo(20);
+    table.integer('max_attempts').notNullable().defaultTo(5);
+    table.specificType('result', 'jsonb').notNullable().defaultTo('{}');
     table.specificType('errors', 'jsonb[]').notNullable().defaultTo('{}');
 
     table.timestamp('inserted_at').notNullable().defaultTo(knex.fn.now());

@@ -1,16 +1,26 @@
 import { Sidequest } from "../sidequest";
 
-export interface JobData {
-  script: string;
-  class: string;
-  queue: string;
-  args?: any[];
-}
+export type JobState = 'pending' | 'claimed' | 'running' | 'discarded' | 'completed' | 'cancelled';
 
-export abstract class Job implements JobData{
+export abstract class Job {
+  id?: number;
+  queue: string;
+  state?: JobState;
   script: string;
   class: string;
-  queue: string;
+  args?: any[];
+  attempt?: number;
+  max_attempts?: number;
+  result?: any;
+  errors?: any[];
+  inserted_at?: Date;
+  attempted_at?: Date;
+  available_at?: Date;
+  completed_at?: Date;
+  discarded_at?: Date;
+  cancelled_at?: Date;
+  claimed_at?: Date;
+  claimed_by?: string;
 
   constructor(queue?: string) {
     this.queue = queue || 'default';
