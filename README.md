@@ -24,12 +24,6 @@ exports.task = () => {
 - 3. Create the `sidequest-config.json` and register your tasks:
 ```json
 {
-    "totalSchedulers": 2,
-    "admin": "enabled",
-    "adminServer": {
-        "port": 5000,
-        "host": "0.0.0.0"
-    } ,
     "tasks": [
         {
             "name": "Hello task every 2 seconds",
