@@ -1625,9 +1625,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/cli@workspace:packages/sidequest-cli":
+"@sidequest/cli@workspace:packages/cli":
   version: 0.0.0-use.local
-  resolution: "@sidequest/cli@workspace:packages/sidequest-cli"
+  resolution: "@sidequest/cli@workspace:packages/cli"
   dependencies:
     "@sidequest/backend": "workspace:*"
     commander: "npm:^14.0.0"
