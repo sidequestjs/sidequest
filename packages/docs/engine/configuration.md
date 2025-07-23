@@ -34,7 +34,7 @@ import { Sidequest } from "sidequest";
 await Sidequest.start({
   // 1. Backend: choose your preferred database
   backend: {
-    driver: "@sidequest/postgres-backend", // or @sidequest/sqlite-backend, @sidequest/mysql-backend, @sidequest/redis-backend, etc.
+    driver: "@sidequest/postgres-backend", // or @sidequest/sqlite-backend, @sidequest/mysql-backend, etc.
     config: "postgresql://postgres:postgres@localhost:5432/postgres",
   },
   // 2. Queues: define queue names, priorities, concurrency, and initial state
@@ -61,7 +61,7 @@ await Sidequest.start({
 
 | Option              | Description                                                                                 | Default                              |
 | ------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `backend`           | Which backend driver and config string to use (SQLite, Postgres, MySQL, Redis, MongoDB)     | SQLite (`@sidequest/sqlite-backend`) |
+| `backend`           | Which backend driver and config string to use (SQLite, Postgres, MySQL, MongoDB)            | SQLite (`@sidequest/sqlite-backend`) |
 | `queues`            | Array of queue configs. Name, concurrency, priority, initial state (`waiting` or `paused`)  | `[]`                                 |
 | `maxConcurrentJobs` | Maximum number of jobs processed at the same time across all queues                         | `100`                                |
 | `dashboard.enabled` | Enable or disable the dashboard UI                                                          | `true`                               |
@@ -78,7 +78,7 @@ If you enqueue a job to a queue that does not exist yet, Sidequest will automati
 
 ## 3. Switching Backends
 
-You can run Sidequest on any supported backend. Supported backends include Postgres, SQLite, MySQL, Redis, and soon MongoDB. Install the corresponding driver and provide the config string.
+You can run Sidequest on any supported backend. Supported backends include Postgres, SQLite, MySQL, and soon MongoDB. Install the corresponding driver and provide the config string.
 
 **Example: Using PostgreSQL backend**
 
@@ -89,12 +89,12 @@ backend: {
 }
 ```
 
-**Example: Using Redis backend**
+**Example: Using MySQL backend**
 
 ```typescript
 backend: {
-  driver: "@sidequest/redis-backend",
-  config: "redis://localhost:6379",
+  driver: "@sidequest/mysql-backend",
+  config: "mysql://root:mysql@localhost:3306/testdb",
 }
 ```
 

@@ -22,7 +22,7 @@ exports.up = async function(knex) {
       table.timestamp('attempted_at').nullable();
       table.timestamp('completed_at').nullable();
       table.timestamp('failed_at').nullable();
-      table.timestamp('cancelled_at').nullable();
+      table.timestamp('canceled_at').nullable();
       table.timestamp('claimed_at').nullable();
       table.string('claimed_by').nullable();
       table.integer('attempt').notNullable();

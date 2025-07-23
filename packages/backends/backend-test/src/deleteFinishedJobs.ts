@@ -4,7 +4,7 @@ import { backend } from "./backend";
 
 export default function defineDeleteFinishedJobsTestSuite() {
   describe("deleteFinishedJobs", () => {
-    it("should delete failed, completed, and cancelled jobs", async () => {
+    it("should delete failed, completed, and canceled jobs", async () => {
       const job: NewJobData = {
         queue: "default",
         class: "TestJob",
@@ -19,7 +19,7 @@ export default function defineDeleteFinishedJobsTestSuite() {
       let insertedJob = await backend.createNewJob(job);
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(2000, 0, 1) });
+      await backend.updateJob({ ...insertedJob, state: "canceled", canceled_at: new Date(2000, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "claimed" });
@@ -39,7 +39,7 @@ export default function defineDeleteFinishedJobsTestSuite() {
       expect(allJobs).toHaveLength(3);
     });
 
-    it("should not delete failed, completed, and cancelled jobs if do not meet cutoff", async () => {
+    it("should not delete failed, completed, and canceled jobs if do not meet cutoff", async () => {
       const job: NewJobData = {
         queue: "default",
         class: "TestJob",
@@ -54,7 +54,7 @@ export default function defineDeleteFinishedJobsTestSuite() {
       let insertedJob = await backend.createNewJob(job);
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(2024, 0, 1) });
+      await backend.updateJob({ ...insertedJob, state: "canceled", canceled_at: new Date(2024, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "claimed" });

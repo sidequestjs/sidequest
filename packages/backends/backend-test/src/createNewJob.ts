@@ -33,7 +33,7 @@ export default function defineCreateNewJobTestSuite() {
       expect(insertedJob.attempted_at).toBe(null);
       expect(insertedJob.completed_at).toBe(null);
       expect(insertedJob.failed_at).toBe(null);
-      expect(insertedJob.cancelled_at).toBe(null);
+      expect(insertedJob.canceled_at).toBe(null);
       expect(insertedJob.claimed_at).toBe(null);
       expect(insertedJob.claimed_by).toBe(null);
       expect(insertedJob.timeout).toBe(null);
@@ -81,7 +81,7 @@ export default function defineCreateNewJobTestSuite() {
       expect(insertedJob.attempted_at).toBe(null);
       expect(insertedJob.completed_at).toBe(null);
       expect(insertedJob.failed_at).toBe(null);
-      expect(insertedJob.cancelled_at).toBe(null);
+      expect(insertedJob.canceled_at).toBe(null);
       expect(insertedJob.claimed_at).toBe(null);
       expect(insertedJob.claimed_by).toBe(null);
       expect(insertedJob.timeout).toBe(10);

@@ -32,7 +32,7 @@ describe("JobBuilder", () => {
         attempted_at: null,
         completed_at: null,
         failed_at: null,
-        cancelled_at: null,
+        canceled_at: null,
         claimed_at: null,
         claimed_by: null,
         attempt: 0,

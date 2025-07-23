@@ -31,10 +31,8 @@
     "db:mysql": "docker run --name mysql-default -e MYSQL_ROOT_PASSWORD=mysql -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql:8",
     "db:pg:stop": "docker stop pg-default && docker rm pg-default",
     "db:mysql:stop": "docker stop mysql-default && docker rm mysql-default",
-    "db:redis": "docker run --name redis-default -p 6379:6379 -d redis:7",
-    "db:redis:stop": "docker stop redis-default && docker rm redis-default",
-    "db:all": "yarn db:pg && yarn db:mysql && yarn db:redis",
-    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop && yarn db:redis:stop",
+    "db:all": "yarn db:pg && yarn db:mysql",
+    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop",
     "prepare": "husky"
   },
   "devDependencies": {

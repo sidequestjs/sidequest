@@ -24,7 +24,7 @@ A job in Sidequest.js is a unit of work that can be executed asynchronously. Job
 Jobs in Sidequest.js follow this execution flow:
 
 1. **Creation**: Jobs are created and enqueued using a [job builder](/engine/enqueue)
-2. **Storage**: Job data is persisted in your chosen backend (SQLite, PostgreSQL, MySQL, Redis)
+2. **Storage**: Job data is persisted in your chosen backend (SQLite, PostgreSQL, MySQL)
 3. **Claiming**: Workers claim available jobs from [queues](/queues/index) based on concurrency limits
 4. **Construction**: Job objects are constructed using the [job class](./class.md) and constructor arguments
 5. **Execution**: The [job's `run` method](./run-method.md) is executed with the provided arguments
@@ -52,7 +52,7 @@ Each job has several metadata fields that provide information about its state an
 - **`attempted_at`**: When the job execution started
 - **`completed_at`**: When the job finished successfully
 - **`failed_at`**: When the job failed permanently
-- **`cancelled_at`**: When the job was canceled
+- **`canceled_at`**: When the job was canceled
 - **`attempt`**: Current attempt number (starts at 0, increments on each run)
 - **`max_attempts`**: Maximum number of attempts allowed
 - **`timeout`**: Maximum time in milliseconds allowed for the job to run before aborting execution

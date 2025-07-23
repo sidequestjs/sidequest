@@ -27,4 +27,9 @@ export default class PostgresBackend extends SQLBackend {
     });
     super(knex);
   }
+
+  truncDate(date: string, unit: "m" | "h" | "d"): string {
+    const precision = unit === "m" ? "minute" : unit === "h" ? "hour" : "day";
+    return this.knex.raw(`date_trunc(?, ${date})`, [precision]).toQuery();
+  }
 }

@@ -6,6 +6,9 @@ import { SQLBackend } from "./sql-backend";
 
 // Mock backend class for testing
 class MockBackend extends SQLBackend {
+  truncDate(): string {
+    throw new Error("Method not implemented.");
+  }
   constructor() {
     super(null as unknown as Knex);
   }

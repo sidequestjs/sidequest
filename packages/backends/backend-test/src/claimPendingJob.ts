@@ -44,7 +44,7 @@ export default function defineClaimPendingJobTestSuite() {
       expect(claimedJob.attempted_at).toBe(insertedJob.attempted_at);
       expect(claimedJob.completed_at).toBe(insertedJob.completed_at);
       expect(claimedJob.failed_at).toBe(insertedJob.failed_at);
-      expect(claimedJob.cancelled_at).toBe(insertedJob.cancelled_at);
+      expect(claimedJob.canceled_at).toBe(insertedJob.canceled_at);
       expect(claimedJob.timeout).toBe(insertedJob.timeout);
       expect(claimedJob.unique_digest).toBe(insertedJob.unique_digest);
       expect(claimedJob.uniqueness_config).toMatchObject(insertedJob.uniqueness_config!);

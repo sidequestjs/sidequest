@@ -21,7 +21,7 @@ exports.up = async function(knex) {
     table.dateTime('available_at', { precision: 3 }).notNullable();
     table.dateTime('completed_at', { precision: 3 }).nullable();
     table.dateTime('failed_at', { precision: 3 }).nullable();
-    table.dateTime('cancelled_at', { precision: 3 }).nullable();
+    table.dateTime('canceled_at', { precision: 3 }).nullable();
 
     table.string('claimed_by', 191).nullable();
     table.dateTime('claimed_at', { precision: 3 }).nullable();

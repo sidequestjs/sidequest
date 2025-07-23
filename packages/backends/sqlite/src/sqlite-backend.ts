@@ -55,4 +55,20 @@ export default class SqliteBackend extends SQLBackend {
 
     return result.map(safeParseJobData);
   }
+
+  truncDate(date: string, unit: "m" | "h" | "d"): string {
+    let format: string;
+    switch (unit) {
+      case "m":
+        format = "%Y-%m-%dT%H:%M:00.000"; // Truncate to minute
+        break;
+      case "h":
+        format = "%Y-%m-%dT%H:00:00.000"; // Truncate to hour
+        break;
+      case "d":
+        format = "%Y-%m-%dT00:00:00.000"; // Truncate to day
+        break;
+    }
+    return this.knex.raw(`strftime(?, datetime(${date} / 1000, 'unixepoch', 'localtime'))`, [format]).toQuery();
+  }
 }

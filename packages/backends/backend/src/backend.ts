@@ -27,6 +27,43 @@ export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig,
 export type UpdateQueueData = Pick<QueueConfig, "id"> & Partial<Omit<QueueConfig, "id">>;
 
 /**
+ * Represents the count of jobs grouped by their current state.
+ *
+ * This interface provides a comprehensive overview of job distribution across
+ * different execution states, allowing for monitoring and reporting of job
+ * queue status and performance metrics.
+ *
+ * @example
+ * ```typescript
+ * const jobCounts: JobCounts = {
+ *   total: 150,
+ *   waiting: 25,
+ *   claimed: 10,
+ *   running: 15,
+ *   completed: 85,
+ *   failed: 12,
+ *   canceled: 3
+ * };
+ * ```
+ */
+export interface JobCounts {
+  /** The total number of jobs. */
+  total: number;
+  /** The number of jobs in the 'waiting' state. */
+  waiting: number;
+  /** The number of jobs in the 'claimed' state. */
+  claimed: number;
+  /** The number of jobs in the 'running' state. */
+  running: number;
+  /** The number of jobs in the 'completed' state. */
+  completed: number;
+  /** The number of jobs in the 'failed' state. */
+  failed: number;
+  /** The number of jobs in the 'canceled' state. */
+  canceled: number;
+}
+
+/**
  * Interface for a backend implementation.
  */
 export interface Backend {
@@ -146,6 +183,23 @@ export interface Backend {
       to?: Date;
     };
   }): Promise<JobData[]>;
+
+  /**
+   * Gets job counts based on states.
+   *
+   * @param timeRange Optional time range for statistics. Filters by `attempted_at`.
+   * @returns Job statistics including counts of jobs in various states.
+   */
+  countJobs(timeRange?: { from?: Date; to?: Date }): Promise<JobCounts>;
+
+  /**
+   * Counts jobs over time, grouped by a specified time unit.
+   *
+   * @param timeRange The time range to filter jobs. e.g., 12m, 12h, 12d.
+   * @param unit The time unit for grouping (e.g., 'day', 'hour').
+   * @returns An array of objects containing timestamps and job counts.
+   */
+  countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]>;
 
   /**
    * Finds jobs that are stale or have timed out.

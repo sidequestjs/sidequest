@@ -68,7 +68,7 @@ describe("cleanup-finished-job.ts", () => {
     await backend.updateJob({
       id: inserted.id,
       state: "canceled",
-      cancelled_at: oneMonthAgo,
+      canceled_at: oneMonthAgo,
     });
 
     await cleanupFinishedJobs(backend, 30 * 24 * 60 * 60 * 1000); // 30 days

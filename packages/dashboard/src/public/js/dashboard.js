@@ -61,28 +61,11 @@ const jobsTimeline = new Chart(ctx, {
 async function refreshGraph() {
   const res = await fetch(`/dashboard/graph-data?range=${currentRange}`);
   const graph = await res.json();
+  const timestamps = graph.map((entry) => entry.timestamp);
 
-  const now = new Date();
   const labels = [];
-
-  let bucketCount = 12;
-  let bucketSizeMs;
-
-  switch (currentRange) {
-    case "12h":
-      bucketSizeMs = 60 * 60 * 1000; // 1 hour
-      break;
-    case "12d":
-      bucketSizeMs = 24 * 60 * 60 * 1000; // 1 day
-      break;
-    case "12m":
-    default:
-      bucketSizeMs = 60 * 1000; // 1 minute
-      break;
-  }
-
-  for (let i = bucketCount - 1; i >= 0; i--) {
-    const bucketTime = new Date(now.getTime() - i * bucketSizeMs);
+  for (const timestamp of timestamps) {
+    const bucketTime = new Date(timestamp);
     let label;
 
     if (currentRange === "12d") {
@@ -95,8 +78,8 @@ async function refreshGraph() {
   }
 
   jobsTimeline.data.labels = labels;
-  jobsTimeline.data.datasets[0].data = graph.completed;
-  jobsTimeline.data.datasets[1].data = graph.failed;
+  jobsTimeline.data.datasets[0].data = graph.map((entry) => entry.completed);
+  jobsTimeline.data.datasets[1].data = graph.map((entry) => entry.failed);
   jobsTimeline.update();
 }
 refreshGraph();

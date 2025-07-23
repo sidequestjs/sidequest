@@ -50,7 +50,7 @@ export function safeParseJobData(job: JobData): JobData {
     errors: safeParse(job.errors),
     uniqueness_config: safeParse(job.uniqueness_config),
     attempted_at: safeParseDate(job.attempted_at),
-    cancelled_at: safeParseDate(job.cancelled_at),
+    canceled_at: safeParseDate(job.canceled_at),
     claimed_at: safeParseDate(job.claimed_at),
     available_at: safeParseDate(job.available_at),
     completed_at: safeParseDate(job.completed_at),

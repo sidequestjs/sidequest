@@ -1,7 +1,7 @@
 import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import { Knex } from "knex";
 import { hostname } from "os";
-import { Backend, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
+import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
 import { JOB_FALLBACK, MISC_FALLBACK, QUEUE_FALLBACK } from "./constants";
 import { safeParseJobData, whereOrWhereIn } from "./utils";
 
@@ -238,6 +238,199 @@ export abstract class SQLBackend implements Backend {
     return rawJobs.map(safeParseJobData);
   }
 
+  async countJobs(timeRange?: { from?: Date; to?: Date }): Promise<JobCounts> {
+    const query = this.knex("sidequest_jobs").select("state").count("id as count");
+
+    if (timeRange?.from || timeRange?.to) {
+      // Use COALESCE to select the first non-null timestamp field
+      const timestampExpr = this.knex.raw(`
+        COALESCE(completed_at, failed_at, canceled_at, attempted_at, claimed_at, inserted_at)
+      `);
+
+      if (timeRange.from) {
+        query.andWhereRaw(`(${timestampExpr.toQuery()}) >= ?`, [timeRange.from]);
+      }
+      if (timeRange.to) {
+        query.andWhereRaw(`(${timestampExpr.toQuery()}) <= ?`, [timeRange.to]);
+      }
+    }
+
+    const results = (await query.groupBy("state")) as { state: JobState; count: string }[];
+
+    const counts: JobCounts = {
+      total: 0,
+      waiting: 0,
+      claimed: 0,
+      running: 0,
+      completed: 0,
+      failed: 0,
+      canceled: 0,
+    };
+
+    results.forEach((row) => {
+      const count = parseInt(row.count, 10);
+      counts[row.state] = count;
+      counts.total += count;
+    });
+
+    return counts;
+  }
+
+  async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
+    // Parse time range (e.g., "12m", "12h", "12d")
+    const match = /^(\d+)([mhd])$/.exec(timeRange);
+    if (!match) {
+      throw new Error("Invalid time range format. Use format like '12m', '12h', or '12d'");
+    }
+
+    const amount = parseInt(match[1], 10);
+    const unit = match[2] as "m" | "h" | "d";
+
+    let intervalMs: number;
+    let granularityMs: number;
+
+    switch (unit) {
+      case "m":
+        intervalMs = amount * 60 * 1000; // minutes to ms
+        granularityMs = 60 * 1000; // 1 minute
+        break;
+      case "h":
+        intervalMs = amount * 60 * 60 * 1000; // hours to ms
+        granularityMs = 60 * 60 * 1000; // 1 hour
+        break;
+      case "d":
+        intervalMs = amount * 24 * 60 * 60 * 1000; // days to ms
+        granularityMs = 24 * 60 * 60 * 1000; // 1 day
+        break;
+    }
+
+    const now = new Date();
+    const startTime = new Date(now.getTime() - intervalMs);
+
+    // Use COALESCE to select the first non-null timestamp field
+    const timestampExpr = this.knex.raw(`
+      COALESCE(completed_at, failed_at, canceled_at, attempted_at, claimed_at, inserted_at)
+    `);
+
+    // Create time buckets and count jobs by state for each bucket
+    const query = this.knex("sidequest_jobs")
+      .select([
+        this.knex.raw(`${this.truncDate(timestampExpr.toQuery(), unit)} as time_bucket`),
+        "state",
+        this.knex.raw("COUNT(*) as count"),
+      ])
+      .whereRaw(`${timestampExpr.toQuery()} >= ?`, [startTime])
+      .whereRaw(`${timestampExpr.toQuery()} <= ?`, [now])
+      .groupBy("time_bucket", "state")
+      .orderBy("time_bucket");
+
+    const results = (await query) as { time_bucket: Date | string; state: JobState; count: number }[];
+
+    // Generate all time buckets in the range
+    const timeBuckets: Date[] = [];
+    for (
+      let time = new Date(startTime.getTime() + granularityMs);
+      time <= now;
+      time = new Date(time.getTime() + granularityMs)
+    ) {
+      // Round down to the appropriate granularity
+      const bucket = new Date(time);
+      switch (unit) {
+        case "m":
+          bucket.setUTCSeconds(0, 0);
+          break;
+        case "h":
+          bucket.setUTCMinutes(0, 0, 0);
+          break;
+        case "d":
+          bucket.setUTCHours(0, 0, 0, 0);
+          break;
+      }
+      timeBuckets.push(bucket);
+    }
+
+    // Create a map of results for easy lookup
+    const resultMap = new Map<string, Map<JobState, number>>();
+    results.forEach((row) => {
+      const timeKey = this.formatDateForBucket(row.time_bucket, unit);
+      if (!resultMap.has(timeKey)) {
+        resultMap.set(timeKey, new Map());
+      }
+      resultMap.get(timeKey)!.set(row.state, row.count);
+    });
+
+    // Build the final result array with all time buckets
+    return timeBuckets.map((timestamp) => {
+      const timeKey = this.formatDateForBucket(timestamp, unit);
+      const stateMap = resultMap.get(timeKey) ?? new Map<JobState, number>();
+
+      const counts: JobCounts = {
+        total: 0,
+        waiting: Number(stateMap.get("waiting") ?? 0),
+        claimed: Number(stateMap.get("claimed") ?? 0),
+        running: Number(stateMap.get("running") ?? 0),
+        completed: Number(stateMap.get("completed") ?? 0),
+        failed: Number(stateMap.get("failed") ?? 0),
+        canceled: Number(stateMap.get("canceled") ?? 0),
+      };
+
+      counts.total =
+        counts.waiting + counts.claimed + counts.running + counts.completed + counts.failed + counts.canceled;
+
+      return {
+        timestamp,
+        ...counts,
+      };
+    });
+  }
+
+  /**
+   * Abstract method to truncate a date to a specific unit (minute, hour, day).
+   * Must be implemented by subclasses to provide database-specific truncation logic.
+   *
+   * @param date The date string to truncate.
+   * @param unit The unit to truncate to ('m' for minute, 'h' for hour, 'd' for day).
+   * @returns A SQL query string that truncates the date.
+   */
+  abstract truncDate(date: string, unit: "m" | "h" | "d"): string;
+
+  /**
+   * Formats a Date object into a string representation suitable for time-based bucketing operations.
+   * The output format varies based on the specified time unit, truncating precision to align with bucket boundaries.
+   *
+   * @param date - The Date or string object to format
+   * @param unit - The time unit for bucketing:
+   *   - "m": minute-level precision (YYYY-MM-DD HH:mm:00)
+   *   - "h": hour-level precision (YYYY-MM-DD HH:00:00)
+   *   - "d": day-level precision (YYYY-MM-DD 00:00:00)
+   * @returns A formatted date string with precision truncated to the specified unit
+   *
+   * @example
+   * ```typescript
+   * const date = new Date('2023-12-25T14:30:45');
+   * formatDateForBucket(date, 'm'); // Returns "2023-12-25 14:30:00"
+   * formatDateForBucket(date, 'h'); // Returns "2023-12-25 14:00:00"
+   * formatDateForBucket(date, 'd'); // Returns "2023-12-25 00:00:00"
+   * ```
+   */
+  private formatDateForBucket(date: Date | string, unit: "m" | "h" | "d"): string {
+    date = new Date(date);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hour = String(date.getUTCHours()).padStart(2, "0");
+    const minute = String(date.getUTCMinutes()).padStart(2, "0");
+
+    switch (unit) {
+      case "m":
+        return `${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
+      case "h":
+        return `${year}-${month}-${day}T${hour}:00:00.000Z`;
+      case "d":
+        return `${year}-${month}-${day}T00:00:00.000Z`;
+    }
+  }
+
   async staleJobs(
     maxStaleMs = MISC_FALLBACK.maxStaleMs,
     maxClaimedMs = MISC_FALLBACK.maxClaimedMs,
@@ -281,7 +474,7 @@ export abstract class SQLBackend implements Backend {
       .where((qb) => {
         qb.where("completed_at", "<", cutoffDate)
           .orWhere("failed_at", "<", cutoffDate)
-          .orWhere("cancelled_at", "<", cutoffDate);
+          .orWhere("canceled_at", "<", cutoffDate);
       })
       .del();
   }

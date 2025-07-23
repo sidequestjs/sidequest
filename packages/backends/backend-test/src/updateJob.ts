@@ -91,7 +91,7 @@ export default function defineUpdateJobTestSuite() {
         attempt: 5,
         attempted_at: now,
         available_at: now,
-        cancelled_at: now,
+        canceled_at: now,
         claimed_at: now,
         claimed_by: "test_claimedby",
         class: "TestJob2",

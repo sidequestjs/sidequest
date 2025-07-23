@@ -117,9 +117,9 @@ export interface JobData {
   failed_at: Date | null;
 
   /**
-   * Timestamp when the job was cancelled, or null if not cancelled.
+   * Timestamp when the job was canceled, or null if not canceled.
    */
-  cancelled_at: Date | null;
+  canceled_at: Date | null;
 
   /**
    * Timestamp when the job was claimed by a worker, or null if not claimed.

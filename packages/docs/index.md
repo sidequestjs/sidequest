@@ -18,7 +18,7 @@ hero:
 
 features:
   - title: 🌎 Cloud & Database Agnostic
-    details: Deploy anywhere – use PostgreSQL, MySQL, SQLite, Redis, and soon MongoDB. Migrate clouds or infra with zero friction. No vendor lock-in, ever.
+    details: Deploy anywhere – use PostgreSQL, MySQL, SQLite, and soon MongoDB. Migrate clouds or infra with zero friction. No vendor lock-in, ever.
   - title: 🚀 Production-Ready & Scalable
     details: Reliable job processing, distributed by design, with robust scheduling and retries. Trusted for mission-critical workloads, from startups to enterprise.
   - title: 📊 Beautiful Web Dashboard Included

@@ -90,25 +90,6 @@ pnpm add @sidequest/mysql-backend
 
 :::
 
-### Redis
-
-For Redis, you can install the backend driver with:
-::: code-group
-
-```bash [npm]
-npm install @sidequest/redis-backend
-```
-
-```bash [yarn]
-yarn add @sidequest/redis-backend
-```
-
-```bash [pnpm]
-pnpm add @sidequest/redis-backend
-```
-
-:::
-
 ## CLI Tool (Optional)
 
 We also provide a CLI Tool to manage backend migrations and configurations. Sidequest will try to manage it in runtime, but if you prefer to do it via CLI for better control, you can install it globally:

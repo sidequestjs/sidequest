@@ -43,7 +43,6 @@ export async function grantQueueConfig(backend: Backend, queue: NewQueueData, de
       );
       return await backend.updateQueue({ ...queueConfig, ...queue });
     } else {
-      logger("Engine").debug(`Queue config for ${queue.name} already exists and is up-to-date.`);
       return queueConfig;
     }
   }
