@@ -1,16 +1,16 @@
 import { logger } from "../logger";
 import { JobData } from "../schema";
 import { ErrorData } from "../schema/error-data";
-import { serializeError } from "../tools";
+import { toErrorData } from "../tools/parse-error-data";
 import { JobTransition } from "./transition";
 
 export class RetryTransition extends JobTransition {
-  delay: number;
-  reason: string | Error;
+  delay?: number;
+  reason: string | Error | ErrorData;
 
-  constructor(reason: Error | string, delay?: number) {
+  constructor(reason: ErrorData | Error | string, delay?: number) {
     super();
-    this.delay = delay ?? 1000;
+    this.delay = delay;
     this.reason = reason;
   }
 
@@ -20,7 +20,8 @@ export class RetryTransition extends JobTransition {
     const delay = this.delay ?? this.calculateBackoff(job.attempt);
     logger().info(`retrying failed job ${job.class} in ${delay}ms`);
 
-    const reason = this.reason instanceof Error ? serializeError(this.reason) : ({ message: this.reason } as ErrorData);
+    const reason = toErrorData(this.reason);
+
     const errData = {
       ...reason,
       attempt: job.attempt,
@@ -42,6 +43,6 @@ export class RetryTransition extends JobTransition {
 
   private calculateBackoff(attempt: number, baseDelay = 1000, maxDelay = 3600000): number {
     const jitter = Math.random() + 0.5;
-    return Math.min(baseDelay * Math.pow(2, attempt - 1) * jitter, maxDelay);
+    return Math.round(Math.min(baseDelay * Math.pow(2, attempt - 1) * jitter, maxDelay));
   }
 }

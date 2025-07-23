@@ -1,20 +1,20 @@
 import { logger } from "../logger";
 import { JobData } from "../schema";
 import { ErrorData } from "../schema/error-data";
-import { serializeError } from "../tools";
+import { toErrorData } from "../tools/parse-error-data";
 import { JobTransition } from "./transition";
 
 export class FailTransition extends JobTransition {
-  reason: Error | string;
+  reason: ErrorData | Error | string;
 
-  constructor(reason: Error | string) {
+  constructor(reason: ErrorData | Error | string) {
     super();
     this.reason = reason;
   }
 
   apply(job: JobData): JobData {
     logger().error(this.reason);
-    const error = this.reason instanceof Error ? serializeError(this.reason) : ({ message: this.reason } as ErrorData);
+    const error = toErrorData(this.reason);
     job.errors ??= [];
     const errData = {
       ...error,

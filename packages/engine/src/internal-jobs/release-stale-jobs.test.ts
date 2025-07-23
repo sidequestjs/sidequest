@@ -1,10 +1,9 @@
 import { JobData } from "@sidequest/core";
-import { unlink } from "fs";
 import { Engine, SidequestConfig } from "../engine";
 import { ReleaseStaleJob } from "./release-stale-jobs";
 
 describe("release-stale-jobs.ts", () => {
-  const dbLocation = "./sidequest-test-release-stale.sqlite";
+  const dbLocation = ":memory:";
   const config: SidequestConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
@@ -15,14 +14,11 @@ describe("release-stale-jobs.ts", () => {
 
   afterEach(async () => {
     await Engine.close();
-    unlink(dbLocation, () => {
-      // noop
-    });
   });
 
   describe("ReleaseStaleJob", () => {
     it("should extend Job class", async () => {
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
       await job.ready();
       expect(job.className).toBe("ReleaseStaleJob");
       expect(typeof job.script).toBe("string");
@@ -33,7 +29,7 @@ describe("release-stale-jobs.ts", () => {
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([]);
       const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
       await job.run();
 
       expect(staleJobsSpy).toHaveBeenCalledOnce();
@@ -72,7 +68,7 @@ describe("release-stale-jobs.ts", () => {
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
       const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
       await job.run();
 
       expect(staleJobsSpy).toHaveBeenCalledOnce();
@@ -105,7 +101,7 @@ describe("release-stale-jobs.ts", () => {
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([mockStaleJob]);
       const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
       await job.run();
 
       expect(staleJobsSpy).toHaveBeenCalledOnce();
@@ -133,7 +129,7 @@ describe("release-stale-jobs.ts", () => {
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
       const updateJobSpy = vi.spyOn(backend!, "updateJob").mockRejectedValue(new Error("Database error"));
 
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
 
       // The job should throw the error since it's not handled in the implementation
       await expect(job.run()).rejects.toThrow("Database error");
@@ -148,7 +144,7 @@ describe("release-stale-jobs.ts", () => {
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockRejectedValue(new Error("Failed to fetch stale jobs"));
       const updateJobSpy = vi.spyOn(backend!, "updateJob");
 
-      const job = new ReleaseStaleJob();
+      const job = new ReleaseStaleJob(config);
 
       await expect(job.run()).rejects.toThrow("Failed to fetch stale jobs");
 

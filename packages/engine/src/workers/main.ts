@@ -1,162 +1,21 @@
-import { DuplicatedJobError, JobData, logger, QueueConfig, RetryTransition } from "@sidequest/core";
-import { fork } from "child_process";
+import { DuplicatedJobError, logger } from "@sidequest/core";
 import cron from "node-cron";
-import path from "path";
 import { Engine, SidequestConfig } from "../engine";
+import { Dispatcher } from "../execution/dispatcher";
 import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
 import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
-import { JobTransitioner } from "../job/job-transitioner";
-import { grantQueueConfig } from "../queue/grant-queue-config";
 import { gracefulShutdown } from "../utils/shutdown";
 
-const executorPath = path.resolve(import.meta.dirname, "executor.js");
-
 let shuttingDown = false;
-let worker: Worker | undefined;
-
-export class Worker {
-  timeout?: NodeJS.Timeout;
-  isRunning = false;
-
-  allActiveJobs = new Set<ReturnType<typeof fork>>();
-  activeJobsPerQueue: Record<string, Set<ReturnType<typeof fork>>> = {};
-
-  async run(sidequestConfig: SidequestConfig) {
-    sidequestConfig = await Engine.configure(sidequestConfig);
-    this.isRunning = true;
-
-    const maxConcurrentJobs = sidequestConfig.maxConcurrentJobs ?? 10;
-
-    const heartBeat = async () => {
-      logger().debug("Worker heart beat...");
-      try {
-        const backend = Engine.getBackend();
-        const queueNames = await backend!.getQueuesFromJobs();
-        const queues: QueueConfig[] = [];
-        for (const queue of queueNames) {
-          const queueConfig = await grantQueueConfig(queue, sidequestConfig?.queues?.[queue]);
-          if (queueConfig) {
-            queues.push(queueConfig);
-          }
-        }
-        queues.sort((a, b) => {
-          return (b.priority ?? 0) - (a.priority ?? 0);
-        });
-
-        for (const queueConfig of queues) {
-          if (!this.activeJobsPerQueue[queueConfig.name]) {
-            this.activeJobsPerQueue[queueConfig.name] = new Set();
-          }
-          const activeJobs = this.activeJobsPerQueue[queueConfig.name];
-          const limit = queueConfig.concurrency ?? 10;
-
-          if (activeJobs.size >= limit) {
-            logger().debug(`queue ${queueConfig.name} limit reached!`);
-            continue;
-          }
-
-          if (this.allActiveJobs.size >= maxConcurrentJobs) {
-            logger().debug(
-              `Concurrency limit reached (${maxConcurrentJobs} jobs). Skipping queue "${queueConfig.name}" until slots free up.`,
-            );
-            continue;
-          }
-
-          const availableSlots = limit - activeJobs.size;
-
-          const jobs: JobData[] = await backend!.claimPendingJob(queueConfig.name, availableSlots);
-
-          for (const job of jobs) {
-            const child = fork(executorPath);
-            this.allActiveJobs.add(child);
-            activeJobs.add(child);
-
-            child.on("exit", () => {
-              this.allActiveJobs.delete(child);
-              activeJobs.delete(child);
-            });
-
-            const startTimeout = setTimeout(() => {
-              logger().error(`timeout on starting executor for job ${job.script}`);
-              child.kill();
-              // TODO: create a JobTransition for this.
-              job.state = "waiting";
-              void backend!.updateJob(job);
-            }, 2000);
-
-            child.on("message", (msg) => {
-              if (msg === "ready") {
-                clearTimeout(startTimeout);
-                let jobTimeout: NodeJS.Timeout | undefined;
-                let timedOut = false;
-
-                child.on("exit", (code) => {
-                  if (jobTimeout) clearTimeout(jobTimeout);
-                  if (code && code > 0 && !timedOut) {
-                    void JobTransitioner.apply(
-                      job,
-                      new RetryTransition(new Error(`Executor exited with code ${code}`)),
-                    );
-                  }
-                });
-
-                child.send({ type: "execute", job, config: sidequestConfig });
-
-                if (job.timeout) {
-                  jobTimeout = setTimeout(() => {
-                    timedOut = true;
-                    child.send({ type: "shutdown" });
-                    const error = `Executor for job ${job.script} timed out after ${job.timeout}ms`;
-                    void JobTransitioner.apply(job, new RetryTransition(error));
-                  }, job.timeout);
-                }
-              }
-            });
-          }
-        }
-      } catch (error) {
-        logger().error(error);
-      }
-
-      if (this.isRunning && !shuttingDown) {
-        this.timeout = setTimeout(() => void heartBeat(), 500);
-      }
-    };
-
-    this.timeout = setTimeout(() => void heartBeat(), 100);
-    logger().info(`Sidequest is up and running — using backend: "${sidequestConfig.backend?.driver}"`);
-  }
-
-  stop() {
-    this.isRunning = false;
-    clearTimeout(this.timeout);
-  }
-
-  async shutdown() {
-    shuttingDown = true;
-    logger().info(`Shutting down worker... Awaiting for ${this.allActiveJobs.size} active jobs to finish...`);
-    await new Promise<void>((resolve) => {
-      const checkJobs = () => {
-        if (this.allActiveJobs.size === 0) {
-          logger().info("All active jobs finished. Worker shutdown complete.");
-          resolve();
-        } else {
-          logger().info(`Waiting for ${this.allActiveJobs.size} active jobs to finish...`);
-          setTimeout(checkJobs, 1000);
-        }
-      };
-
-      checkJobs();
-    });
-  }
-}
+let dispatcher: Dispatcher | undefined;
 
 export async function runWorker(sidequestConfig: SidequestConfig) {
   try {
-    worker = new Worker();
-    await worker.run(sidequestConfig);
+    await Engine.configure(sidequestConfig);
+    dispatcher = new Dispatcher(sidequestConfig);
+    dispatcher.start();
 
-    startCron();
+    startCron(sidequestConfig);
   } catch (error) {
     logger().error(error);
     process.exit(1);
@@ -165,15 +24,17 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
 
 async function shutdown() {
   if (!shuttingDown) {
-    await worker?.shutdown();
+    await dispatcher?.stop();
     await Engine.close();
   }
+  shuttingDown = true;
 }
 
-export function startCron() {
+export function startCron(config: SidequestConfig) {
   const releaseTask = cron.schedule("*/5 * * * *", async () => {
     try {
-      await Engine.build(ReleaseStaleJob)!
+      await Engine.build(ReleaseStaleJob)
+        .with(config)
         .queue("sidequest_internal")
         .unique({ period: "second" })
         .timeout(10_000)
@@ -189,7 +50,8 @@ export function startCron() {
 
   const cleanupTask = cron.schedule("0 * * * *", async () => {
     try {
-      await Engine.build(CleanupFinishedJobs)!
+      await Engine.build(CleanupFinishedJobs)
+        .with(config)
         .queue("sidequest_internal")
         .unique({ period: "hour" })
         .timeout(10_000)
@@ -202,6 +64,9 @@ export function startCron() {
       }
     }
   });
+
+  void releaseTask.execute();
+  void cleanupTask.execute();
 
   Promise.all([releaseTask, cleanupTask]).catch((error) => {
     logger().error(error);

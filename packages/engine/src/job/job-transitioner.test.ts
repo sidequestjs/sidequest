@@ -1,12 +1,14 @@
 import { JobData, RunningTransition } from "@sidequest/core";
-import { Engine } from "../engine";
+import { Engine, SidequestConfig } from "../engine";
 import { JobTransitioner } from "./job-transitioner";
 
 describe("JobTransitioner", () => {
   let jobData: JobData;
 
   beforeAll(async () => {
-    await Engine.configure({});
+    const dbLocation = ":memory:";
+    const config: SidequestConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+    await Engine.configure(config);
   });
 
   afterAll(async () => {

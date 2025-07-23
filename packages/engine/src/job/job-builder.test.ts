@@ -1,10 +1,12 @@
-import { Engine } from "../engine";
+import { Engine, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
 
 describe("JobBuilder", () => {
   beforeAll(async () => {
-    await Engine.configure({});
+    const dbLocation = ":memory:";
+    const config: SidequestConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+    await Engine.configure(config);
   });
 
   afterAll(async () => {

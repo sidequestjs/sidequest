@@ -1,32 +1,16 @@
 import { NewQueueData } from "@sidequest/backend";
-import { CompleteTransition, DuplicatedJobError, JobData } from "@sidequest/core";
+import { DuplicatedJobError, JobData } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
-import { unlink } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { Engine, JobClassType, SidequestConfig } from "../engine";
+import { Dispatcher } from "../execution/dispatcher";
 import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
 import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 import { JobBuilder } from "../job/job-builder";
-import { JobTransitioner } from "../job/job-transitioner";
-import { DummyJob } from "../test-jobs/dummy-job";
-import { Worker, runWorker, startCron } from "./main";
-
-const fakeChild = vi.hoisted(() => ({
-  on: vi.fn(),
-  send: vi.fn(),
-  kill: vi.fn(),
-}));
-
-const mocks = vi.hoisted(() => ({
-  fork: vi.fn(() => fakeChild),
-}));
+import { runWorker, startCron } from "./main";
 
 const cronMocks = vi.hoisted(() => ({
   schedule: vi.fn().mockReturnValue({ execute: vi.fn() }),
-}));
-
-vi.mock("child_process", () => ({
-  fork: mocks.fork,
 }));
 
 vi.mock("node-cron", () => ({
@@ -41,14 +25,14 @@ describe("main.ts", () => {
   const lowQueueName = `low-${randomUUID()}`;
   const singleQueueName = `single-${randomUUID()}`;
 
-  const queues: Record<string, NewQueueData> = {
-    [highQueueName]: { name: highQueueName, priority: 10 },
-    [mediumQueueName]: { name: mediumQueueName, priority: 5 },
-    [lowQueueName]: { name: lowQueueName },
-    [singleQueueName]: { name: singleQueueName, concurrency: 1 },
-  };
+  const queues: NewQueueData[] = [
+    { name: highQueueName, priority: 10 },
+    { name: mediumQueueName, priority: 5 },
+    { name: lowQueueName },
+    { name: singleQueueName, concurrency: 1 },
+  ];
 
-  const dbLocation = "./sidequest-test.sqlite";
+  const dbLocation = ":memory:";
   const config: SidequestConfig = { queues, backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
 
   beforeAll(async () => {
@@ -57,38 +41,15 @@ describe("main.ts", () => {
 
   afterAll(async () => {
     await Engine.close();
-    unlink(dbLocation, () => {
-      // noop
-    });
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("runs the worker", async () => {
-    const worker = new Worker();
-    await worker.run(config);
-    const jobData = await new JobBuilder(DummyJob).enqueue();
-
-    mocks.fork.mockImplementation(() => {
-      void JobTransitioner.apply(jobData, new CompleteTransition());
-      return fakeChild;
-    });
-
-    if (jobData.id) {
-      await vi.waitUntil(async () => {
-        const job = await Engine.getBackend()!.getJob(jobData.id);
-        return job.state === "completed";
-      });
-    }
-
-    worker.stop();
-  });
-
   describe("startCron", () => {
     it("should schedule a cron job to run every 5 minutes", () => {
-      startCron();
+      startCron(config);
 
       expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
     });
@@ -98,11 +59,12 @@ describe("main.ts", () => {
       const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
       const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
       const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
+      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
       const mockBuild = vi
         .spyOn(Engine, "build")
-        .mockReturnValue({ queue: mockQueue } as unknown as JobBuilder<JobClassType>);
+        .mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
 
-      startCron();
+      startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
@@ -120,11 +82,12 @@ describe("main.ts", () => {
       const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
       const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
       const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
+      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
       const mockBuild = vi
         .spyOn(Engine, "build")
-        .mockReturnValue({ queue: mockQueue } as unknown as JobBuilder<JobClassType>);
+        .mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
 
-      startCron();
+      startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
 
@@ -153,9 +116,10 @@ describe("main.ts", () => {
       const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
       const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
       const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      vi.spyOn(Engine, "build").mockReturnValue({ queue: mockQueue } as unknown as JobBuilder<JobClassType>);
+      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
+      vi.spyOn(Engine, "build").mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
 
-      startCron();
+      startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
@@ -169,9 +133,10 @@ describe("main.ts", () => {
       const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
       const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });
       const mockQueue = vi.fn().mockReturnValue({ unique: mockUnique });
-      vi.spyOn(Engine, "build").mockReturnValue({ queue: mockQueue } as unknown as JobBuilder<JobClassType>);
+      const mockWith = vi.fn().mockReturnValue({ queue: mockQueue });
+      vi.spyOn(Engine, "build").mockReturnValue({ with: mockWith } as unknown as JobBuilder<JobClassType>);
 
-      startCron();
+      startCron(config);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
@@ -183,11 +148,11 @@ describe("main.ts", () => {
     it("should call startCron after starting the worker", async () => {
       const mockWorkerRun = vi.fn().mockResolvedValue(undefined);
 
-      const WorkerSpy = vi.spyOn(Worker.prototype, "run").mockImplementation(mockWorkerRun);
+      const WorkerSpy = vi.spyOn(Dispatcher.prototype, "start").mockImplementation(mockWorkerRun);
 
       await runWorker(config);
 
-      expect(WorkerSpy).toHaveBeenCalledWith(config);
+      expect(WorkerSpy).toHaveBeenCalled();
       expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
     });
 
@@ -198,8 +163,10 @@ describe("main.ts", () => {
 
       const testError = new Error("Worker failed");
 
-      const mockWorkerRun = vi.fn().mockRejectedValue(testError);
-      vi.spyOn(Worker.prototype, "run").mockImplementation(mockWorkerRun);
+      const mockWorkerRun = () => {
+        throw testError;
+      };
+      vi.spyOn(Dispatcher.prototype, "start").mockImplementation(mockWorkerRun);
 
       try {
         await runWorker(config);
@@ -209,25 +176,8 @@ describe("main.ts", () => {
 
       expect(mockExit).toHaveBeenCalledWith(1);
       expect(cronMocks.schedule).not.toHaveBeenCalled();
-    });
 
-    it("should start worker and then call startCron in correct order", async () => {
-      const callOrder: string[] = [];
-
-      const mockWorkerRun = vi.fn().mockImplementation(() => {
-        callOrder.push("worker.run");
-      });
-      vi.spyOn(Worker.prototype, "run").mockImplementation(mockWorkerRun);
-
-      cronMocks.schedule.mockImplementation(() => {
-        callOrder.push("startCron");
-      });
-
-      await runWorker(config);
-
-      expect(callOrder).toEqual(["worker.run", "startCron", "startCron"]);
-      expect(mockWorkerRun).toHaveBeenCalledWith(config);
-      expect(cronMocks.schedule).toHaveBeenCalledWith("*/5 * * * *", expect.any(Function));
+      mockExit.mockRestore();
     });
   });
 });
