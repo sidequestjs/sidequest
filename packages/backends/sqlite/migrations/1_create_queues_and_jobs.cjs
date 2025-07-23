@@ -19,6 +19,7 @@ exports.up = function(knex) {
       table.string('claimed_by');
       table.integer('attempt');
       table.integer('max_attempts');
+      table.integer('timeout').nullable();
     })
     .createTable('sidequest_queues', function (table) {
       table.increments('id').primary();
