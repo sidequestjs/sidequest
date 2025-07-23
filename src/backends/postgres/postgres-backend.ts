@@ -21,7 +21,7 @@ export class PostgresBackend implements Backend{
   }
 
   async getQueuesNames(): Promise<string[]> {
-    const queues = await this.knex('sidequest_jobs').select('queue').distinct().where({ state: 'pending' });
+    const queues = await this.knex('sidequest_jobs').select('queue').distinct();
     return queues.map(q => q.queue);
   }
 
@@ -31,9 +31,10 @@ export class PostgresBackend implements Backend{
       queue: job.queue,
       class: job.class,
       script: job.script,
-      args: this.knex.raw('?', [JSON.stringify(['arg1', 'arg2'])])
+      args: this.knex.raw('?', [JSON.stringify(args)])
     }
-    await this.knex('sidequest_jobs').insert(data);
+
+    await this.knex('sidequest_jobs').insert(data).returning('*');
   }
 
   async claimPendingJob(queue: string, quatity: number = 1): Promise<any> {

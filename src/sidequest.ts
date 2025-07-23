@@ -1,10 +1,7 @@
 import { ChildProcess, fork } from 'child_process';
-import { Job } from './core/job';
 import path from 'path';
 import { Backend } from './backends/backend';
 import { PostgresBackend } from './sidequest';
-
-type JobConstructor<T extends Job = Job> = new (...args: any[]) => T;
 
 const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
@@ -29,12 +26,33 @@ export class Sidequest {
     _backend = new PostgresBackend({ connection: config.backend_url });
   }
 
-  static start(config: SidequestConfig){
-    if(!_mainWorker){
-      Sidequest.configure(config);
-      _mainWorker = fork(workerPath);
-      _mainWorker.send(config);
-    }
+  static start(config: SidequestConfig): Promise<void>{
+    Sidequest.configure(config);
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(()=> {
+        reject(new Error('timeout on starting sidequest fork!'))
+      }, 5000);
+
+      if(!_mainWorker){
+        const runWorker = ()=> {
+          _mainWorker = fork(workerPath);
+          _mainWorker.on('message', (msg)=>{
+            if(msg === 'ready'){
+              _mainWorker?.send(config);
+              clearTimeout(timeout);
+              resolve()
+            }
+          });
+
+          _mainWorker.on('exit', ()=> {
+            console.log('sidequest main exited, creating new...')
+            runWorker()
+          });
+        }
+
+        runWorker();
+      }
+    });
   }
 
   static getBackend(){
