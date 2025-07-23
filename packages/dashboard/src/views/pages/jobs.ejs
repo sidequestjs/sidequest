@@ -1,5 +1,6 @@
 <section class="space-y-6">
-  <form method="GET" id="filter-form" hx-get="/jobs" hx-target="#jobs-table" hx-trigger="change from:* delay:300ms, every 3s">
+  <form method="GET" id="filter-form" hx-get="/jobs" hx-target="#jobs-table"
+    hx-trigger="change from:* delay:300ms, every 3s, runJob">
     <div class="flex flex-wrap items-end gap-4 text-base mb-4">
       <div class="form-control w-48">
         <label class="label label-text">Status</label>
@@ -20,7 +21,7 @@
           <select name="queue" class="select select-bordered">
             <option value="">All</option>
             <% queues.forEach(queue => { %>
-              <option value="<%= queue %>" <%= filters.queue === queue ? 'selected' : '' %>><%= queue %></option>
+            <option value="<%= queue %>" <%= filters.queue === queue ? 'selected' : '' %>><%= queue %></option>
             <% }) %>
           </select>
         </div>
@@ -28,12 +29,14 @@
 
       <div class="form-control w-48">
         <label class="label label-text">Class</label>
-        <input type="text" name="class" value="<%= filters.class || '' %>" placeholder="e.g. MyJobClass" class="input input-bordered" />
+        <input type="text" name="class" value="<%= filters.class || '' %>" placeholder="e.g. MyJobClass"
+          class="input input-bordered" />
       </div>
 
       <div class="form-control w-48">
-        <label class="label label-text">Time Range</label>
+        <label class="label label-text">Attempted At</label>
         <select name="time" id="time-range" class="select select-bordered">
+          <option value="any" <%= !filters.time ? 'selected' : '' %>>Any</option>
           <option value="5m" <%= filters.time === '5m' ? 'selected' : '' %>>Last 5 minutes</option>
           <option value="15m" <%= filters.time === '15m' ? 'selected' : '' %>>Last 15 minutes</option>
           <option value="30m" <%= filters.time === '30m' ? 'selected' : '' %>>Last 30 minutes</option>
@@ -51,11 +54,13 @@
       <div id="custom-range" class="flex gap-2 <%= filters.time === 'custom' ? '' : 'hidden' %>">
         <div class="form-control">
           <label class="label label-text">Start</label>
-          <input type="datetime-local" name="start" id="custom-start" value="<%= filters.start || '' %>" class="input input-bordered">
+          <input type="datetime-local" name="start" id="custom-start" value="<%= filters.start || '' %>"
+            class="input input-bordered">
         </div>
         <div class="form-control">
           <label class="label label-text">End</label>
-          <input type="datetime-local" name="end" id="custom-end" value="<%= filters.end || '' %>" class="input input-bordered">
+          <input type="datetime-local" name="end" id="custom-end" value="<%= filters.end || '' %>"
+            class="input input-bordered">
         </div>
       </div>
     </div>
@@ -80,7 +85,7 @@
     if (!utcString) return "";
     const date = new Date(utcString);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-    return date.toISOString().slice(0,16);
+    return date.toISOString().slice(0, 16);
   }
 
   document.getElementById("custom-start").value = utcToLocal(startUtc);

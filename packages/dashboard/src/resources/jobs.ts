@@ -8,7 +8,7 @@ jobsRouter.get("/", async (req, res) => {
   const { status, start, end, queue, class: jobClass } = req.query;
   const backend = getBackend();
 
-  const time = typeof req.query.time === "string" && req.query.time.trim() ? req.query.time : "30m";
+  const time = typeof req.query.time === "string" && req.query.time.trim() ? req.query.time : "any";
 
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 30;
   const page = req.query.page ? Math.max(parseInt(req.query.page as string, 10), 1) : 1;
@@ -100,6 +100,20 @@ jobsRouter.get("/:id", async (req, res) => {
   }
 });
 
+jobsRouter.patch("/:id/run", async (req, res) => {
+  const backend = getBackend();
+
+  const jobId = parseInt(req.params.id);
+  const job = await backend?.getJob(jobId);
+
+  if (job) {
+    await backend.updateJob({ id: job.id, available_at: new Date() });
+    res.header("HX-Trigger", "runJob").status(200).end();
+  } else {
+    res.status(404).end();
+  }
+});
+
 function computeTimeRange(time?: unknown, start?: unknown, end?: unknown) {
   if (typeof time !== "string") return undefined;
 
@@ -139,9 +153,12 @@ jobsRouter.patch("/:id/cancel", async (req, res) => {
   const jobId = parseInt(req.params.id);
   const job = await backend?.getJob(jobId);
 
-  await backend.updateJob({ ...job, state: "canceled" });
-
-  res.header("HX-Trigger", "cancelJob").status(200).end();
+  if(job){
+    await backend.updateJob({ ...job, state: "canceled" });
+    res.header("HX-Trigger", "cancelJob").status(200).end();
+  } else {
+    res.status(404).end();
+  }
 });
 
 export default jobsRouter;

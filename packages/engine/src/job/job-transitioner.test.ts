@@ -31,7 +31,7 @@ describe("JobTransitioner", () => {
   it("applies a transition and saves the updated jobData", async () => {
     await JobTransitioner.apply(jobData, new RunningTransition());
     const updatedJobData = await Engine.getBackend()!.getJob(jobData.id ?? 0);
-    expect(updatedJobData.state).toEqual("running");
-    expect(updatedJobData.attempt).toEqual(2);
+    expect(updatedJobData!.state).toEqual("running");
+    expect(updatedJobData!.attempt).toEqual(2);
   });
 });

@@ -28,8 +28,12 @@ queuesRouter.get("/", async (req, res) => {
 queuesRouter.patch("/:name/toggle", async (req, res) => {
   const backend = getBackend();
   const queue = await backend.getQueueConfig(req.params.name);
-  await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
-  await renderQueuesTable(backend, req, res);
+  if (queue) {
+    await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
+    res.header("HX-Trigger", "toggleQueue").status(200).end();
+  } else {
+    res.status(404).end();
+  }
 });
 
 export default queuesRouter;

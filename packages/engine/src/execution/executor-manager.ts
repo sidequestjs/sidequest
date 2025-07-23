@@ -65,7 +65,7 @@ export class ExecutorManager {
     const jobChecker = async () => {
       while (isRunning) {
         const watchedJob = await this.backend.getJob(job.id);
-        if (watchedJob.state === "canceled") {
+        if (watchedJob?.state === "canceled") {
           signal.emit("abort");
           isRunning = false;
         }

@@ -14,7 +14,7 @@ export default function defineInsertQueueConfigTestSuite() {
         state: "active",
       });
 
-      insertedQueue = await backend.getQueueConfig("default");
+      insertedQueue = (await backend.getQueueConfig("default"))!;
       expect(insertedQueue).toMatchObject({
         name: "default",
         concurrency: 10,
@@ -37,7 +37,7 @@ export default function defineInsertQueueConfigTestSuite() {
         state: "paused",
       });
 
-      insertedQueue = await backend.getQueueConfig("default");
+      insertedQueue = (await backend.getQueueConfig("default"))!;
       expect(insertedQueue).toMatchObject({
         name: "default",
         concurrency: 100,

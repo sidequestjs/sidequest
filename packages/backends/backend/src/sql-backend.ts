@@ -35,8 +35,8 @@ export abstract class SQLBackend implements Backend {
     return newConfig[0] as QueueConfig;
   }
 
-  async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig>;
+  async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
+    return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig | undefined>;
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
@@ -64,8 +64,11 @@ export abstract class SQLBackend implements Backend {
     return updated;
   }
 
-  async getJob(id: number): Promise<JobData> {
-    return (await this.knex("sidequest_jobs").where({ id }).first()) as JobData;
+  async getJob(id: number): Promise<JobData | undefined> {
+    const job = (await this.knex("sidequest_jobs").where({ id }).first()) as JobData | undefined;
+    if (job) {
+      return safeParseJobData(job);
+    }
   }
 
   async createNewJob(job: NewJobData): Promise<JobData> {
@@ -109,12 +112,12 @@ export abstract class SQLBackend implements Backend {
       trx("sidequest_jobs")
         .update({
           claimed_by: workerName,
-          claimed_at: new Date().toISOString(),
+          claimed_at: new Date(),
           state: "claimed",
         })
         .where("state", "waiting")
         .andWhere("queue", queue)
-        .andWhere("available_at", "<=", new Date().toISOString())
+        .andWhere("available_at", "<=", new Date())
         .orderBy("inserted_at")
         .limit(quantity)
         .returning("*"),
