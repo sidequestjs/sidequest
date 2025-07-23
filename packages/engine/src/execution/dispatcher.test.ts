@@ -31,8 +31,8 @@ describe("Dispatcher", () => {
   const config: SidequestConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
     queues: [
-      { queue: "default", concurrency: 1 },
-      { queue: "noop", concurrency: 0 },
+      { name: "default", concurrency: 1 },
+      { name: "noop", concurrency: 0 },
     ],
     maxConcurrentJobs: 5,
   };

@@ -49,7 +49,7 @@ export class Engine {
     await _backend.setup();
     if (_config.queues) {
       for (const queue of _config.queues) {
-        await grantQueueConfig(queue.queue, queue);
+        await grantQueueConfig(queue.name, queue);
       }
     }
 

@@ -59,7 +59,7 @@ describe("ExecutorManager", () => {
 
   describe("execute", () => {
     it("sends the job to the execution pool", async () => {
-      const queryConfig = await grantQueueConfig("default", { queue: "default", concurrency: 1 });
+      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 1 });
       const executorManager = new ExecutorManager(config);
 
       const execPromise = executorManager.execute(queryConfig!, jobData);
@@ -75,13 +75,13 @@ describe("ExecutorManager", () => {
 
   describe("availableSlotsByQueue", () => {
     it("returns the available slots by queue", async () => {
-      const queryConfig = await grantQueueConfig("default", { queue: "default", concurrency: 7 });
+      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 7 });
       const executorManager = new ExecutorManager(config);
       expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(7);
     });
 
     it("returns zero as min value", async () => {
-      const queryConfig = await grantQueueConfig("default", { queue: "default", concurrency: 0 });
+      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 0 });
       const executorManager = new ExecutorManager(config);
       void executorManager.execute(queryConfig!, jobData);
       expect(executorManager.availableSlotsByQueue(queryConfig!)).toEqual(0);
@@ -95,7 +95,7 @@ describe("ExecutorManager", () => {
     });
 
     it("returns zero as min value", async () => {
-      const queryConfig = await grantQueueConfig("default", { queue: "default", concurrency: 0 });
+      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 0 });
       config.maxConcurrentJobs = 0;
       const executorManager = new ExecutorManager(config);
       void executorManager.execute(queryConfig!, jobData);
@@ -105,7 +105,7 @@ describe("ExecutorManager", () => {
 
   describe("totalActiveWorkers", () => {
     it("returns the available slots by queue", async () => {
-      const queryConfig = await grantQueueConfig("default", { queue: "default", concurrency: 7 });
+      const queryConfig = await grantQueueConfig("default", { name: "default", concurrency: 7 });
       const executorManager = new ExecutorManager(config);
       expect(executorManager.totalActiveWorkers()).toEqual(0);
       const execPromise = executorManager.execute(queryConfig!, jobData);

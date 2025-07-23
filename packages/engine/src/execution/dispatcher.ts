@@ -29,7 +29,7 @@ export class Dispatcher {
       for (const queue of queues) {
         const availableSlots = this.executorManager.availableSlotsByQueue(queue);
         if (availableSlots <= 0) {
-          logger().info(`queue ${queue.queue} limit reached!`);
+          logger().info(`queue ${queue.name} limit reached!`);
           await this.sleep(sleepDelay);
           continue;
         }
@@ -41,7 +41,7 @@ export class Dispatcher {
           continue;
         }
 
-        const jobs: JobData[] = await backend.claimPendingJob(queue.queue, availableSlots);
+        const jobs: JobData[] = await backend.claimPendingJob(queue.name, availableSlots);
 
         if (jobs.length > 0) {
           // if a job was found on any queue do not sleep
