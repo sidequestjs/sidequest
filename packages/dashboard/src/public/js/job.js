@@ -26,3 +26,18 @@ function applySeeMore() {
 
 document.addEventListener("DOMContentLoaded", applySeeMore);
 document.addEventListener("htmx:afterSwap", applySeeMore);
+
+document.addEventListener("htmx:beforeSwap", (evt) => {
+  const detailsStates = Array.from(document.querySelectorAll("#job-details details")).map((d) => d.open);
+
+  evt.detail.target.dataset.detailsStates = JSON.stringify(detailsStates);
+});
+
+document.addEventListener("htmx:afterSwap", (evt) => {
+  const detailsStates = JSON.parse(evt.detail.target.dataset.detailsStates || "[]");
+
+  const details = evt.target.querySelectorAll("details");
+  detailsStates.forEach((isOpen, idx) => {
+    if (isOpen) details[idx].open = true;
+  });
+});
