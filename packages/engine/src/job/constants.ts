@@ -18,7 +18,7 @@ export const JOB_BUILDER_FALLBACK: JobBuilderDefaults & { constructorArgs: unkno
   queue: "default",
   timeout: undefined,
   uniqueness: false,
-  maxAttempts: JOB_FALLBACK.max_attempts!,
+  maxAttempts: JOB_FALLBACK.max_attempts,
   get availableAt() {
     return new Date();
   },

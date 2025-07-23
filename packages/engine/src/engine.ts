@@ -125,9 +125,9 @@ export class Engine {
         uniqueness: config?.jobDefaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!,
       },
       queueDefaults: {
-        concurrency: config?.queueDefaults?.concurrency ?? QUEUE_FALLBACK.concurrency!,
-        priority: config?.queueDefaults?.priority ?? QUEUE_FALLBACK.priority!,
-        state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state!,
+        concurrency: config?.queueDefaults?.concurrency ?? QUEUE_FALLBACK.concurrency,
+        priority: config?.queueDefaults?.priority ?? QUEUE_FALLBACK.priority,
+        state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state,
       },
     };
 

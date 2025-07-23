@@ -1,4 +1,5 @@
-import type { NewJobData, NewQueueData } from "./backend";
+import { JobData } from "packages/core/dist";
+import type { NewQueueData } from "./backend";
 
 /**
  * Default fallback values for new job data.
@@ -14,7 +15,26 @@ import type { NewJobData, NewQueueData } from "./backend";
  * const newJob = { ...JOB_FALLBACK, name: 'my-job' };
  * ```
  */
-export const JOB_FALLBACK: Partial<NewJobData> = {
+export const JOB_FALLBACK: Required<
+  Pick<
+    JobData,
+    | "args"
+    | "constructor_args"
+    | "max_attempts"
+    | "available_at"
+    | "timeout"
+    | "uniqueness_config"
+    | "unique_digest"
+    | "errors"
+    | "result"
+    | "attempted_at"
+    | "completed_at"
+    | "failed_at"
+    | "cancelled_at"
+    | "claimed_at"
+    | "claimed_by"
+  >
+> = {
   args: [],
   constructor_args: [],
   max_attempts: 5,
@@ -24,6 +44,14 @@ export const JOB_FALLBACK: Partial<NewJobData> = {
   timeout: null,
   uniqueness_config: null,
   unique_digest: null,
+  errors: null,
+  result: null,
+  attempted_at: null,
+  completed_at: null,
+  failed_at: null,
+  cancelled_at: null,
+  claimed_at: null,
+  claimed_by: null,
 };
 
 /**
@@ -39,7 +67,7 @@ export const JOB_FALLBACK: Partial<NewJobData> = {
  * const queueConfig = { ...QUEUE_FALLBACK, name: 'my-queue' };
  * ```
  */
-export const QUEUE_FALLBACK: Partial<NewQueueData> = {
+export const QUEUE_FALLBACK: Required<Omit<NewQueueData, "name">> = {
   concurrency: 10,
   priority: 0,
   state: "active",

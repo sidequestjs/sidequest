@@ -30,10 +30,12 @@
     "clean:turbo": "rimraf **/.turbo",
     "db:pg": "docker run --name pg-default -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres",
     "db:mysql": "docker run --name mysql-default -e MYSQL_ROOT_PASSWORD=mysql -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql:8",
+    "db:mongodb": "docker run --name mongodb-default -p 27017:27017 -d mongo:7",
     "db:pg:stop": "docker stop pg-default && docker rm pg-default",
     "db:mysql:stop": "docker stop mysql-default && docker rm mysql-default",
-    "db:all": "yarn db:pg && yarn db:mysql",
-    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop",
+    "db:mongodb:stop": "docker stop mongodb-default && docker rm mongodb-default",
+    "db:all": "yarn db:pg && yarn db:mysql && yarn db:mongodb",
+    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop && yarn db:mongodb:stop",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -1,0 +1,26 @@
+{
+  "name": "@sidequest/mongo-backend",
+  "version": "1.0.0-alpha.1",
+  "license": "LGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/mongo-backend.cjs",
+  "module": "./dist/mongo-backend.js",
+  "types": "./dist/mongo-backend.d.ts",
+  "exports": {
+    "import": "./dist/mongo-backend.js",
+    "require": "./dist/mongo-backend.cjs",
+    "types": "./dist/mongo-backend.d.ts"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "@sidequest/core": "workspace:*",
+    "mongodb": "^6.17.0"
+  },
+  "devDependencies": {
+    "@sidequest/backend-test": "workspace:*"
+  }
+}
