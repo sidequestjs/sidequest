@@ -24,8 +24,8 @@ Example:
 queues: [
   { name: "default", concurrency: 2 }, // priority defaults to 0
   { name: "critical", concurrency: 5, priority: 100 },
-  { name: "low", concurrency: 1, priority: 10 }
-]
+  { name: "low", concurrency: 1, priority: 10 },
+];
 ```
 
 In this example, jobs in the `critical` queue will take precedence over `low` and `default`, as long as there is available concurrency.

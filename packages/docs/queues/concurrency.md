@@ -24,8 +24,8 @@ Example:
 queues: [
   { name: "default", concurrency: 2 },
   { name: "critical", concurrency: 5 },
-  { name: "low", concurrency: 1 }
-]
+  { name: "low", concurrency: 1 },
+];
 ```
 
 In this example, at most 2 jobs from the `default` queue, 5 jobs from `critical`, and 1 job from `low` can run concurrently, provided the `maxConcurrentJobs` limit (a global Sidequest Engine configuration) limit is not exceeded.

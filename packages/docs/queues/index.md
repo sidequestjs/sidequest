@@ -51,7 +51,7 @@ await Sidequest.start({
     { name: "default", concurrency: 2, priority: 50 },
     { name: "critical", concurrency: 5, priority: 100 },
     { name: "reports", concurrency: 1, state: "paused" },
-  ]
+  ],
 });
 ```
 
@@ -69,8 +69,7 @@ await Sidequest.start({
 When you enqueue a job, specify the target queue using `.queue`, function:
 
 ```ts
-await Sidequest.build(SendEmailJob)
-  .queue('email').enqueue({to: 'user@example.com' });
+await Sidequest.build(SendEmailJob).queue("email").enqueue({ to: "user@example.com" });
 ```
 
 If not specified, the job goes to the `default` queue.

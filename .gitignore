@@ -317,3 +317,4 @@ $RECYCLE.BIN/
 *.sqlite
 
 .sidequest.config.json
+.turbo

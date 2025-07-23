@@ -1,6 +1,6 @@
 import { Backend, NewQueueData } from "@sidequest/backend";
 import { QueueConfig } from "@sidequest/core";
-import { grantQueueConfig, QueueDefaults } from "../queue/grant-queue-config";
+import { grantQueueConfig } from "../queue/grant-queue-config";
 
 /**
  * Manages queue configurations and retrieves active queues with runnable jobs.
@@ -14,7 +14,6 @@ export class QueueManager {
   constructor(
     private backend: Backend,
     private queues: NewQueueData[],
-    private queueDefaults?: QueueDefaults,
   ) {}
 
   /**
@@ -27,7 +26,7 @@ export class QueueManager {
     const queues: QueueConfig[] = [];
     for (const queue of queueNames) {
       const fromConfig = this.queues.find((q) => q.name === queue);
-      const queueConfig = await grantQueueConfig(this.backend, { ...fromConfig, name: queue }, this.queueDefaults);
+      const queueConfig = await grantQueueConfig(this.backend, { ...fromConfig, name: queue });
       if (queueConfig) {
         queues.push(queueConfig);
       }

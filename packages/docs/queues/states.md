@@ -22,8 +22,8 @@ Example:
 ```ts
 queues: [
   { name: "default", concurrency: 2 }, // defaults to active
-  { name: "maintenance", concurrency: 1, state: "paused" }
-]
+  { name: "maintenance", concurrency: 1, state: "paused" },
+];
 ```
 
 ## Changing queue states at runtime

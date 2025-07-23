@@ -12,8 +12,8 @@
     "types": "./dist/postgres-backend.d.ts"
   },
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "build": "npx rollup -c",
+    "dev": "npx rollup -c -w"
   },
   "dependencies": {
     "@sidequest/backend": "workspace:*",
