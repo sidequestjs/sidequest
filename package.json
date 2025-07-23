@@ -32,9 +32,12 @@
     "db:pg:stop": "docker stop pg-default && docker rm pg-default",
     "db:mysql:stop": "docker stop mysql-default && docker rm mysql-default",
     "db:all": "yarn db:pg && yarn db:mysql",
-    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop"
+    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.29.0",
     "@rollup/plugin-commonjs": "^28.0.5",
     "@rollup/plugin-json": "^6.1.0",
@@ -51,6 +54,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
     "postcss": "^8.5.5",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
