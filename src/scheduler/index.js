@@ -50,7 +50,7 @@ function Scheduler(){
     }
     
     this.isDead = () => {
-        return !this.isAlive();
+        return !forkProcess.connected;
     }
     
     this.isAlive = () => {
