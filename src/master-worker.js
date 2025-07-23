@@ -29,6 +29,7 @@ function MasterWorker (config) {
             worker.execute(task);
             worker.on('done', () => {
                 currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
+                this.emit('task-done', task);
             });
         });
 
@@ -39,6 +40,7 @@ function MasterWorker (config) {
         scheduler.on('died', (scheduler) => {
             console.error(`Scheduler ${scheduler.id()} died, finishing side-worker`);
             this.terminate();
+            this.emit('terminated');
         });
 
         schedulers.push(scheduler);
