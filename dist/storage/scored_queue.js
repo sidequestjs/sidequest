@@ -35,63 +35,49 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var nanoid_1 = __importDefault(require("nanoid"));
-var scored_queue_1 = __importDefault(require("./storage/scored_queue"));
-var load_tasks_1 = __importDefault(require("./loader/load-tasks"));
-var Task = /** @class */ (function () {
-    function Task() {
-        if (!this.run)
-            throw new Error('A Task must implement run method');
+var redis_client_1 = __importDefault(require("./redis-client"));
+var Queue = /** @class */ (function () {
+    function Queue(name) {
+        this.name = "queue-" + name;
     }
-    Task.prototype.execute = function (params) {
+    Queue.prototype.push = function (item, score) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, (_a = this.run).call.apply(_a, __spreadArray([this], params, false))];
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, redis_client_1.default.zadd(this.name, score, JSON.stringify(item))];
                     case 1:
-                        _b.sent();
+                        _a.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    Task.enqueue = function (options) {
-        var _a;
-        var params = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            params[_i - 1] = arguments[_i];
-        }
+    Queue.prototype.pop = function (batchSize, maxScore) {
+        if (batchSize === void 0) { batchSize = 1; }
+        if (maxScore === void 0) { maxScore = "+inf"; }
         return __awaiter(this, void 0, void 0, function () {
-            var tasksConfig, taskName, config, queue, score;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, (0, load_tasks_1.default)()];
+            var result, data, i, item;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, redis_client_1.default.zpopminbyscore(this.name, maxScore, batchSize)];
                     case 1:
-                        tasksConfig = _b.sent();
-                        taskName = this.name;
-                        config = tasksConfig[taskName];
-                        queue = new scored_queue_1.default(config.queue);
-                        score = ((_a = options === null || options === void 0 ? void 0 : options.performAt) === null || _a === void 0 ? void 0 : _a.getTime()) || new Date().getTime();
-                        queue.push({ id: (0, nanoid_1.default)(36), task: taskName, args: params }, score);
-                        return [2 /*return*/];
+                        result = _a.sent();
+                        data = [];
+                        if (result.length > 0) {
+                            for (i = 0; i < result.length; i++) {
+                                item = result[i];
+                                data.push(JSON.parse(item));
+                            }
+                        }
+                        return [2 /*return*/, data];
                 }
             });
         });
     };
-    return Task;
+    return Queue;
 }());
-exports.default = Task;
+exports.default = Queue;
