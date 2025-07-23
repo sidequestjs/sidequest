@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 import zPopMinScored from './redis-commands/zpopmin_scored';
 
-const redisURL = process.env.REDIS_URL || process.env.SIDEQUEST_REDIS_URL || 'redis://localhost:6479'
+const redisURL = process.env.REDIS_URL || process.env.SIDEQUEST_REDIS_URL || 'redis://localhost:6379'
 const client:any = new Redis(redisURL);
 
 client.defineCommand('zpopminbyscore', {
