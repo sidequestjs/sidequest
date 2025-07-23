@@ -16,8 +16,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@sidequest/engine": "workspace:*",
     "@sidequest/core": "workspace:*",
+    "@sidequest/engine": "workspace:*",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-ejs-layouts": "^2.5.1",

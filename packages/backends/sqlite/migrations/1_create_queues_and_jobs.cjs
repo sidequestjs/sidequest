@@ -8,7 +8,7 @@ exports.up = function(knex) {
       table.text('args');
       table.text('result');
       table.text('errors');
-      table.string('state').notNullable().defaultTo('pending');
+      table.string('state').notNullable().defaultTo('waiting');
       table.timestamp('available_at');
       table.timestamp('inserted_at');
       table.timestamp('attempted_at');
