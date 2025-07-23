@@ -1,5 +1,5 @@
 import path from 'path';
-import Task from '../daemon/task';
+import Task from '../daemon/task-config';
 
 const configPath = `${path.resolve('./')}/sidequest-config.json`;
 

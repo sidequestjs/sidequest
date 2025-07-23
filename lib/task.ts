@@ -4,6 +4,7 @@ import Queue from "./storage/scored-queue";
 import Metric from './monitor/metric';
 
 import loadTasks from './loader/load-tasks';
+import EnqueuedTask from './storage/enqueued-task';
 
 interface TaskOptions {
   performAt?: Date,
@@ -13,19 +14,30 @@ interface TaskOptions {
 }
 
 abstract class Task {
-  abstract id:string;
-  metric:Metric;
+  id:string;
+  enqueuedAt: Date;
+  performAt: Date;
 
-  constructor(){
+  timingMetric:Metric;
+  latencyMetric:Metric;
+
+  constructor(id?: string, enqueuedAt?: Date, performAt?:Date){
     if (!this.run) throw new Error('A Task must implement run method');
-    this.metric = new Metric(this.constructor.name);
+    this.id = id || nanoId(36);
+    this.enqueuedAt = enqueuedAt || new Date();
+    this.performAt = performAt || new Date();
+    this.timingMetric = new Metric(`${this.constructor.name}.timing`);
+    this.latencyMetric = new Metric(`${this.constructor.name}.latency`)
   }
 
   async execute(params: any){
     const startedAt = new Date().getTime();
     await this.run.call(this, ...params)
-    const timing = new Date().getTime() - startedAt;
-    this.metric.sample(timing);
+    const currentTime = new Date().getTime();
+    const timing = currentTime - startedAt;
+    const latency = currentTime - this.performAt.getTime();
+    this.timingMetric.sample(timing);
+    this.latencyMetric.sample(latency);
   }
 
   static async enqueue(options: TaskOptions){
@@ -39,7 +51,7 @@ abstract class Task {
 
     const performAt = options?.performAt || new Date();
 
-    const item = {
+    const item:EnqueuedTask = {
       id: nanoId(36),
       performAt: performAt,
       enqueuedAt: new Date(),

@@ -36,8 +36,9 @@ async function start(queueName: string) {
   const processTask = async(item: any) : Promise<any> => {
     const task = tasks[item.task];
     if(task && task.class){
-      const instance:Task = new task.class();
-      instance.id = item.id;
+      const enqueuedAt = item.enqueuedAt ? new Date(item.enqueuedAt) : null;
+      const performAt = item.performAt ? new Date(item.performAt) : null;
+      const instance:Task = new task.class(item.id, enqueuedAt, performAt);
       await instance.execute(item.params);
     } else {
       throw new Error(`cannot process item: ${JSON.stringify(item)}`);
