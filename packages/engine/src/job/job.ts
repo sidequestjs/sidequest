@@ -92,6 +92,7 @@ async function buildPath(className: string) {
     })
     .filter(Boolean);
 
+
   for (const filePath of filePaths) {
     const hasExported = await hasClassExported(filePath!, className);
     if (hasExported) {
