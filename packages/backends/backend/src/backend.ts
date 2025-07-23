@@ -31,9 +31,23 @@ export type UpdateQueueData = Pick<QueueConfig, "id"> & Partial<Omit<QueueConfig
  */
 export interface Backend {
   /**
-   * Sets up the backend (e.g., runs migrations).
+   * Runs the database migrations to bring the schema up to date.
+   *
+   * Executes all pending migration files in the correct order,
+   * applying schema changes to the database. Useful for initializing
+   * or upgrading the database to the latest version.
+   *
    */
-  setup(): Promise<void>;
+  migrate(): Promise<void>;
+
+  /**
+   * Rolls back the most recent database migration.
+   *
+   * Reverts the last applied migration file, undoing its schema changes.
+   * Useful for stepping back in development or undoing a problematic change.
+   *
+   */
+  rollbackMigration(): Promise<void>;
 
   /**
    * Closes the backend and releases resources.

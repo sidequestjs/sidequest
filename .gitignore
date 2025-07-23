@@ -315,3 +315,5 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,osx,windows,linux,visualstudiocode,vim,emacs
 
 *.sqlite
+
+.sidequest.config.json

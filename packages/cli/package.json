@@ -1,0 +1,22 @@
+{
+  "name": "@sidequest/cli",
+  "version": "1.0.0-alpha.1",
+  "license": "LGPL-3.0-or-later",
+  "type": "module",
+  "bin": {
+    "sidequest": "./dist/cli.js",
+    "sq": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "npx rollup -c",
+    "dev": "npx rollup -c -w"
+  },
+  "files": [
+    "dist/cli.js"
+  ],
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "commander": "^14.0.0",
+    "inquirer": "^12.7.0"
+  }
+}

@@ -15,10 +15,10 @@ import path from "path";
  * @param dbConfig - The database configuration object containing the connection string or Knex connection config.
  */
 export default class PostgresBackend extends SQLBackend {
-  constructor(dbConfig: { connection: string | Knex.ConnectionConfig }) {
+  constructor(dbConfig: string | Knex.ConnectionConfig) {
     const knex = createKnex({
       client: "pg",
-      connection: dbConfig.connection,
+      connection: dbConfig,
       migrations: {
         directory: path.join(import.meta.dirname, "..", "migrations"),
         tableName: "sidequest_migrations",

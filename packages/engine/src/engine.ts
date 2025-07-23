@@ -26,6 +26,7 @@ export interface SidequestConfig {
   logger?: LoggerOptions;
   /** Maximum number of concurrent jobs. */
   maxConcurrentJobs?: number;
+  skipMigration?: boolean;
 }
 
 /**
@@ -56,7 +57,10 @@ export class Engine {
 
     _backend = await createBackendFromDriver(_config.backend!);
 
-    await _backend.setup();
+    if (!config?.skipMigration) {
+      await _backend.migrate();
+    }
+
     if (_config.queues) {
       for (const queue of _config.queues) {
         await grantQueueConfig(queue.name, queue);

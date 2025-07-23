@@ -28,7 +28,7 @@ import defineUpdateJobTestSuite from "./updateJob";
 export function testBackend(backendFactory: () => Backend) {
   beforeEach(async () => {
     setTestBackend(backendFactory());
-    await backend.setup();
+    await backend.migrate();
   });
 
   afterEach(async () => {
