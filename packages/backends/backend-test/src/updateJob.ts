@@ -1,5 +1,5 @@
 import { NewJobData } from "@sidequest/backend";
-import { JobData, toErrorData } from "packages/core/dist";
+import { JobData, toErrorData } from "@sidequest/core";
 import { describe, it } from "vitest";
 import { backend } from "./backend";
 

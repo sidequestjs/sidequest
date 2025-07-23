@@ -1309,6 +1309,7 @@ __metadata:
   resolution: "@sidequest/backend-test@workspace:packages/backends/backend-test"
   dependencies:
     "@sidequest/backend": "workspace:*"
+    "@sidequest/core": "workspace:*"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft

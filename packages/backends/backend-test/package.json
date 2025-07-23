@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@sidequest/backend": "workspace:*",
+    "@sidequest/core": "workspace:*",
     "vitest": "^3.2.4"
   },
   "packageManager": "yarn@4.9.2"
