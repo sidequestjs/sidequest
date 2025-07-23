@@ -43,7 +43,7 @@ export default class PostgresBackend implements Backend {
       script: job.script,
       args: this.knex.raw("?", [JSON.stringify(job.args)]),
       timeout: job.timeout,
-      state: job.state
+      state: job.state,
     };
 
     const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
