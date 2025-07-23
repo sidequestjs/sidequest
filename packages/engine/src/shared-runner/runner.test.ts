@@ -1,4 +1,5 @@
 import { FailedResult, JobData } from "@sidequest/core";
+import { vi } from "vitest";
 import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import run from "./runner";
@@ -19,7 +20,7 @@ describe("runner.ts", () => {
 
     jobData = await backend!.createNewJob({
       class: job.className,
-      script: job.script!,
+      script: job.script,
       args: [],
       attempt: 0,
       queue: "default",
@@ -49,5 +50,19 @@ describe("runner.ts", () => {
     const result = (await run(jobData)) as FailedResult;
     expect(result.type).toEqual("failed");
     expect(result.error.message).toMatch(/Invalid job class: InvalidClass/);
+  });
+
+  it("calls injectJobData with the correct jobData", async () => {
+    // Spy on the DummyJob prototype's injectJobData method
+    const injectJobDataSpy = vi.spyOn(DummyJob.prototype, "injectJobData");
+
+    await run(jobData);
+
+    // Verify that injectJobData was called with the correct jobData
+    expect(injectJobDataSpy).toHaveBeenCalledWith(jobData);
+    expect(injectJobDataSpy).toHaveBeenCalledTimes(1);
+
+    // Clean up the spy
+    injectJobDataSpy.mockRestore();
   });
 });

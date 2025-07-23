@@ -40,7 +40,7 @@ describe("ExecutorManager", () => {
     jobData = await backend.createNewJob({
       queue: "default",
       state: "waiting",
-      script: job.script!,
+      script: job.script,
       class: job.className,
       args: [],
       constructor_args: [],

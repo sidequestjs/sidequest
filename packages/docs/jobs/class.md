@@ -74,6 +74,34 @@ Sidequest automatically detects the file path of your job class using stack trac
 
 By using this strategy, you do not need to manually specify the job script path when enqueuing jobs. Sidequest will automatically resolve it based on the class definition. If you are using TypeScript, this also allows Sidequest.js to provide type safety for the jobs when enqueueing them.
 
+## Job Data Properties
+
+During the job execution, jobs can access various properties that provide context about the job execution. These properties come from the database and follow the JobData interface, as explained in the [Job Metadata Section](/jobs/#job-metadata). For convenience, here is the interface definition:
+
+<<< ../../core/src/schema/job-data.ts#JobData{}
+
+You can access these properties directly in your job run method using `this`:
+
+```typescript
+import { Job } from "@sidequest/engine";
+
+export class MyJob extends Job {
+  async run() {
+    console.log(`Job ID: ${this.id}`);
+    console.log(`Job State: ${this.state}`);
+    console.log(`Job Inserted At: ${this.inserted_at}`);
+  }
+}
+```
+
+::: warning
+These properties are read-only and should not be modified directly. They are provided for informational purposes and to help with job logic. If you modify them, it will not affect the job's state in the database.
+:::
+
+::: warning
+Sidequest injects these properties in runtime and **only after creating the job object**. They will only be available after the job starts executing, so you cannot access them in the constructor or before the `run` method is called.
+:::
+
 ## Class Naming Conventions
 
 While not required, following these conventions helps with organization:

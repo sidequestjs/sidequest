@@ -1,12 +1,16 @@
 import {
   CompletedResult,
+  ErrorData,
   FailedResult,
   isJobResult,
+  JobData,
   JobResult,
+  JobState,
   logger,
   RetryResult,
   SnoozeResult,
   toErrorData,
+  UniquenessConfig,
 } from "@sidequest/core";
 import { access } from "fs/promises";
 import { pathToFileURL } from "url";
@@ -53,9 +57,32 @@ export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (..
  *   }
  * }
  */
-export abstract class Job {
-  private _script?: string;
+export abstract class Job implements JobData {
   private scriptResolver: Promise<string>;
+
+  // JobData properties
+  readonly id!: number;
+  readonly script!: string;
+  readonly queue!: string;
+  readonly state!: JobState;
+  readonly class!: string;
+  readonly args!: unknown[];
+  readonly constructor_args!: unknown[];
+  readonly attempt!: number;
+  readonly max_attempts!: number;
+  readonly inserted_at!: Date;
+  readonly available_at!: Date;
+  readonly timeout!: number | null;
+  readonly result!: Omit<unknown, "undefined"> | null;
+  readonly errors!: ErrorData[] | null;
+  readonly attempted_at!: Date | null;
+  readonly completed_at!: Date | null;
+  readonly failed_at!: Date | null;
+  readonly canceled_at!: Date | null;
+  readonly claimed_at!: Date | null;
+  readonly claimed_by!: string | null;
+  readonly unique_digest!: string | null;
+  readonly uniqueness_config!: UniquenessConfig | null;
 
   /**
    * Initializes the job and resolves its script path.
@@ -65,17 +92,19 @@ export abstract class Job {
      * This is important to ensure the path resolution is returning the Job implementation.
      */
     this.scriptResolver = buildPath(this.constructor.name).then((script) => {
-      this._script = script;
+      Object.assign(this, { script });
       logger("Job").debug(`Job script resolved: ${script}`);
       return script;
     });
   }
 
   /**
-   * The resolved script path for this job.
+   * Injects JobData properties into the job instance at runtime.
+   * @param jobData The job data to inject into this instance.
    */
-  get script() {
-    return this._script;
+  injectJobData(jobData: JobData): void {
+    logger("Job").debug(`Injecting job data into ${this.className}:`, jobData);
+    Object.assign(this, jobData);
   }
 
   /**

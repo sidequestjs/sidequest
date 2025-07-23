@@ -19,6 +19,7 @@ export type JobState =
   | "completed" // Finished successfully
   | "canceled"; // Manually canceled
 
+// #region JobData
 /**
  * Represents the data structure for a job in the queue system.
  *
@@ -141,3 +142,4 @@ export interface JobData {
    */
   uniqueness_config: UniquenessConfig | null;
 }
+// #endregion JobData

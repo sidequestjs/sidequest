@@ -19,7 +19,7 @@ async function createJob(queue = "default") {
   await Engine.getBackend()!.createNewJob({
     queue: queue,
     state: "waiting",
-    script: job.script!,
+    script: job.script,
     class: job.className,
     args: [],
     constructor_args: [],

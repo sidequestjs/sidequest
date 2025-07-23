@@ -34,7 +34,7 @@ describe("RunnerPool", () => {
 
     jobData = await backend!.createNewJob({
       class: job.className,
-      script: job.script!,
+      script: job.script,
       args: [],
       attempt: 0,
       queue: "default",
