@@ -1,24 +1,10 @@
-import { Engine, EngineConfig } from "../engine";
+import { sidequestTest } from "@/tests/fixture";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
 
 describe("JobBuilder", () => {
-  beforeAll(async () => {
-    const dbLocation = ":memory:";
-    const config: EngineConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
-    await Engine.configure(config);
-  });
-
-  afterAll(async () => {
-    await Engine.getBackend()?.close();
-  });
-
-  afterEach(async () => {
-    await Engine.getBackend()?.truncate();
-  });
-
-  test("enqueues a job at default queue", async () => {
-    const jobData = await new JobBuilder(DummyJob).enqueue();
+  sidequestTest("enqueues a job at default queue", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).enqueue();
     expect(jobData).toEqual(
       expect.objectContaining({
         queue: "default",
@@ -42,56 +28,56 @@ describe("JobBuilder", () => {
     );
   });
 
-  test("enqueues a job setting queue", async () => {
-    const jobData = await new JobBuilder(DummyJob).queue("custom_queue").enqueue();
+  sidequestTest("enqueues a job setting queue", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).queue("custom_queue").enqueue();
     expect(jobData.queue).toEqual("custom_queue");
   });
 
-  test("enqueues a job setting timeout", async () => {
-    const jobData = await new JobBuilder(DummyJob).timeout(100).enqueue();
+  sidequestTest("enqueues a job setting timeout", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).timeout(100).enqueue();
     expect(jobData.timeout).toEqual(100);
   });
 
-  test("enqueues a job setting args", async () => {
-    const jobData = await new JobBuilder(DummyJob).enqueue("foo", "bar");
+  sidequestTest("enqueues a job setting args", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).enqueue("foo", "bar");
     expect(jobData.args).toEqual(["foo", "bar"]);
   });
 
-  test("enqueues a job setting constructor args", async () => {
-    const jobData = await new JobBuilder(DummyJob).with("foo", "bar").enqueue();
+  sidequestTest("enqueues a job setting constructor args", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).with("foo", "bar").enqueue();
     expect(jobData.constructor_args).toEqual(["foo", "bar"]);
   });
 
-  test("enqueues a job setting maxAttempts", async () => {
-    const jobData = await new JobBuilder(DummyJob).maxAttempts(7).enqueue();
+  sidequestTest("enqueues a job setting maxAttempts", async ({ backend }) => {
+    const jobData = await new JobBuilder(backend, DummyJob).maxAttempts(7).enqueue();
     expect(jobData.max_attempts).toEqual(7);
   });
 
-  test("enqueues a job setting availableAt", async () => {
+  sidequestTest("enqueues a job setting availableAt", async ({ backend }) => {
     const futureDate = new Date(Date.now() + 60_000);
-    const jobData = await new JobBuilder(DummyJob).availableAt(futureDate).enqueue();
+    const jobData = await new JobBuilder(backend, DummyJob).availableAt(futureDate).enqueue();
     expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(futureDate.getTime(), -2);
   });
 
   describe("constructor defaults", () => {
-    test("uses default queue when no defaults provided", async () => {
-      const jobData = await new JobBuilder(DummyJob).enqueue();
+    sidequestTest("uses default queue when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       expect(jobData.queue).toEqual("default");
     });
 
-    test("uses default timeout when no defaults provided", async () => {
-      const jobData = await new JobBuilder(DummyJob).enqueue();
+    sidequestTest("uses default timeout when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       expect(jobData.timeout).toBeNull(); // undefined becomes null in the database
     });
 
-    test("uses default maxAttempts when no defaults provided", async () => {
-      const jobData = await new JobBuilder(DummyJob).enqueue();
+    sidequestTest("uses default maxAttempts when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       expect(jobData.max_attempts).toEqual(5);
     });
 
-    test("uses default availableAt when no defaults provided", async () => {
+    sidequestTest("uses default availableAt when no defaults provided", async ({ backend }) => {
       const beforeEnqueue = new Date();
-      const jobData = await new JobBuilder(DummyJob).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       const afterEnqueue = new Date();
 
       const availableAt = new Date(jobData.available_at as unknown as string);
@@ -99,99 +85,101 @@ describe("JobBuilder", () => {
       expect(availableAt.getTime()).toBeLessThanOrEqual(afterEnqueue.getTime());
     });
 
-    test("uses default uniqueness when no defaults provided", async () => {
-      const jobData = await new JobBuilder(DummyJob).enqueue();
+    sidequestTest("uses default uniqueness when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       expect(jobData.unique_digest).toBeNull(); // uniqueness is false by default, so no digest
     });
   });
 
   describe("constructor defaults with custom values", () => {
-    test("uses custom queue default", async () => {
+    sidequestTest("uses custom queue default", async ({ backend }) => {
       const defaults = { queue: "custom-default-queue" };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.queue).toEqual("custom-default-queue");
     });
 
-    test("uses custom timeout default", async () => {
+    sidequestTest("uses custom timeout default", async ({ backend }) => {
       const defaults = { timeout: 30000 };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.timeout).toEqual(30000);
     });
 
-    test("uses custom maxAttempts default", async () => {
+    sidequestTest("uses custom maxAttempts default", async ({ backend }) => {
       const defaults = { maxAttempts: 3 };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.max_attempts).toEqual(3);
     });
 
-    test("uses custom availableAt default", async () => {
+    sidequestTest("uses custom availableAt default", async ({ backend }) => {
       const customDate = new Date(Date.now() + 120_000);
       const defaults = { availableAt: customDate };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(customDate.getTime(), -2);
     });
 
-    test("uses custom uniqueness default (boolean true)", async () => {
+    sidequestTest("uses custom uniqueness default (boolean true)", async ({ backend }) => {
       const defaults = { uniqueness: true as const };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
 
-    test("uses custom uniqueness default (object with withArgs)", async () => {
+    sidequestTest("uses custom uniqueness default (object with withArgs)", async ({ backend }) => {
       const defaults = { uniqueness: { withArgs: true } };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
 
-    test("uses custom uniqueness default (object with period)", async () => {
+    sidequestTest("uses custom uniqueness default (object with period)", async ({ backend }) => {
       const defaults = { uniqueness: { period: "hour" as const } };
-      const jobData = await new JobBuilder(DummyJob, defaults).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
   });
 
   describe("method calls override constructor defaults", () => {
-    test("queue() method overrides default queue", async () => {
+    sidequestTest("queue() method overrides default queue", async ({ backend }) => {
       const defaults = { queue: "default-queue" };
-      const jobData = await new JobBuilder(DummyJob, defaults).queue("override-queue").enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).queue("override-queue").enqueue();
       expect(jobData.queue).toEqual("override-queue");
     });
 
-    test("timeout() method overrides default timeout", async () => {
+    sidequestTest("timeout() method overrides default timeout", async ({ backend }) => {
       const defaults = { timeout: 10000 };
-      const jobData = await new JobBuilder(DummyJob, defaults).timeout(20000).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).timeout(20000).enqueue();
       expect(jobData.timeout).toEqual(20000);
     });
 
-    test("maxAttempts() method overrides default maxAttempts", async () => {
+    sidequestTest("maxAttempts() method overrides default maxAttempts", async ({ backend }) => {
       const defaults = { maxAttempts: 3 };
-      const jobData = await new JobBuilder(DummyJob, defaults).maxAttempts(7).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).maxAttempts(7).enqueue();
       expect(jobData.max_attempts).toEqual(7);
     });
 
-    test("availableAt() method overrides default availableAt", async () => {
+    sidequestTest("availableAt() method overrides default availableAt", async ({ backend }) => {
       const defaultDate = new Date(Date.now() + 60_000);
       const overrideDate = new Date(Date.now() + 120_000);
       const defaults = { availableAt: defaultDate };
-      const jobData = await new JobBuilder(DummyJob, defaults).availableAt(overrideDate).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).availableAt(overrideDate).enqueue();
       expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(overrideDate.getTime(), -2);
     });
 
-    test("unique() method overrides default uniqueness (false to true)", async () => {
+    sidequestTest("unique() method overrides default uniqueness (false to true)", async ({ backend }) => {
       const defaults = { uniqueness: false as const };
-      const jobData = await new JobBuilder(DummyJob, defaults).unique(true).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).unique(true).enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
 
-    test("unique() method overrides default uniqueness (true to false)", async () => {
+    sidequestTest("unique() method overrides default uniqueness (true to false)", async ({ backend }) => {
       const defaults = { uniqueness: true as const };
-      const jobData = await new JobBuilder(DummyJob, defaults).unique(false).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).unique(false).enqueue();
       expect(jobData.unique_digest).toBeNull(); // uniqueness is disabled, so no digest
     });
 
-    test("unique() method overrides default uniqueness (object)", async () => {
+    sidequestTest("unique() method overrides default uniqueness (object)", async ({ backend }) => {
       const defaults = { uniqueness: false as const };
-      const jobData = await new JobBuilder(DummyJob, defaults).unique({ withArgs: true, period: "minute" }).enqueue();
+      const jobData = await new JobBuilder(backend, DummyJob, defaults)
+        .unique({ withArgs: true, period: "minute" })
+        .enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
   });

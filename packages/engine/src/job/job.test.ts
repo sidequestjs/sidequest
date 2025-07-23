@@ -1,44 +1,37 @@
+import { sidequestTest } from "@/tests/fixture";
 import { CompletedResult, JobState, RetryResult, SnoozeResult, UniquenessFactory } from "@sidequest/core";
-import { Engine, EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Job } from "./job";
 import { JobBuilder } from "./job-builder";
 
 describe("job.ts", () => {
-  const dbLocation = ":memory:";
-  const config: EngineConfig = {
-    backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
-  };
-
-  beforeEach(async () => {
-    await Engine.configure(config);
+  beforeEach(() => {
     vi.useFakeTimers();
   });
 
-  afterEach(async () => {
-    await Engine.close();
+  afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("should expose script and className correctly", async () => {
+  sidequestTest("should expose script and className correctly", async () => {
     const job = new DummyJob();
     await job.ready();
     expect(typeof job.script).toBe("string");
     expect(job.className).toBe("DummyJob");
   });
 
-  it("should enqueue job", async () => {
-    await new JobBuilder(DummyJob).enqueue();
-    const jobData = await Engine.getBackend()!.listJobs({
+  sidequestTest("should enqueue job", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(1);
   });
 
-  it("should enqueue job in different queue", async () => {
-    await new JobBuilder(DummyJob).queue("test-queue").enqueue();
-    const jobData = await Engine.getBackend()!.listJobs({
+  sidequestTest("should enqueue job in different queue", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).queue("test-queue").enqueue();
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
       queue: "test-queue",
     });
@@ -46,9 +39,9 @@ describe("job.ts", () => {
     expect(jobData.length).toBe(1);
   });
 
-  it("should enqueue job with timeout", async () => {
-    await new JobBuilder(DummyJob).timeout(100).enqueue();
-    const jobData = await Engine.getBackend()!.listJobs({
+  sidequestTest("should enqueue job with timeout", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).timeout(100).enqueue();
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
@@ -56,128 +49,134 @@ describe("job.ts", () => {
     expect(jobData[0].timeout).toBe(100);
   });
 
-  it("should be able to enqueue duplicated jobs", async () => {
-    await new JobBuilder(DummyJob).enqueue();
-    await new JobBuilder(DummyJob).enqueue();
-    const jobData = await Engine.getBackend()!.listJobs({
+  sidequestTest("should be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(2);
   });
 
-  it("should not be able to enqueue duplicated jobs", async () => {
-    await new JobBuilder(DummyJob).unique(true).enqueue();
-    await expect(new JobBuilder(DummyJob).unique(true).enqueue()).rejects.toThrow();
+  sidequestTest("should not be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique(true).enqueue()).rejects.toThrow();
 
-    const jobData = await Engine.getBackend()!.listJobs({
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(1);
   });
 
-  it("should not be able to enqueue duplicated jobs in the same period", async () => {
-    await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
-    await expect(new JobBuilder(DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
+  sidequestTest("should not be able to enqueue duplicated jobs in the same period", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
     vi.advanceTimersByTime(1100);
-    await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
 
-    const jobData = await Engine.getBackend()!.listJobs({
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(2);
   });
 
-  it("should not be able to enqueue duplicated jobs with different args withargs=false", async () => {
-    await new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue();
-    await expect(new JobBuilder(DummyJob).unique({ withArgs: false }).enqueue("arg1")).rejects.toThrow();
+  sidequestTest(
+    "should not be able to enqueue duplicated jobs with different args withargs=false",
+    async ({ backend }) => {
+      await new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue();
+      await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue("arg1")).rejects.toThrow();
 
-    const jobData = await Engine.getBackend()!.listJobs({
-      jobClass: DummyJob.name,
-    });
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
 
-    expect(jobData.length).toBe(1);
-  });
+      expect(jobData.length).toBe(1);
+    },
+  );
 
-  it("should be able to enqueue duplicated jobs with different args", async () => {
-    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue();
-    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1");
+  sidequestTest("should be able to enqueue duplicated jobs with different args", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue();
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
 
-    const jobData = await Engine.getBackend()!.listJobs({
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(2);
   });
 
-  it("should not be able to enqueue duplicated jobs with same args withargs=true", async () => {
-    await new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1");
-    await expect(new JobBuilder(DummyJob).unique({ withArgs: true }).enqueue("arg1")).rejects.toThrow();
+  sidequestTest("should not be able to enqueue duplicated jobs with same args withargs=true", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
+    await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1")).rejects.toThrow();
 
-    const jobData = await Engine.getBackend()!.listJobs({
+    const jobData = await backend.listJobs({
       jobClass: DummyJob.name,
     });
 
     expect(jobData.length).toBe(1);
   });
 
-  it.each([
-    [1, "waiting"],
-    [1, "running"],
-    [1, "claimed"],
-    [2, "canceled"],
-    [2, "failed"],
-    [2, "completed"],
-  ] as [number, JobState][])("should have %i jobs if first job is %s", async (expected, state) => {
-    const job1 = await new JobBuilder(DummyJob).unique(true).enqueue();
+  sidequestTest.for([
+    { expected: 1, state: "waiting" },
+    { expected: 1, state: "running" },
+    { expected: 1, state: "claimed" },
+    { expected: 2, state: "canceled" },
+    { expected: 2, state: "failed" },
+    { expected: 2, state: "completed" },
+  ] as { expected: number; state: JobState }[])(
+    "should have %i jobs if first job is %s",
+    async ({ expected, state }, { backend }) => {
+      const job1 = await new JobBuilder(backend, DummyJob).unique(true).enqueue();
 
-    const newData = { ...job1, state };
+      const newData = { ...job1, state };
 
-    const uniqueness = UniquenessFactory.create(newData.uniqueness_config!);
-    newData.unique_digest = uniqueness.digest(newData);
-    await Engine.getBackend()!.updateJob(newData);
+      const uniqueness = UniquenessFactory.create(newData.uniqueness_config!);
+      newData.unique_digest = uniqueness.digest(newData);
+      await backend.updateJob(newData);
 
-    try {
-      await new JobBuilder(DummyJob).unique(true).enqueue();
-    } catch {
-      // noop
-    }
+      try {
+        await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+      } catch {
+        // noop
+      }
 
-    const jobData = await Engine.getBackend()!.listJobs({
-      jobClass: DummyJob.name,
-    });
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
 
-    expect(jobData.length).toBe(expected);
-  });
+      expect(jobData.length).toBe(expected);
+    },
+  );
 
-  it("creates a complete transition", () => {
+  sidequestTest("creates a complete transition", () => {
     const job = new DummyJob();
     const transition = job.complete("foo bar");
     expect(transition.result).toBe("foo bar");
   });
 
-  it("creates a fail transition", () => {
+  sidequestTest("creates a fail transition", () => {
     const job = new DummyJob();
     const transition = job.fail("error");
     expect(transition.error).toEqual({ message: "error" });
   });
 
-  it("creates a retry transition", () => {
+  sidequestTest("creates a retry transition", () => {
     const job = new DummyJob();
     const transition = job.retry("reason", 1000);
     expect(transition.error).toEqual({ message: "reason" });
     expect(transition.delay).toEqual(1000);
   });
 
-  it("creates a snooze transition", () => {
+  sidequestTest("creates a snooze transition", () => {
     const job = new DummyJob();
     const transition = job.snooze(1000);
     expect(transition.delay).toBe(1000);
   });
 
-  it("fail/retry should accept an Error object", () => {
+  sidequestTest("fail/retry should accept an Error object", () => {
     const job = new DummyJob();
     const error = new Error("fail");
     expect(job.fail(error).error.message).toEqual("fail");
@@ -185,7 +184,7 @@ describe("job.ts", () => {
   });
 
   describe("perform", () => {
-    it("should return CompleteResult if run returns a value", async () => {
+    sidequestTest("should return CompleteResult if run returns a value", async () => {
       class ValueJob extends Job {
         run() {
           return "abc";
@@ -197,7 +196,7 @@ describe("job.ts", () => {
       expect(result.result).toBe("abc");
     });
 
-    it("should return the JobResult retyurne by run", async () => {
+    sidequestTest("should return the JobResult retyurne by run", async () => {
       class TransitionJob extends Job {
         run() {
           return { __is_job_transition__: true, type: "snooze" } as SnoozeResult;
@@ -208,7 +207,7 @@ describe("job.ts", () => {
       expect(result.type).toBe("snooze");
     });
 
-    it("should return RetryResult if run throws", async () => {
+    sidequestTest("should return RetryResult if run throws", async () => {
       class ErrorJob extends Job {
         run() {
           throw new Error("fail!");

@@ -1,5 +1,8 @@
+import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { JobData } from "@sidequest/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import EventEmitter from "events";
+import { beforeEach, describe, expect, vi } from "vitest";
+import { DummyJob } from "../test-jobs/dummy-job";
 import { RunnerPool } from "./runner-pool";
 
 const piscinaMockInstance = {
@@ -13,26 +16,15 @@ vi.mock("piscina", () => {
   };
 });
 
-import EventEmitter from "events";
-import { Engine, EngineConfig } from "../engine";
-import { DummyJob } from "../test-jobs/dummy-job";
-
 describe("RunnerPool", () => {
   let pool: RunnerPool;
   let jobData: JobData;
 
-  const dbLocation = ":memory:";
-  const config: EngineConfig = {
-    backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
-  };
-
-  beforeEach(async () => {
-    await Engine.configure(config);
-    const backend = Engine.getBackend();
+  beforeEach<SidequestTestFixture>(async ({ backend }) => {
     const job = new DummyJob();
     await job.ready();
 
-    jobData = await backend!.createNewJob({
+    jobData = await backend.createNewJob({
       class: job.className,
       script: job.script,
       args: [],
@@ -45,7 +37,7 @@ describe("RunnerPool", () => {
     pool = new RunnerPool(2, 4);
   });
 
-  it("should call pool.run with job data", async () => {
+  sidequestTest("should call pool.run with job data", async () => {
     const emiter = new EventEmitter();
     const result = await pool.run(jobData, emiter);
 
@@ -53,7 +45,7 @@ describe("RunnerPool", () => {
     expect(piscinaMockInstance.run).toHaveBeenCalledWith(jobData, { signal: emiter });
   });
 
-  it("should call pool.destroy", async () => {
+  sidequestTest("should call pool.destroy", async () => {
     await pool.destroy();
     expect(piscinaMockInstance.destroy).toHaveBeenCalled();
   });

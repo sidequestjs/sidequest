@@ -15,7 +15,11 @@
     "allowJs": true,
     "skipLibCheck": true,
     "types": ["vitest/globals"],
+    "paths": {
+      "@/tests/*": ["./tests/*"]
+    },
     "noEmitOnError": true
   },
+  "include": ["tests/**/*"],
   "exclude": ["**/dist/**", "**/node_modules/**"]
 }

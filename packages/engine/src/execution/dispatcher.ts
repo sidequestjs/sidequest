@@ -9,10 +9,8 @@ const sleepDelay = 100;
  * Dispatcher for managing job execution and queue polling.
  */
 export class Dispatcher {
-  private isRunning: boolean;
-  private queueManager: QueueManager;
-  private executorManager: ExecutorManager;
-  backend: Backend;
+  /** Indicates if the dispatcher is currently running */
+  private isRunning = false;
 
   /**
    * Creates a new Dispatcher.
@@ -20,12 +18,11 @@ export class Dispatcher {
    * @param queueManager The queue manager instance.
    * @param executorManager The executor manager instance.
    */
-  constructor(backend: Backend, queueManager: QueueManager, executorManager: ExecutorManager) {
-    this.isRunning = false;
-    this.queueManager = queueManager;
-    this.executorManager = executorManager;
-    this.backend = backend;
-  }
+  constructor(
+    private backend: Backend,
+    private queueManager: QueueManager,
+    private executorManager: ExecutorManager,
+  ) {}
 
   /**
    * Main loop for polling queues and dispatching jobs.
@@ -85,8 +82,8 @@ export class Dispatcher {
    * Starts the dispatcher loop.
    */
   start() {
-    this.isRunning = true;
     logger("Dispatcher").debug(`Starting dispatcher...`);
+    this.isRunning = true;
     void this.listen();
   }
 
@@ -96,25 +93,6 @@ export class Dispatcher {
    */
   async stop() {
     this.isRunning = false;
-
-    logger("Dispatcher").info(
-      `Shutting down worker... Awaiting for ${this.executorManager.totalActiveWorkers()} active jobs to finish...`,
-    );
-
-    await new Promise<void>((resolve) => {
-      const checkJobs = () => {
-        if (this.executorManager.totalActiveWorkers() === 0) {
-          logger("Dispatcher").info("All active jobs finished. Worker shutdown complete.");
-          resolve();
-        } else {
-          logger("Dispatcher").info(
-            `Waiting for ${this.executorManager.totalActiveWorkers()} active jobs to finish...`,
-          );
-          setTimeout(checkJobs, 1000);
-        }
-      };
-
-      checkJobs();
-    });
+    await this.executorManager.destroy();
   }
 }

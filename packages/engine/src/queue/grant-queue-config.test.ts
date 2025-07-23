@@ -1,32 +1,9 @@
-import { Backend } from "@sidequest/backend";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { Engine, EngineConfig } from "../engine";
+import { sidequestTest } from "@/tests/fixture";
+import { describe, expect } from "vitest";
 import { grantQueueConfig, QueueDefaults } from "./grant-queue-config";
 
 describe("grantQueueConfig", () => {
-  let backend: Backend;
-
-  beforeAll(async () => {
-    const dbLocation = ":memory:";
-    const config: EngineConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
-    await Engine.configure(config);
-  });
-
-  afterAll(async () => {
-    await Engine.close();
-  });
-
-  beforeEach(() => {
-    // Reset backend for each test
-    backend = Engine.getBackend()!;
-  });
-
-  afterEach(async () => {
-    // Cleanup after each test
-    await backend?.truncate();
-  });
-
-  it("returns creates a queue config", async () => {
+  sidequestTest("returns creates a queue config", async ({ backend }) => {
     const config = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
 
     expect(config?.id).toEqual(expect.any(Number) as number);
@@ -35,7 +12,7 @@ describe("grantQueueConfig", () => {
     expect(config?.state).toEqual("active");
   });
 
-  it("returns existing queue config", async () => {
+  sidequestTest("returns existing queue config", async ({ backend }) => {
     await grantQueueConfig(backend, { name: "default", concurrency: 7 });
 
     const config = await grantQueueConfig(backend, { name: "default" });
@@ -48,7 +25,7 @@ describe("grantQueueConfig", () => {
   });
 
   describe("defaults parameter", () => {
-    it("uses defaults when queue parameter doesn't specify values", async () => {
+    sidequestTest("uses defaults when queue parameter doesn't specify values", async ({ backend }) => {
       const defaults: QueueDefaults = {
         concurrency: 10,
         priority: 5,
@@ -63,7 +40,7 @@ describe("grantQueueConfig", () => {
       expect(config?.state).toEqual("paused");
     });
 
-    it("queue parameter overrides defaults", async () => {
+    sidequestTest("queue parameter overrides defaults", async ({ backend }) => {
       const defaults: QueueDefaults = {
         concurrency: 10,
         priority: 5,
@@ -82,7 +59,7 @@ describe("grantQueueConfig", () => {
       expect(config?.state).toEqual("active"); // overridden
     });
 
-    it("partial queue parameter overrides only specified defaults", async () => {
+    sidequestTest("partial queue parameter overrides only specified defaults", async ({ backend }) => {
       const defaults: QueueDefaults = {
         concurrency: 10,
         priority: 5,
@@ -101,7 +78,7 @@ describe("grantQueueConfig", () => {
       expect(config?.state).toEqual("paused"); // from defaults
     });
 
-    it("works without defaults parameter", async () => {
+    sidequestTest("works without defaults parameter", async ({ backend }) => {
       const config = await grantQueueConfig(backend, { name: "no-defaults", concurrency: 1 });
 
       expect(config?.name).toEqual("no-defaults");
@@ -109,7 +86,7 @@ describe("grantQueueConfig", () => {
       // Should use backend defaults for unspecified values
     });
 
-    it("empty defaults object doesn't affect queue creation", async () => {
+    sidequestTest("empty defaults object doesn't affect queue creation", async ({ backend }) => {
       const emptyDefaults: Partial<QueueDefaults> = {};
 
       const config = await grantQueueConfig(
@@ -125,7 +102,7 @@ describe("grantQueueConfig", () => {
   });
 
   describe("updating existing queue", () => {
-    it("updates existing queue when configuration differs", async () => {
+    sidequestTest("updates existing queue when configuration differs", async ({ backend }) => {
       // Create initial queue
       const initialConfig = await grantQueueConfig(backend, { name: "update-test", concurrency: 5 });
       expect(initialConfig?.concurrency).toEqual(5);
@@ -136,7 +113,7 @@ describe("grantQueueConfig", () => {
       expect(updatedConfig?.id).toEqual(initialConfig?.id); // Same queue, just updated
     });
 
-    it("updates existing queue with defaults when configuration differs", async () => {
+    sidequestTest("updates existing queue with defaults when configuration differs", async ({ backend }) => {
       const defaults: QueueDefaults = {
         concurrency: 20,
         priority: 3,
@@ -160,7 +137,7 @@ describe("grantQueueConfig", () => {
       expect(updatedConfig?.id).toEqual(initialConfig?.id); // Same queue
     });
 
-    it("doesn't update when existing configuration matches", async () => {
+    sidequestTest("doesn't update when existing configuration matches", async ({ backend }) => {
       // Create initial queue
       const initialConfig = await grantQueueConfig(backend, {
         name: "no-update-test",

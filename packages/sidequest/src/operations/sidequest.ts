@@ -30,6 +30,18 @@ export type SidequestConfig = EngineConfig & {
  */
 export class Sidequest {
   /**
+   * Static reference to the Engine instance used by Sidequest.
+   * This allows access to the underlying engine for advanced operations.
+   */
+  private static engine = new Engine();
+
+  /**
+   * Static reference to the SidequestDashboard instance.
+   * This provides access to the dashboard for monitoring and managing jobs and queues.
+   */
+  private static dashboard = new SidequestDashboard();
+
+  /**
    * Provides access to the singleton QueueOperations instance for managing queues.
    *
    * @example
@@ -45,7 +57,7 @@ export class Sidequest {
    *
    * @example
    * ```typescript
-   * const jobBuilder = Sidequest.job.build(MyJobClass);
+   * const jobData = Sidequest.job.get(jobId);
    * ```
    */
   static readonly job = JobOperations.instance;
@@ -66,7 +78,10 @@ export class Sidequest {
    * ```
    */
   static async configure(config?: EngineConfig) {
-    await Engine.configure(config);
+    const _config = await this.engine.configure(config);
+    this.job.setBackend(this.engine.getBackend()!);
+    this.queue.setBackend(this.engine.getBackend()!);
+    return _config;
   }
 
   /**
@@ -89,13 +104,18 @@ export class Sidequest {
    * ```
    */
   static async start(config?: SidequestConfig) {
-    const engineConfig = await Engine.configure(config);
+    const engineConfig = await this.configure(config);
 
-    const engine = Engine.start(engineConfig);
-    const dashboard = SidequestDashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
+    const engine = this.engine.start(engineConfig);
+    const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
 
     await engine;
     await dashboard;
+  }
+
+  static async stop() {
+    await this.engine.close();
+    this.dashboard.close();
   }
 
   /**
@@ -105,6 +125,17 @@ export class Sidequest {
    * @returns a JobBuilder that can be used to chain parameters and other job configurations.
    */
   static build<T extends JobClassType>(JobClass: T) {
-    return this.job.build(JobClass);
+    return this.engine.build(JobClass);
+  }
+
+  /**
+   * Gets the backend instance from the Sidequest engine.
+   * This is useful for advanced operations that require direct access to the backend.
+   *
+   * @returns The backend instance.
+   * @throws Error if the engine is not configured.
+   */
+  static getBackend() {
+    return this.engine.getBackend();
   }
 }

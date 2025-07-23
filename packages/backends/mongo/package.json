@@ -7,9 +7,9 @@
   "module": "./dist/mongo-backend.js",
   "types": "./dist/mongo-backend.d.ts",
   "exports": {
+    "types": "./dist/mongo-backend.d.ts",
     "import": "./dist/mongo-backend.js",
-    "require": "./dist/mongo-backend.cjs",
-    "types": "./dist/mongo-backend.d.ts"
+    "require": "./dist/mongo-backend.cjs"
   },
   "scripts": {
     "build": "npx rollup -c",

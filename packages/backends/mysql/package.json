@@ -7,9 +7,9 @@
   "module": "./dist/mysql-backend.js",
   "types": "./dist/mysql-backend.d.ts",
   "exports": {
+    "types": "./dist/mysql-backend.d.ts",
     "import": "./dist/mysql-backend.js",
-    "require": "./dist/mysql-backend.cjs",
-    "types": "./dist/mysql-backend.d.ts"
+    "require": "./dist/mysql-backend.cjs"
   },
   "scripts": {
     "build": "npx rollup -c",

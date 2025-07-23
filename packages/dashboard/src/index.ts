@@ -3,6 +3,7 @@ import express from "express";
 import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import morgan from "morgan";
+import { Server } from "node:http";
 import path from "node:path";
 import { initBackend } from "./backend-driver";
 import { DashboardConfig } from "./config";
@@ -11,8 +12,16 @@ import jobsRouter from "./resources/jobs";
 import queuesRouter from "./resources/queues";
 
 export class SidequestDashboard {
-  static async start(config?: DashboardConfig) {
-    const _config = {
+  private app: express.Express;
+  private config?: DashboardConfig;
+  private server?: Server;
+
+  constructor() {
+    this.app = express();
+  }
+
+  async start(config?: DashboardConfig) {
+    this.config = {
       enabled: true,
       backendConfig: {
         driver: "@sidequest/sqlite-backend",
@@ -21,37 +30,35 @@ export class SidequestDashboard {
       ...config,
     };
 
-    if (!_config.enabled) {
+    if (!this.config.enabled) {
       logger("Dashboard").debug(`Dashboard is disabled`);
       return;
     }
 
-    await initBackend(_config.backendConfig);
+    await initBackend(this.config.backendConfig!);
 
-    const app = express();
+    this.setupMiddlewares();
+    this.setupAuth();
+    this.setupEJS();
+    this.setupRoutes();
 
-    this.setupMiddlewares(app);
-    this.setupAuth(app, _config);
-    this.setupEJS(app);
-    this.setupRoutes(app);
-
-    this.listen(app, _config);
+    this.listen();
   }
 
-  static setupMiddlewares(app: express.Express) {
+  setupMiddlewares() {
     logger("Dashboard").debug(`Setting up Middlewares`);
     if (logger().isDebugEnabled()) {
-      app.use(morgan("combined"));
+      this.app?.use(morgan("combined"));
     }
   }
 
-  static setupAuth(app: express.Express, config?: DashboardConfig) {
+  setupAuth(config?: DashboardConfig) {
     if (config?.auth) {
       const auth = config.auth;
       logger("Dashboard").debug(`Basic auth setup with User: ${auth.user}`);
       const users = {};
       users[auth.user] = auth.password;
-      app.use(
+      this.app?.use(
         basicAuth({
           users: users,
           challenge: true,
@@ -60,32 +67,40 @@ export class SidequestDashboard {
     }
   }
 
-  static setupEJS(app: express.Express) {
+  setupEJS() {
     logger("Dashboard").debug(`Setting up EJS`);
-    app.use(expressLayouts);
-    app.set("view engine", "ejs");
-    app.set("views", path.join(import.meta.dirname, "views"));
-    app.set("layout", path.join(import.meta.dirname, "views", "layout"));
-    app.use("/public", express.static(path.join(import.meta.dirname, "public")));
+    this.app?.use(expressLayouts);
+    this.app?.set("view engine", "ejs");
+    this.app?.set("views", path.join(import.meta.dirname, "views"));
+    this.app?.set("layout", path.join(import.meta.dirname, "views", "layout"));
+    this.app?.use("/public", express.static(path.join(import.meta.dirname, "public")));
   }
 
-  static setupRoutes(app: express.Express) {
+  setupRoutes() {
     logger("Dashboard").debug(`Setting up routes`);
-    app.use("/", dashboardRouter);
-    app.use("/jobs", jobsRouter);
-    app.use("/queues", queuesRouter);
+    this.app?.use("/", dashboardRouter);
+    this.app?.use("/jobs", jobsRouter);
+    this.app?.use("/queues", queuesRouter);
   }
 
-  static listen(app: express.Express, config: DashboardConfig) {
-    const port = config.port!;
+  listen() {
+    const port = this.config?.port ?? 8678;
     logger("Dashboard").debug(`Starting Dashboard with port ${port}`);
-    app.listen(port, (error) => {
+    this.server = this.app?.listen(port, (error) => {
       if (error) {
         logger("Dashboard").error("Failed to start Sidequest Dashboard!", error);
       } else {
         logger("Dashboard").info(`Server running on http://localhost:${port}`);
       }
     });
+  }
+
+  close() {
+    this.server?.close(() => {
+      logger("Dashboard").info("Sidequest Dashboard stopped");
+    });
+    this.server = undefined;
+    this.config = undefined;
   }
 }
 

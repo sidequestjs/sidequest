@@ -1,6 +1,6 @@
 import { Backend, JobCounts, NewJobData, UpdateJobData } from "@sidequest/backend";
 import { CancelTransition, JobData, JobState, RerunTransition, SnoozeTransition } from "@sidequest/core";
-import { Engine, JobClassType, JobTransitioner } from "@sidequest/engine";
+import { JobTransitioner } from "@sidequest/engine";
 
 /**
  * Entry point for managing jobs in Sidequest.
@@ -9,6 +9,13 @@ import { Engine, JobClassType, JobTransitioner } from "@sidequest/engine";
  * job building, state management, querying, and administrative tasks.
  */
 export class JobOperations {
+  /**
+   * Backend instance from the Sidequest engine.
+   * @returns The backend instance.
+   * @throws Error if the engine is not configured.
+   */
+  private backend: Backend | undefined;
+
   /**
    * Singleton instance of JobOperations.
    * This allows for easy access to job management methods without needing to instantiate the class.
@@ -24,26 +31,25 @@ export class JobOperations {
   }
 
   /**
+   * Sets the backend instance for the JobOperations.
+   * This is typically called by the Sidequest engine during configuration.
+   *
+   * @param backend - The backend instance to set
+   */
+  public setBackend(backend: Backend) {
+    this.backend = backend;
+  }
+
+  /**
    * Gets the backend instance from the engine.
    * @returns The backend instance.
    * @throws Error if the engine is not configured.
    */
   private getBackend(): Backend {
-    const backend = Engine.getBackend();
-    if (!backend) {
+    if (!this.backend) {
       throw new Error("Engine not configured. Call Sidequest.configure() or Sidequest.start() first.");
     }
-    return backend;
-  }
-
-  /**
-   * Builds a job class using a JobBuilder.
-   *
-   * @param JobClass The job class constructor.
-   * @returns a JobBuilder that can be used to chain parameters and other job configurations.
-   */
-  build<T extends JobClassType>(JobClass: T) {
-    return Engine.build(JobClass);
+    return this.backend;
   }
 
   /**
@@ -152,7 +158,7 @@ export class JobOperations {
       throw new Error(`Job with ID ${jobId} not found`);
     }
 
-    return await JobTransitioner.apply(job, new CancelTransition());
+    return await JobTransitioner.apply(backend, job, new CancelTransition());
   }
 
   /**
@@ -182,10 +188,10 @@ export class JobOperations {
 
     if (force) {
       // Use RerunTransition to force a new run, regardless of current state and attempts
-      return await JobTransitioner.apply(job, new RerunTransition());
+      return await JobTransitioner.apply(backend, job, new RerunTransition());
     } else {
       // Simple run - just update available_at to make it available immediately
-      return await JobTransitioner.apply(job, new SnoozeTransition(0));
+      return await JobTransitioner.apply(backend, job, new SnoozeTransition(0));
     }
   }
 
@@ -214,7 +220,7 @@ export class JobOperations {
       throw new Error(`Job with ID ${jobId} not found`);
     }
 
-    return await JobTransitioner.apply(job, new SnoozeTransition(delayMs));
+    return await JobTransitioner.apply(backend, job, new SnoozeTransition(delayMs));
   }
 
   /**
