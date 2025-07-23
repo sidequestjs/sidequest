@@ -5,21 +5,21 @@ import { fork } from "child_process";
 const executorPath = path.resolve(__dirname, 'executor.js');
 
 async function run(sidequestConfig: SidequestConfig){
-  Sidequest.configure(sidequestConfig);
+  await Sidequest.configure(sidequestConfig);
 
   const activeJobsPerQueue: Record<string, Set<ReturnType<typeof fork>>> = {};
   
   const heartBeat = async () => {
     try{
       const backend = Sidequest.getBackend();
-      const queueNames = await backend.getQueuesNames();
+      const queueNames = await backend.getQueuesFromJobs();
 
       for(let queue of queueNames){
         if (!activeJobsPerQueue[queue]) {
           activeJobsPerQueue[queue] = new Set();
         }
         const activeJobs = activeJobsPerQueue[queue];
-        const queueConfig = Sidequest.getQueueConfig(queue);
+        const queueConfig = await Sidequest.getQueueConfig(queue);
         const limit = queueConfig.concurrency || 10;
 
         if(activeJobs.size >= limit){

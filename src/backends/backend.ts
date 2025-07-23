@@ -1,3 +1,4 @@
+import { QueueConfig } from "../sidequest";
 import { Job } from "../core/job";
 
 export interface Backend {
@@ -7,6 +8,7 @@ export interface Backend {
   insertJob(job: Job, args: any[]): void | Promise<void>;
   claimPendingJob(queue: string, quatity?: number): Promise<Job[]>;
 
-  getQueuesNames(): string[] | Promise<string[]>;
+  getQueuesFromJobs(): string[] | Promise<string[]>;
+  getQueueConfig(queue: string, fallback?: QueueConfig): QueueConfig | Promise<QueueConfig>;
   updateJob(job: Job): Promise<Job>;
 }

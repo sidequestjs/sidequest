@@ -2,8 +2,8 @@ import { Sidequest, SidequestConfig } from "../sidequest";
 import { Job } from "../core/job";
 
 export async function execute(jobData: Job, config: SidequestConfig): Promise<void> {
-    Sidequest.configure(config);
-    const backend= Sidequest.getBackend();
+    await Sidequest.configure(config);
+    const backend = Sidequest.getBackend();
     const script = await import(jobData.script);
     const JobClass = script[jobData.class];
     const args = jobData.args || [];

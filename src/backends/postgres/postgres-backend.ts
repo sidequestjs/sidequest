@@ -4,6 +4,7 @@ import path from "path";
 import { Job } from "../../core/job";
 
 import os from 'os';
+import { QueueConfig } from "src/sidequest";
 
 export class PostgresBackend implements Backend{
   knex: Knex<any, unknown[]>;
@@ -20,7 +21,23 @@ export class PostgresBackend implements Backend{
     });
   }
 
-  async getQueuesNames(): Promise<string[]> {
+  async getQueueConfig(queue: string, fallback?: QueueConfig): Promise<QueueConfig> {
+    const config = await this.knex('sidequest_queues').where({queue: queue}).first();
+    if(config) return config;
+
+    const defaultOptions  = {
+      queue: queue,
+      concurrency: 10,
+      state: 'active'
+    }
+    
+    const configData = Object.assign(defaultOptions, fallback);
+    
+    const newConfig = await this.knex('sidequest_queues').insert(configData).returning('*');
+    return newConfig[0];
+  }
+
+  async getQueuesFromJobs(): Promise<string[]> {
     const queues = await this.knex('sidequest_jobs').select('queue').distinct();
     return queues.map(q => q.queue);
   }

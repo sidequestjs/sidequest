@@ -10,9 +10,12 @@ let _config: SidequestConfig;
 
 let _mainWorker: ChildProcess | undefined;
 
+export type QueueState = 'active' | 'paused';
+
 export type QueueConfig = {
-  concurrency?: number,
-  globalConcurrency?: number
+  queue: string,
+  concurrency: number,
+  state: string,
 }
 
 export type SidequestConfig = {
@@ -20,16 +23,20 @@ export type SidequestConfig = {
   queues: Map<string, QueueConfig>
 }
 
-export class Sidequest {
-  static configure(config: SidequestConfig){
+export  class Sidequest {
+  static async configure(config: SidequestConfig){
     _config = config;
     _backend = new PostgresBackend({ connection: config.backend_url });
+    await _backend.setup();
+    for(let queue of Object.keys(config.queues)){
+      await _backend.getQueueConfig(queue, config.queues[queue]);
+    }
   }
 
-  static start(config: SidequestConfig): Promise<void>{
-    Sidequest.configure(config);
+  static async start(config: SidequestConfig): Promise<void>{
+    await Sidequest.configure(config);
+    
     return new Promise(async (resolve, reject) => {
-      await _backend.setup();
       const timeout = setTimeout(()=> {
         reject(new Error('timeout on starting sidequest fork!'))
       }, 5000);
@@ -60,15 +67,8 @@ export class Sidequest {
     return _backend;
   }
 
-  static getQueueConfig(queue: string): QueueConfig {
-    const config = _config.queues[queue];
-    if(config){
-      return config;
-    }
-
-    return {
-      concurrency: 10
-    }
+  static async getQueueConfig(queue: string): Promise<QueueConfig> {
+    return _backend.getQueueConfig(queue);
   }
 }
 

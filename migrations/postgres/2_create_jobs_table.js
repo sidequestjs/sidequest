@@ -3,7 +3,7 @@ exports.up = async function(knex) {
     table.bigIncrements('id').primary();
     table.string('queue').notNullable().index();
 
-    table.string('state').notNullable().defaultTo('pending');  // 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+    table.string('state').notNullable().defaultTo('pending');
     table.string('script').notNullable();
     table.string('class').notNullable();
     table.jsonb('args').notNullable();
