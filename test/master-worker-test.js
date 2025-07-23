@@ -121,6 +121,11 @@ describe('MasterWorker', () => {
                 done();
             }
         });
+    });
 
+    it('should generate schedulers with totalSchedulers setted', () => {
+        masterWorker.terminate();
+        masterWorker = new MasterWorker({totalSchedulers: 2});
+        assert.lengthOf(masterWorker.schedulers(), 2);
     });
 });

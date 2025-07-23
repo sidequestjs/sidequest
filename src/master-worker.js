@@ -10,10 +10,10 @@ const defaultMaxSchedulers = os.cpus().length;
  * MasterWorker is the responsable to manage all the schedulers, 
  * it register the tasks and delegate the executions to the workers
  */
-function MasterWorker () {
+function MasterWorker (config) {
     let schedulers = [];
     let usedSchedulers = [];
-    let maxSchedulers = defaultMaxSchedulers;
+    let maxSchedulers = (config && config.totalSchedulers) || defaultMaxSchedulers;
     let currentWorkers = [];
 
     // events setup 

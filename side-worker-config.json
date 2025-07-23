@@ -1,4 +1,5 @@
 {
+    "totalSchedulers": 2,
     "tasks": [
         {
             "name": "Dummy Task",
