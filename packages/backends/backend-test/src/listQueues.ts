@@ -28,5 +28,56 @@ export default function defineListQueuesTestSuite() {
       expect(queues[0].name).toBe("default2");
       expect(queues[1].name).toBe("default");
     });
+
+    it("should list queues in ascending priority order", async () => {
+      await backend.insertQueueConfig({
+        name: "asc1",
+        concurrency: 10,
+        priority: 1,
+        state: "active",
+      });
+      await backend.insertQueueConfig({
+        name: "asc2",
+        concurrency: 10,
+        priority: 2,
+        state: "active",
+      });
+      const queues = await backend.listQueues({ column: "priority", order: "asc" });
+      expect(queues[0].priority).toBeLessThanOrEqual(queues[1].priority);
+    });
+
+    it("should list queues in descending concurrency order", async () => {
+      await backend.insertQueueConfig({
+        name: "con1",
+        concurrency: 5,
+        priority: 1,
+        state: "active",
+      });
+      await backend.insertQueueConfig({
+        name: "con2",
+        concurrency: 20,
+        priority: 2,
+        state: "active",
+      });
+      const queues = await backend.listQueues({ column: "concurrency", order: "desc" });
+      expect(queues[0].concurrency).toBeGreaterThanOrEqual(queues[1].concurrency);
+    });
+
+    it("should list queues in ascending name order", async () => {
+      await backend.insertQueueConfig({
+        name: "bqueue",
+        concurrency: 1,
+        priority: 1,
+        state: "active",
+      });
+      await backend.insertQueueConfig({
+        name: "aqueue",
+        concurrency: 1,
+        priority: 2,
+        state: "active",
+      });
+      const queues = await backend.listQueues({ column: "name", order: "asc" });
+      expect(queues[0].name < queues[1].name).toBe(true);
+    });
   });
 }

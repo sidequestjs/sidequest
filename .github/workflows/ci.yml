@@ -42,9 +42,7 @@ jobs:
         uses: threeal/setup-yarn-action@v2.0.0
         with:
           version: berry
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          cache: false
 
       - name: Build project
         run: yarn build

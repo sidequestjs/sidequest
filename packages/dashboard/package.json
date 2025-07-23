@@ -12,11 +12,12 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "dev": "npx rollup -c -w"
+    "dev": "npx rollup -c -w & tsx watch --include 'dist/**/*' --clear-screen=false src/devserver.ts"
   },
   "license": "ISC",
   "dependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
+    "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
     "daisyui": "^5.0.43",
@@ -29,6 +30,7 @@
   },
   "packageManager": "yarn@4.9.2",
   "devDependencies": {
-    "@types/feather-icons": "^4"
+    "@types/feather-icons": "^4",
+    "tsx": "^4.20.3"
   }
 }

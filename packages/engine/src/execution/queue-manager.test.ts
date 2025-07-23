@@ -24,7 +24,7 @@ describe("QueueManager", () => {
     const queues = await new QueueManager(
       { queues: [{ name: "default" }] },
       Engine.getBackend()!,
-    ).getQueuesWithRunnableJobs();
+    ).getActiveQueuesWithRunnableJobs();
     expect(queues).toHaveLength(1);
     expect(queues[0].name).toEqual("new");
   });
@@ -36,7 +36,7 @@ describe("QueueManager", () => {
     const queues = await new QueueManager(
       { queues: [{ name: "default" }] },
       Engine.getBackend()!,
-    ).getQueuesWithRunnableJobs();
+    ).getActiveQueuesWithRunnableJobs();
     expect(queues).toHaveLength(1);
     expect(queues[0].name).toEqual("default");
     expect(queues[0].concurrency).toEqual(16);
@@ -52,8 +52,24 @@ describe("QueueManager", () => {
     const queues = await new QueueManager(
       { queues: [{ name: "default" }] },
       Engine.getBackend()!,
-    ).getQueuesWithRunnableJobs();
+    ).getActiveQueuesWithRunnableJobs();
     expect(queues).toHaveLength(2);
+    expect(queues[0].name).toEqual("high");
+    expect(queues[0].priority).toEqual(10);
+  });
+
+  it("should only get active queues", async () => {
+    await grantQueueConfig("default", { name: "default", priority: 100, state: "paused" });
+    await grantQueueConfig("high", { name: "high", priority: 10 });
+
+    await Engine.build(DummyJob).queue("default").enqueue();
+    await Engine.build(DummyJob).queue("high").enqueue();
+
+    const queues = await new QueueManager(
+      { queues: [{ name: "default" }] },
+      Engine.getBackend()!,
+    ).getActiveQueuesWithRunnableJobs();
+    expect(queues).toHaveLength(1);
     expect(queues[0].name).toEqual("high");
     expect(queues[0].priority).toEqual(10);
   });

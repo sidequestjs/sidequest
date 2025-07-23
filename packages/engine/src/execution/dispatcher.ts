@@ -20,7 +20,7 @@ export class Dispatcher {
 
   private async listen() {
     while (this.isRunning) {
-      const queues = await this.queueManager.getQueuesWithRunnableJobs();
+      const queues = await this.queueManager.getActiveQueuesWithRunnableJobs();
 
       let shouldSleep = true;
 

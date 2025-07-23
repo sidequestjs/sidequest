@@ -1,0 +1,45 @@
+<table id="queues-table" class="table rounded-lg" hx-get="/queues" hx-swap="outerHTML" hx-trigger="every 3s">
+  <thead class="bg-neutral text-neutral-content">
+    <tr>
+      <th>Queue</th>
+      <th>State</th>
+      <th>Concurrency</th>
+      <th>Priority</th>
+      <th>Jobs</th>
+      <th>Jobs Waiting</th>
+      <th>Jobs Running</th>
+      <th>Jobs Completed</th>
+      <th>Jobs Failed</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% queues.forEach(queue => { %>
+    <tr class="hover:bg-base-300">
+      <td class="font-mono"><%= queue.name %></td>
+      <td>
+        <span class="badge px-3 py-1 <%= {
+            active: 'badge-success',
+            paused: 'badge-warning',
+            disabled: 'badge-error'
+          }[queue.state] || 'badge-neutral' %>">
+          <%= queue.state %>
+        </span>
+      </td>
+      <td><%= queue.concurrency %></td>
+      <td><%= queue.priority %></td>
+      <td><%= queue.jobs.length %></td>
+      <td><%= queue.jobs.filter(job => job.state === "waiting").length %></td>
+      <td><%= queue.jobs.filter(job => job.state === "running").length %></td>
+      <td><%= queue.jobs.filter(job => job.state === "completed").length %></td>
+      <td><%= queue.jobs.filter(job => job.state === "failed").length %></td>
+      <td>
+        <button class="btn btn-outline <%= queue.state==="active" ? "btn-warning" : "btn-primary" %>"
+          hx-patch="/queues/<%= queue.name %>/toggle" hx-target="#queues-table" hx-swap="outerHTML">
+          <%= queue.state==="active" ? "Pause" : "Activate" %>
+        </button>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
