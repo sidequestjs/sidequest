@@ -8,6 +8,7 @@ describe("FailTransition", () => {
       queue: "default",
       script: "./dummy-script.js",
       class: "DummyClass",
+      state: "running",
       args: [],
       constructor_args: [],
       attempt: 1,

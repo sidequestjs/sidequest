@@ -1,6 +1,12 @@
-import { CompleteTransition, FailTransition, JobState, RetryTransition, SnoozeTransition } from "@sidequest/core";
+import {
+  CompleteTransition,
+  FailTransition,
+  JobState,
+  RetryTransition,
+  SnoozeTransition,
+  UniquenessFactory,
+} from "@sidequest/core";
 import { unlink } from "fs";
-import { DefaultDeduplicationStrategy } from "../deduplication/default";
 import { Engine, Job, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
@@ -60,7 +66,7 @@ describe("job.ts", () => {
 
   it("should be able to enqueue duplicated jobs", async () => {
     await new JobBuilder(DummyJob).enqueue();
-    await new JobBuilder(DummyJob).unique(false).enqueue();
+    await new JobBuilder(DummyJob).enqueue();
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
     });
@@ -80,8 +86,10 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs with different args withargs=false", async () => {
-    await new JobBuilder(DummyJob).unique(true).enqueue();
-    await expect(new JobBuilder(DummyJob).unique(true).enqueue("arg1")).rejects.toThrow();
+    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: false }).enqueue();
+    await expect(
+      new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: false }).enqueue("arg1"),
+    ).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
@@ -91,8 +99,8 @@ describe("job.ts", () => {
   });
 
   it("should be able to enqueue duplicated jobs with different args", async () => {
-    await new JobBuilder(DummyJob).enqueue();
-    await new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1");
+    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue();
+    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1");
 
     const jobData = await Engine.getBackend()!.listJobs({
       jobClass: DummyJob.name,
@@ -102,9 +110,9 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs with same args withargs=true", async () => {
-    await new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1");
+    await new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1");
     await expect(
-      new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1"),
+      new JobBuilder(DummyJob).unique({ type: "alive-job", withArgs: true }).enqueue("arg1"),
     ).rejects.toThrow();
 
     const jobData = await Engine.getBackend()!.listJobs({
@@ -124,7 +132,11 @@ describe("job.ts", () => {
   ] as [number, JobState][])("should have %i jobs if first job is %s", async (expected, state) => {
     const job1 = await new JobBuilder(DummyJob).unique(true).enqueue();
 
-    await Engine.getBackend()!.updateJob({ ...job1, state });
+    const newData = { ...job1, state };
+
+    const uniqueness = UniquenessFactory.create(newData.uniqueness_config!);
+    newData.unique_digest = uniqueness.digest(newData);
+    await Engine.getBackend()!.updateJob(newData);
 
     try {
       await new JobBuilder(DummyJob).unique(true).enqueue();

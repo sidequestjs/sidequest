@@ -68,6 +68,7 @@ export default class SqliteBackend implements Backend {
         constructor_args: safeParse(job.constructor_args),
         result: safeParse(job.result),
         errors: safeParse(job.errors),
+        uniqueness_config: safeParse(job.uniqueness_config),
       } as JobData;
     } catch (error: unknown) {
       if (
@@ -115,6 +116,7 @@ export default class SqliteBackend implements Backend {
         args: safeParse(job.args),
         result: safeParse(job.result),
         errors: safeParse(job.errors),
+        uniqueness_config: safeParse(job.uniqueness_config),
       })) as JobData[];
     });
   }
@@ -140,6 +142,7 @@ export default class SqliteBackend implements Backend {
       args: safeParse(updated.args),
       result: safeParse(updated.result),
       errors: safeParse(updated.errors),
+      uniqueness_config: safeParse(job.uniqueness_config),
     } as JobData;
   }
 
@@ -187,6 +190,7 @@ export default class SqliteBackend implements Backend {
       constructor_args: safeParse(job.constructor_args),
       result: safeParse(job.result),
       errors: safeParse(job.errors),
+      uniqueness_config: safeParse(job.uniqueness_config),
     })) as JobData[];
   }
 
@@ -228,6 +232,7 @@ export default class SqliteBackend implements Backend {
       constructor_args: safeParse(job.constructor_args),
       result: safeParse(job.result),
       errors: safeParse(job.errors),
+      uniqueness_config: safeParse(job.uniqueness_config),
     })) as JobData[];
   }
 

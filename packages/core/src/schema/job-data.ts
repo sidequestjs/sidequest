@@ -1,3 +1,4 @@
+import { UniquenessConfig } from "../uniquiness";
 import { ErrorData } from "./error-data";
 
 export type JobState =
@@ -11,7 +12,7 @@ export type JobState =
 export interface JobData {
   id?: number;
   queue: string;
-  state?: JobState;
+  state: JobState;
   script: string;
   class: string;
   args: unknown[];
@@ -29,5 +30,6 @@ export interface JobData {
   cancelled_at?: Date;
   claimed_at?: Date;
   claimed_by?: string;
-  unique_digest?: string;
+  unique_digest?: string | null;
+  uniqueness_config?: UniquenessConfig | null;
 }

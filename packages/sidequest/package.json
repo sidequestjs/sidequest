@@ -9,6 +9,7 @@
     "dev": "rollup -c -w"
   },
   "dependencies": {
+    "@sidequest/core": "workspace:*",
     "@sidequest/dashboard": "workspace:*",
     "@sidequest/engine": "workspace:*"
   }

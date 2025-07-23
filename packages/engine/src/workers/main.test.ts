@@ -117,6 +117,7 @@ describe("main.ts", () => {
         new DuplicatedJobError({
           class: "class",
           constructor_args: [],
+          state: "waiting",
           args: [],
           queue: "default",
           script: "",

@@ -1,21 +1,18 @@
-import { JobData } from "@sidequest/core";
-import { DefaultDeduplicationStrategy } from "../deduplication/default";
+import { AliveJobConfig, FixedWindowConfig, JobData, UniquenessConfig, UniquenessFactory } from "@sidequest/core";
 import { Engine } from "../engine";
 import { JobClassType } from "./job";
+
 export class JobBuilder<T extends JobClassType> {
   private JobClass: T;
   private constructorArgs: ConstructorParameters<T>;
   private queueName: string;
   private jobTimeout?: number;
-  private uniqueJob: boolean;
-  private deduplicationStrategy: DefaultDeduplicationStrategy;
+  private uniquenessConfig?: UniquenessConfig;
 
   constructor(JobClass: T) {
     this.JobClass = JobClass;
     this.constructorArgs = [] as unknown[] as ConstructorParameters<T>;
     this.queueName = "default";
-    this.uniqueJob = false;
-    this.deduplicationStrategy = new DefaultDeduplicationStrategy();
   }
 
   with(...args: ConstructorParameters<T>): this {
@@ -33,13 +30,18 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
-  unique(value = false): this {
-    this.uniqueJob = value;
-    return this;
-  }
-
-  deduplication(strategy: DefaultDeduplicationStrategy): this {
-    this.deduplicationStrategy = strategy;
+  unique(value: boolean | AliveJobConfig | FixedWindowConfig): this {
+    if (typeof value === "boolean") {
+      if (value) {
+        const config: AliveJobConfig = {
+          type: "alive-job",
+          withArgs: false,
+        };
+        this.uniquenessConfig = config;
+      }
+    } else {
+      this.uniquenessConfig = value;
+    }
     return this;
   }
 
@@ -57,15 +59,19 @@ export class JobBuilder<T extends JobClassType> {
       queue: this.queueName,
       script: job.script,
       class: job.className,
+      state: "waiting",
       args: args,
       constructor_args: this.constructorArgs,
       attempt: 0,
       max_attempts: 5,
       timeout: this.jobTimeout,
-      unique_digest: this.uniqueJob
-        ? this.deduplicationStrategy.getDigest(this.JobClass, this.constructorArgs, args)
-        : undefined,
+      uniqueness_config: this.uniquenessConfig,
     };
+
+    if (this.uniquenessConfig) {
+      const uniqueness = UniquenessFactory.create(this.uniquenessConfig);
+      jobData.unique_digest = uniqueness.digest(jobData);
+    }
 
     return backend.insertJob(jobData);
   }

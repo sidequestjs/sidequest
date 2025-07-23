@@ -6,6 +6,7 @@ describe("SnoozeTransition", () => {
   beforeEach(() => {
     jobData = {
       queue: "default",
+      state: "running",
       script: "./dummy-script.js",
       class: "DummyClass",
       args: [],

@@ -25,14 +25,14 @@ exports.up = async function(knex) {
     table.string('claimed_by').nullable();
     table.timestamp('claimed_at').nullable();
 
-    table.string('unique_digest').nullable()
+    table.string('unique_digest').nullable();
+    table.jsonb('uniqueness_config').nullable();
   });
 
   await knex.raw(`
     CREATE UNIQUE INDEX sidequest_jobs_unique_digest_active_idx
       ON sidequest_jobs (unique_digest)
-      WHERE unique_digest IS NOT NULL
-        AND state IN ('waiting', 'claimed', 'running');
+      WHERE unique_digest IS NOT NULL;
   `);
 };
 

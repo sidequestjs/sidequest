@@ -18,6 +18,7 @@ describe("JobTransitioner", () => {
       queue: "default",
       script: "./dummy-script.js",
       class: "DummyClass",
+      state: "waiting",
       args: [],
       constructor_args: [],
       attempt: 1,

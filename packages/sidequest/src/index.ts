@@ -1,6 +1,7 @@
 import { DashboardConfig, SidequestDashboard } from "@sidequest/dashboard";
 import { Engine, JobClassType, SidequestConfig } from "@sidequest/engine";
 
+export * from "@sidequest/core";
 export * from "@sidequest/engine";
 
 export class Sidequest {

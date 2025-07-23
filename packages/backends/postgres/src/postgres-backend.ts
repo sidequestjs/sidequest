@@ -41,6 +41,7 @@ export default class PostgresBackend implements Backend {
       ...job,
       args: this.knex.raw("?", [JSON.stringify(job.args)]),
       constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
+      uniqueness_config: this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]),
       timeout: job.timeout,
       state: job.state,
     };
@@ -110,11 +111,13 @@ export default class PostgresBackend implements Backend {
       cancelled_at: job.cancelled_at,
       claimed_at: job.claimed_at,
       claimed_by: job.claimed_by,
+      unique_digest: job.unique_digest,
     };
 
     if (job.args) data.args = this.knex.raw("?", [JSON.stringify(job.args)]);
     if (job.result) data.result = this.knex.raw("?", JSON.stringify(job.result));
     if (job.errors && job.errors.length > 0) data.errors = job.errors;
+    if (job.uniqueness_config) data.uniqueness_config = this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]);
 
     const updated = await this.knex("sidequest_jobs").update(data).where({ id: job.id }).returning("*");
 

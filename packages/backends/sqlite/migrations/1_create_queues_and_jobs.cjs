@@ -29,13 +29,13 @@ exports.up = async function(knex) {
       table.integer('max_attempts');
       table.integer('timeout').nullable();
       table.string('unique_digest').nullable();
+      table.text('uniqueness_config').nullable();
     });
 
     await knex.raw(`
       CREATE UNIQUE INDEX sidequest_jobs_unique_digest_active_idx
         ON sidequest_jobs (unique_digest)
-        WHERE unique_digest IS NOT NULL
-          AND state IN ('waiting', 'claimed', 'running');
+        WHERE unique_digest IS NOT NULL;
     `);
 };
 
