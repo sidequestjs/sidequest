@@ -18,7 +18,7 @@ export async function grantQueueConfig(queue: string, config?: NewQueueData) {
     name: queue,
   };
 
-  logger().info(`creating queue config for ${queue}`);
+  logger("Engine").info(`Creating queue config for ${queue}`);
 
   return backend?.insertQueueConfig(newConfig);
 }

@@ -2,6 +2,7 @@ import { Uniqueness } from "./uniqueness";
 
 import crypto from "crypto";
 import { stringify } from "safe-stable-stringify";
+import { logger } from "../logger";
 import { JobData, JobState } from "../schema";
 
 const aliveStates: JobState[] = ["waiting", "claimed", "running"];
@@ -32,15 +33,18 @@ export class AliveJobUniqueness implements Uniqueness {
    * @returns The digest string or null if not alive.
    */
   digest(jobData: JobData): string | null {
+    logger("Core").debug(`Creating alive digest for job ${jobData.id} with state ${jobData.state}`);
     if (aliveStates.includes(jobData.state)) {
       let key = jobData.class;
       if (this.config.withArgs) {
         key += "::args=" + stringify(jobData.args ?? []);
         key += "::ctor=" + stringify(jobData.constructor_args ?? []);
       }
+      logger("Core").debug(`Job is alive. Key for digest: ${key}`);
       return crypto.createHash("sha256").update(key).digest("hex");
     }
 
+    logger("Core").debug(`Job ${jobData.id} is not alive, returning null for digest.`);
     return null;
   }
 }

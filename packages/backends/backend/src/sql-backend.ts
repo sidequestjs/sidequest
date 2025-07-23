@@ -25,29 +25,36 @@ export abstract class SQLBackend implements Backend {
 
   async migrate(): Promise<void> {
     try {
+      logger("Backend").debug(`Starting database migration`);
       const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
       if (log.length > 0) {
-        logger().info(`Migrated batch ${batchNo}:`);
-        log.forEach((file) => logger().info(`  - ${file}`));
+        logger("Backend").info(`Migrated batch ${batchNo}:`);
+        log.forEach((file) => logger("Backend").info(`  - ${file}`));
+      } else {
+        logger("Backend").debug(`No migrations to apply`);
       }
     } catch (err) {
-      logger().error("Migration failed:", err);
+      logger("Backend").error("Migration failed:", err);
     }
   }
 
   async rollbackMigration(): Promise<void> {
     try {
+      logger("Backend").info(`Rolling back migrations`);
       const [batchNo, log] = (await this.knex.migrate.rollback()) as [number, string[]];
       if (log.length > 0) {
-        logger().info(`Rollback batch ${batchNo}:`);
-        log.forEach((file) => logger().info(`  - ${file}`));
+        logger("Backend").info(`Rollback batch ${batchNo}:`);
+        log.forEach((file) => logger("Backend").info(`  - ${file}`));
+      } else {
+        logger("Backend").debug(`No migrations to rollback`);
       }
     } catch (err) {
-      logger().error("Rollback failed:", err);
+      logger("Backend").error("Rollback failed:", err);
     }
   }
 
   async close(): Promise<void> {
+    logger("Backend").info(`Closing database connection`);
     await this.knex.destroy();
   }
 
@@ -59,8 +66,11 @@ export abstract class SQLBackend implements Backend {
       state: queueConfig.state ?? "active",
     };
 
-    const newConfig = await this.knex("sidequest_queues").insert(data).returning("*");
-    return newConfig[0] as QueueConfig;
+    logger("Backend").debug(`Inserting new queue config: ${JSON.stringify(data)}`);
+    const newConfig = (await this.knex("sidequest_queues").insert(data).returning("*")) as QueueConfig[];
+    logger("Backend").debug(`Queue inserted successfully: ${JSON.stringify(newConfig[0])}`);
+
+    return newConfig[0];
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
@@ -80,6 +90,8 @@ export abstract class SQLBackend implements Backend {
 
   async updateQueue(queueData: UpdateQueueData) {
     const { id, ...updates } = queueData;
+    logger("Backend").debug(`Updating queue: ${JSON.stringify(queueData)}`);
+
     if (!id) throw new Error("Queue id is required for update.");
 
     const [updated] = (await this.knex("sidequest_queues")
@@ -89,6 +101,7 @@ export abstract class SQLBackend implements Backend {
 
     if (!updated) throw new Error("Cannot update queue, not found.");
 
+    logger("Backend").debug(`Queue updated successfully: ${JSON.stringify(updated)}`);
     return updated;
   }
 
@@ -115,9 +128,11 @@ export abstract class SQLBackend implements Backend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
       inserted_at: new Date(),
     };
+    logger("Backend").debug(`Creating new job: ${JSON.stringify(data)}`);
 
     try {
       const inserted = (await this.knex("sidequest_jobs").insert(data).returning("*")) as JobData[];
+      logger("Backend").debug(`Job created successfully: ${JSON.stringify(inserted)}`);
 
       return safeParseJobData(inserted[0]);
     } catch (error) {
@@ -177,12 +192,15 @@ export abstract class SQLBackend implements Backend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
 
+    logger("Backend").debug(`Updating job: ${JSON.stringify(data)}`);
     const [updated] = (await this.knex("sidequest_jobs")
       .where({ id: job.id })
       .update(data)
       .returning("*")) as JobData[];
 
     if (!updated) throw new Error("Cannot update job, not found.");
+
+    logger("Backend").debug(`Job updated successfully: ${JSON.stringify(updated)}`);
 
     return safeParseJobData(updated);
   }
@@ -223,6 +241,9 @@ export abstract class SQLBackend implements Backend {
 
   async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
     const now = new Date();
+    logger("Backend").debug(
+      `Fetching stale jobs older than ${maxStaleMs}ms and claimed jobs older than ${maxClaimedMs}ms`,
+    );
     const jobs = (await this.knex("sidequest_jobs")
       .select("*")
       .where((qb) => {
@@ -246,10 +267,14 @@ export abstract class SQLBackend implements Backend {
       }
       return true; // already filtered `claimed` by SQL
     });
+
+    logger("Backend").debug(`Found ${filtered.length} stale jobs`);
+
     return filtered;
   }
 
   async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
+    logger("Backend").debug(`Deleting finished jobs older than ${cutoffDate.toISOString()}`);
     await this.knex("sidequest_jobs")
       .where((qb) => {
         qb.where("completed_at", "<", cutoffDate)
@@ -260,6 +285,7 @@ export abstract class SQLBackend implements Backend {
   }
 
   async truncate() {
+    logger("Backend").debug(`Truncating all job and queue tables`);
     await this.knex("sidequest_jobs").truncate();
     await this.knex("sidequest_queues").truncate();
   }

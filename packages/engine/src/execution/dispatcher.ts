@@ -40,14 +40,14 @@ export class Dispatcher {
       for (const queue of queues) {
         const availableSlots = this.executorManager.availableSlotsByQueue(queue);
         if (availableSlots <= 0) {
-          logger().debug(`queue ${queue.name} limit reached!`);
+          logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
           await this.sleep(sleepDelay);
           continue;
         }
 
         const globalSlots = this.executorManager.availableSlotsGlobal();
         if (globalSlots <= 0) {
-          logger().debug(`Global concurrency limit reached!`);
+          logger("Dispatcher").debug(`Global concurrency limit reached!`);
           await this.sleep(sleepDelay);
           continue;
         }
@@ -86,6 +86,7 @@ export class Dispatcher {
    */
   start() {
     this.isRunning = true;
+    logger("Dispatcher").debug(`Starting dispatcher...`);
     void this.listen();
   }
 
@@ -96,17 +97,19 @@ export class Dispatcher {
   async stop() {
     this.isRunning = false;
 
-    logger().info(
+    logger("Dispatcher").info(
       `Shutting down worker... Awaiting for ${this.executorManager.totalActiveWorkers()} active jobs to finish...`,
     );
 
     await new Promise<void>((resolve) => {
       const checkJobs = () => {
         if (this.executorManager.totalActiveWorkers() === 0) {
-          logger().info("All active jobs finished. Worker shutdown complete.");
+          logger("Dispatcher").info("All active jobs finished. Worker shutdown complete.");
           resolve();
         } else {
-          logger().info(`Waiting for ${this.executorManager.totalActiveWorkers()} active jobs to finish...`);
+          logger("Dispatcher").info(
+            `Waiting for ${this.executorManager.totalActiveWorkers()} active jobs to finish...`,
+          );
           setTimeout(checkJobs, 1000);
         }
       };

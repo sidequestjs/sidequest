@@ -3,6 +3,7 @@ import {
   AliveJobConfig,
   FixedWindowConfig,
   JobData,
+  logger,
   TimePeriod,
   UniquenessConfig,
   UniquenessFactory,
@@ -140,10 +141,15 @@ export class JobBuilder<T extends JobClassType> {
       timeout: this.jobTimeout ?? null,
       uniqueness_config: this.uniquenessConfig ?? null,
     };
+    logger("JobBuilder").debug(
+      `Enqueuing job ${job.className} with args: ${JSON.stringify(args)}
+      and constructor args: ${JSON.stringify(this.constructorArgs)}`,
+    );
 
     if (this.uniquenessConfig) {
       const uniqueness = UniquenessFactory.create(this.uniquenessConfig);
       jobData.unique_digest = uniqueness.digest(jobData as JobData);
+      logger("JobBuilder").debug(`Job ${job.className} uniqueness digest: ${jobData.unique_digest}`);
     }
 
     return backend.createNewJob(jobData);

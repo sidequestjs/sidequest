@@ -24,7 +24,7 @@ export class SnoozeTransition extends JobTransition {
    * @returns The updated job data.
    */
   apply(job: JobData): JobData {
-    logger().info(`Job ${job.class} snoozed by ${this.delay}ms`);
+    logger("Core").info(`Job ${job.class} snoozed by ${this.delay}ms`);
     job.state = "waiting";
     if (job.attempt > 0) {
       job.attempt -= 1;

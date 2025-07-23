@@ -67,6 +67,7 @@ export abstract class Job {
      */
     this.scriptResolver = buildPath(this.constructor.name).then((script) => {
       this._script = script;
+      logger("Job").debug(`Job script resolved: ${script}`);
       return script;
     });
   }
@@ -102,6 +103,7 @@ export abstract class Job {
    * @returns A SnoozeResult object.
    */
   snooze(delay: number): SnoozeResult {
+    logger("Job").debug(`Job ${this.className} snoozed for ${delay}ms`);
     return { __is_job_transition__: true, type: "snooze", delay: delay };
   }
 
@@ -116,6 +118,7 @@ export abstract class Job {
    */
   retry(reason: string | Error, delay?: number): RetryResult {
     const error = toErrorData(reason);
+    logger("Job").debug(`Job ${this.className} retrying due to: ${error.message}${delay ? ` after ${delay}ms` : ""}`);
     return { __is_job_transition__: true, type: "retry", error, delay };
   }
 
@@ -128,6 +131,7 @@ export abstract class Job {
    */
   fail(reason: string | Error): FailedResult {
     const error = toErrorData(reason);
+    logger("Job").debug(`Job ${this.className} failed: ${error.message}`);
     return { __is_job_transition__: true, type: "failed", error };
   }
 
@@ -139,6 +143,7 @@ export abstract class Job {
    * @returns A CompletedResult object.
    */
   complete(result: unknown): CompletedResult {
+    logger("Job").debug(`Job ${this.className} completed.`);
     return { __is_job_transition__: true, type: "completed", result };
   }
 
@@ -157,7 +162,7 @@ export abstract class Job {
       }
       return { __is_job_transition__: true, type: "completed", result };
     } catch (error) {
-      logger().debug(error);
+      logger("Job").debug(error);
       const errorData = toErrorData(error as Error);
       return { __is_job_transition__: true, type: "retry", error: errorData };
     }
@@ -225,7 +230,7 @@ async function buildPath(className: string) {
   const err = new Error();
   let stackLines = err.stack?.split("\n") ?? [];
   stackLines = stackLines.slice(1);
-
+  logger("Job").debug(`Resolving script file path. Stack lines: ${stackLines.join("\n")}`);
   const filePaths = stackLines
     .map((line) => {
       const match = /(file:\/\/)?(((\/?)(\w:))?([/\\].+)):\d+:\d+/.exec(line);
@@ -239,11 +244,13 @@ async function buildPath(className: string) {
   for (const filePath of filePaths) {
     const hasExported = await hasClassExported(filePath!, className);
     if (hasExported) {
+      logger("Job").debug(`${filePath} exports class ${className}`);
       return `file://${filePath}`;
     }
   }
 
   if (filePaths.length > 0) {
+    logger("Job").debug(`No class ${className} found in stack, returning first file path: ${filePaths[0]}`);
     return `file://${filePaths[0]}`;
   }
 

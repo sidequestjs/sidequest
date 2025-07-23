@@ -40,7 +40,7 @@ export class Engine {
    */
   static async configure(config?: SidequestConfig): Promise<SidequestConfig> {
     if (_config) {
-      logger().debug("Sidequest already configured");
+      logger("Engine").debug("Sidequest already configured");
       return _config;
     }
     _config = {
@@ -55,9 +55,10 @@ export class Engine {
       configureLogger(_config.logger);
     }
 
+    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(_config)}`);
     _backend = await createBackendFromDriver(_config.backend!);
 
-    if (!config?.skipMigration) {
+    if (!_config.skipMigration) {
       await _backend.migrate();
     }
 
@@ -77,7 +78,7 @@ export class Engine {
   static async start(config?: SidequestConfig): Promise<void> {
     config = await Engine.configure(config);
 
-    logger().info(`Starting Sidequest using backend ${config.backend?.driver}`);
+    logger("Engine").info(`Starting Sidequest using backend ${config.backend?.driver}`);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -86,9 +87,12 @@ export class Engine {
 
       if (!_mainWorker) {
         const runWorker = () => {
+          logger("Engine").debug("Starting main worker...");
           _mainWorker = fork(workerPath);
+          logger("Engine").debug(`Worker PID: ${_mainWorker.pid}`);
           _mainWorker.on("message", (msg) => {
             if (msg === "ready") {
+              logger("Engine").debug("Main worker is ready");
               _mainWorker?.send({ type: "start", sidequestConfig: config });
               clearTimeout(timeout);
               resolve();
@@ -97,7 +101,7 @@ export class Engine {
 
           _mainWorker.on("exit", () => {
             if (!shuttingDown) {
-              logger().error("sidequest main exited, creating new...");
+              logger("Engine").error("Sidequest main exited, creating new...");
               runWorker();
             }
           });
@@ -149,6 +153,7 @@ export class Engine {
    * Closes the engine and releases resources.
    */
   static async close() {
+    logger("Engine").debug("Closing Sidequest engine...");
     _config = undefined;
     return _backend?.close();
   }
@@ -163,6 +168,7 @@ export class Engine {
     if (shuttingDown) {
       throw new Error("Engine is shutting down, cannot build job.");
     }
+    logger("Engine").debug(`Building job for class: ${JobClass.name}`);
     return new JobBuilder(JobClass);
   }
 }

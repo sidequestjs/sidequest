@@ -61,10 +61,10 @@ export function configureLogger(options: LoggerOptions) {
       winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
       winston.format.errors({ stack: true }),
       winston.format.label({ label: "Sidequest" }),
-      winston.format.printf(({ timestamp, level, message, label, stack, pid, ...metadata }) => {
+      winston.format.printf(({ timestamp, level, message, label, stack, pid, scope, ...metadata }) => {
         const metaStr = Object.keys(metadata).length ? `\n${JSON.stringify(metadata, null, 2)}` : "";
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        const base = `[${level}] [${timestamp}] [pid:${pid}] [${label}] : ${message}${metaStr}`;
+        const base = `[${level}] [${timestamp}] [pid:${pid}] [${label}] ${scope ? `[${scope as string}] ` : ""}: ${message}${metaStr}`;
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
         return stack ? `${base}\n${stack}` : base;
       }),
@@ -82,6 +82,6 @@ _logger = configureLogger({ level: "info", json: false });
  * Returns the default logger instance.
  * @returns The Winston logger instance.
  */
-export function logger(): winston.Logger {
-  return _logger;
+export function logger(scope?: string): winston.Logger {
+  return scope ? _logger.child({ scope }) : _logger;
 }

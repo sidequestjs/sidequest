@@ -21,12 +21,14 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
-    "express-ejs-layouts": "^2.5.1"
+    "express-ejs-layouts": "^2.5.1",
+    "morgan": "^1.10.0"
   },
   "packageManager": "yarn@4.9.2",
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
     "@types/feather-icons": "^4",
+    "@types/morgan": "^1",
     "chart.js": "^4.5.0",
     "daisyui": "^5.0.43",
     "feather-icons": "^4.29.2",

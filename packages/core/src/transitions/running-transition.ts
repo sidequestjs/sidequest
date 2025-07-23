@@ -12,7 +12,7 @@ export class RunningTransition extends JobTransition {
    * @returns The updated job data.
    */
   apply(job: JobData): JobData {
-    logger().info(`Running job ${job.class} with args: ${JSON.stringify(job.args)}`);
+    logger("Core").info(`Running job ${job.class} with args: ${JSON.stringify(job.args)}`);
     job.state = "running";
     job.attempted_at = new Date();
     job.attempt = job.attempt + 1;

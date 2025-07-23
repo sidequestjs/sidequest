@@ -1,4 +1,5 @@
 import { Backend } from "@sidequest/backend";
+import { logger } from "@sidequest/core";
 
 const oneMonth = 30 * 24 * 60 * 60 * 1000;
 
@@ -8,5 +9,6 @@ const oneMonth = 30 * 24 * 60 * 60 * 1000;
  */
 export async function cleanupFinishedJobs(backend: Backend) {
   const cutoffDate = new Date(Date.now() - oneMonth);
+  logger("Engine").debug(`Deleting finished jobs older than 1 month`);
   await backend?.deleteFinishedJobs(cutoffDate);
 }

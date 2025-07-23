@@ -1,3 +1,4 @@
+import { logger } from "../logger";
 import { AliveJobUniqueness } from "./alive-job-uniqueness";
 import { FixedWindowUniqueness } from "./fixed-window-uniqueness";
 import { Uniqueness, UniquenessConfig } from "./uniqueness";
@@ -20,6 +21,7 @@ export class UniquenessFactory {
    */
   static create(config: UniquenessConfig): Uniqueness {
     const Ctor = availableUniqueness[config.type] as UniquenessConstructor | undefined;
+    logger("Core").debug(`Creating uniqueness strategy: ${config.type}. Config: ${JSON.stringify(config)}`);
     if (!Ctor) {
       throw new Error(`Unknown uniqueness strategy: ${config.type}`);
     }

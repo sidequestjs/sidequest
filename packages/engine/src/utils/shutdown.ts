@@ -12,15 +12,15 @@ async function shutdown(fn: () => void | Promise<void>, tag: string, signal: str
   try {
     if (!shuttingDown) {
       shuttingDown = true;
-      logger().info(`[${tag}] Received ${signal}. Shutting down gracefully...`);
+      logger("Engine").info(`[${tag}] Received ${signal}. Shutting down gracefully...`);
       await fn();
     } else {
-      logger().info(`[${tag}] Received ${signal} while already shutting down. Forcing shutdown.`);
+      logger("Engine").info(`[${tag}] Received ${signal} while already shutting down. Forcing shutdown.`);
     }
-    logger().info(`[${tag}] Shutdown complete.`);
+    logger("Engine").info(`[${tag}] Shutdown complete.`);
     process.exit(0);
   } catch (error) {
-    logger().error(`[${tag}] Error during shutdown:`, error);
+    logger("Engine").error(`[${tag}] Error during shutdown:`, error);
     process.exit(1);
   }
 }

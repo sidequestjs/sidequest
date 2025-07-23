@@ -1,3 +1,4 @@
+import { logger } from "@sidequest/core";
 import { Backend } from "./backend";
 import { BackendConfig } from "./config";
 
@@ -15,7 +16,10 @@ interface BackendModule {
  * @returns The backend instance.
  */
 export async function createBackendFromDriver(config: BackendConfig) {
+  logger("Backend").debug(`Creating backend from driver ${config.driver}`);
   const mod = (await import(config.driver)) as BackendModule;
   const BackendClass = mod.default;
-  return new BackendClass(config.config);
+  const backend = new BackendClass(config.config);
+  logger("Backend").debug(`Backend driver created successfully`);
+  return backend;
 }

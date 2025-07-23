@@ -74,6 +74,7 @@ export class ExecutorManager {
    * @param job The job data to execute.
    */
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
+    logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
     if (!this.activeByQueue[queueConfig.name]) {
       this.activeByQueue[queueConfig.name] = new Set();
     }
@@ -92,6 +93,7 @@ export class ExecutorManager {
       while (isRunning) {
         const watchedJob = await this.backend.getJob(job.id);
         if (watchedJob?.state === "canceled") {
+          logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
           signal.emit("abort");
           isRunning = false;
           return;
@@ -102,7 +104,9 @@ export class ExecutorManager {
     void jobChecker();
 
     try {
+      logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
       const result = await this.runnerPool.run(job, signal);
+      logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
       isRunning = false;
       const transition = JobTransitionFactory.create(result);
 
@@ -114,8 +118,9 @@ export class ExecutorManager {
       isRunning = false;
       const err = error as Error;
       if (err.message === "The task has been aborted") {
-        logger().debug(`Job ${job.id} was canceled`);
+        logger("Executor Manager").debug(`Job ${job.id} was canceled`);
       } else {
+        logger("Executor Manager").error(`Error executing job ${job.id}: ${err.message}`);
         throw error;
       }
     }

@@ -29,7 +29,7 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
 
     startCron();
   } catch (error) {
-    logger().error(error);
+    logger("Worker").error(error);
     process.exit(1);
   }
 }
@@ -53,7 +53,7 @@ export function startCron() {
     try {
       await releaseStaleJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      logger().error("Error on enqueuing ReleaseStaleJob!", error);
+      logger("Worker").error("Error on enqueuing ReleaseStaleJob!", error);
     }
   });
 
@@ -61,7 +61,7 @@ export function startCron() {
     try {
       await cleanupFinishedJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      logger().error("Error on enqueuing CleanupJob!", error);
+      logger("Worker").error("Error on enqueuing CleanupJob!", error);
     }
   });
 
@@ -69,7 +69,7 @@ export function startCron() {
   void cleanupTask.execute();
 
   Promise.all([releaseTask, cleanupTask]).catch((error) => {
-    logger().error(error);
+    logger("Worker").error(error);
   });
 }
 
@@ -80,16 +80,16 @@ if (isChildProcess) {
   process.on("message", async ({ type, sidequestConfig }: { type: string; sidequestConfig?: SidequestConfig }) => {
     if (type === "start") {
       if (!shuttingDown) {
-        logger().info("Starting worker with provided configuration...");
+        logger("Worker").info("Starting worker with provided configuration...");
         return await runWorker(sidequestConfig!);
       } else {
-        logger().warn("Worker is already shutting down, ignoring start signal.");
+        logger("Worker").warn("Worker is already shutting down, ignoring start signal.");
       }
     }
   });
 
   process.on("disconnect", () => {
-    logger().error("Parent process disconnected, exiting...");
+    logger("Worker").error("Parent process disconnected, exiting...");
     process.exit();
   });
 

@@ -2,6 +2,7 @@ import { Uniqueness } from "./uniqueness";
 
 import crypto from "crypto";
 import { stringify } from "safe-stable-stringify";
+import { logger } from "../logger";
 import { JobData } from "../schema";
 
 /**
@@ -38,6 +39,7 @@ export class FixedWindowUniqueness implements Uniqueness {
    */
   digest(jobData: JobData): string | null {
     const timeString = this.truncateDateString(jobData.available_at ?? new Date());
+    logger("Core").debug(`Creating digest for job ${jobData.id} with time window`);
 
     let key = `${jobData.class}::time=${timeString}`;
 
@@ -46,6 +48,7 @@ export class FixedWindowUniqueness implements Uniqueness {
       key += "::ctor=" + stringify(jobData.constructor_args ?? []);
     }
 
+    logger("Core").debug(`Uniqueness digest key: ${key}`);
     return crypto.createHash("sha256").update(key).digest("hex");
   }
 

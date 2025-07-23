@@ -1,9 +1,8 @@
+import { JobData, JobResult, logger } from "@sidequest/core";
+import EventEmitter from "events";
 import os from "os";
 import path from "path";
 import Piscina from "piscina";
-
-import { JobData, JobResult } from "@sidequest/core";
-import EventEmitter from "events";
 
 const runnerPath = path.resolve(import.meta.dirname, "runner.js");
 
@@ -24,6 +23,7 @@ export class RunnerPool {
       minThreads: size,
       maxThreads: size * 2,
     });
+    logger("RunnerPool").debug(`Created worker pool with min ${size} threads`);
   }
 
   /**
@@ -33,6 +33,7 @@ export class RunnerPool {
    * @returns A promise resolving to the job result.
    */
   run(job: JobData, signal?: EventEmitter): Promise<JobResult> {
+    logger("RunnerPool").debug(`Running job ${job.id} in pool`);
     return this.pool.run(job, { signal });
   }
 
@@ -40,6 +41,7 @@ export class RunnerPool {
    * Destroys the worker pool and releases resources.
    */
   async destroy(): Promise<void> {
+    logger("RunnerPool").debug("Destroying worker pool");
     await this.pool.destroy();
   }
 }
