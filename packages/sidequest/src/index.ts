@@ -11,15 +11,14 @@ export * from "@sidequest/engine";
 export class Sidequest {
   /**
    * Starts the Sidequest engine and dashboard.
-   * @param config Optional Sidequest engine configuration.
-   * @param dashboardConfig Optional dashboard configuration (without backendConfig - it will use the same config as the Sidequest config).
+   * @param config Optional Sidequest engine and dashboard configuration.
    * @returns The started engine instance.
    */
-  static async start(config?: SidequestConfig, dashboardConfig?: Omit<DashboardConfig, "backendConfig">) {
+  static async start(config?: SidequestConfig & { dashboard?: Omit<DashboardConfig, "backendConfig"> }) {
     const engineConfig = await Engine.configure(config);
     const engine = Engine.start(engineConfig);
 
-    await SidequestDashboard.start({ ...dashboardConfig, backendConfig: engineConfig.backend });
+    await SidequestDashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
 
     return engine;
   }

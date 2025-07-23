@@ -3,26 +3,103 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Sidequest.js",
-  description: "Robust job processing for Node.js",
+  description: "Robust distributed job processing for Node.js",
+  head: [["link", { rel: "icon", href: "/logo-modern.png" }]],
+  lang: "en-US",
+  cleanUrls: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: "Home", link: "/" },
-      { text: "Examples", link: "/markdown-examples" },
-    ],
+    nav: [{ text: "Home", link: "/" }],
 
     sidebar: [
+      { text: "🔭 Overview", link: "/overview" },
+      { text: "📦 Installation", link: "/installation" },
+      { text: "🚀 Quick Start", link: "/quick-start" },
+      { text: "💻 CLI", link: "/cli" },
       {
-        text: "Examples",
+        text: "💼 Jobs",
+        base: "/jobs",
+        link: "/",
+        collapsed: false,
         items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
-          { text: "Runtime API Examples", link: "/api-examples" },
+          {
+            text: "Lifecycle",
+            link: "/lifecycle",
+          },
+          {
+            text: "Job Class",
+            link: "/class",
+          },
+          {
+            text: "Job.run Method",
+            link: "/run-method",
+          },
+          {
+            text: "Convenience Methods",
+            link: "/convenience-methods",
+          },
+          {
+            text: "Logging",
+            link: "/logging",
+          },
         ],
       },
+      {
+        text: "🛣️ Queues",
+        base: "/queues",
+        link: "/",
+        collapsed: false,
+        items: [
+          {
+            text: "States",
+            link: "/states",
+          },
+          {
+            text: "Priority",
+            link: "/priority",
+          },
+          {
+            text: "Concurrency",
+            link: "/concurrency",
+          },
+        ],
+      },
+      {
+        text: "⚙️ Engine",
+        base: "/engine",
+        link: "/",
+        collapsed: false,
+        items: [
+          {
+            text: "Configuration",
+            link: "/configuration",
+          },
+          {
+            text: "Starting the Engine",
+            link: "/starting",
+          },
+          {
+            text: "Enqueueing Jobs",
+            link: "/enqueue",
+          },
+          {
+            text: "Graceful Shutdown",
+            link: "/graceful-shutdown",
+          },
+        ],
+      },
+      { text: "🌐 Dashboard", link: "/dashboard" },
+      { text: "🧑‍💻 Development", link: "/development" },
+      { text: "⚒️ Examples", link: "/examples" },
     ],
 
-    socialLinks: [{ icon: "github", link: "https://github.com/vuejs/vitepress" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/sidequestjs/sidequest" }],
 
     logo: "logo.png",
+
+    footer: {
+      message: "Released under the LGPL-3.0 License.",
+      copyright: "Copyright © 2025 Lucas Merencia and Giovani Guizzo",
+    },
   },
 });
