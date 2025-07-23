@@ -106,4 +106,5 @@ export class Engine {
   }
 }
 
+export { DeduplicationStrategy, DefaultDeduplicationStrategy } from "./deduplication";
 export { Job, JobClassType } from "./job/job";

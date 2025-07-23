@@ -43,7 +43,7 @@ describe("main.ts", () => {
   });
 
   afterAll(async () => {
-    await Engine.getBackend().close();
+    await Engine.close();
     unlink(dbLocation, () => {
       // noop
     });

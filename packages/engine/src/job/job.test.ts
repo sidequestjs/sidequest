@@ -1,5 +1,5 @@
+import { JobState } from "@sidequest/core";
 import { unlink } from "fs";
-import { JobState } from "packages/core/dist";
 import { DefaultDeduplicationStrategy } from "../deduplication/default";
 import { Engine, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";

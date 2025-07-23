@@ -34,7 +34,7 @@ function buildPath() {
   const match = callerLine?.match(/(file:\/\/)?((\w:)?[/\\].+):\d+:\d+/);
 
   if (match) {
-    return `file://${match[2]}`;
+    return `file://${match[2].replaceAll("\\", "/")}`;
   }
 
   throw new Error("Could not determine the task path");

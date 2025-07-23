@@ -2,6 +2,7 @@ import { JobData, logger, QueueConfig } from "@sidequest/core";
 import { fork } from "child_process";
 import path from "path";
 import { Engine, SidequestConfig } from "../engine";
+import { JobActions } from "../job/job-actions";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
@@ -65,7 +66,7 @@ export class Worker {
               activeJobs.delete(child);
             });
 
-            const timeout = setTimeout(() => {
+            const startTimeout = setTimeout(() => {
               logger().error(`timeout on starting executor for job ${job.script}`);
               child.kill();
               job.state = "waiting";
@@ -73,9 +74,30 @@ export class Worker {
             }, 2000);
 
             child.on("message", (msg) => {
-              clearTimeout(timeout);
               if (msg === "ready") {
+                clearTimeout(startTimeout);
+                let jobTimeout: NodeJS.Timeout | undefined;
+                let timedOut = false;
+
+                child.on("exit", (code) => {
+                  if (jobTimeout) clearTimeout(jobTimeout);
+                  if (code && code > 0 && !timedOut) {
+                    logger().error(`Executor for job ${job.script} exited with code ${code}`);
+                    void JobActions.setExecutionFailed(job, new Error(`Executor exited with code ${code}`));
+                  }
+                });
+
                 child.send({ job, config: sidequestConfig });
+
+                if (job.timeout) {
+                  jobTimeout = setTimeout(() => {
+                    child.kill();
+                    timedOut = true;
+                    const error = `Executor for job ${job.script} timed out after ${job.timeout}ms`;
+                    logger().error(error);
+                    void JobActions.setExecutionFailed(job, new Error(error));
+                  }, job.timeout);
+                }
               }
             });
           }

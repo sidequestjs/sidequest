@@ -1,41 +1,34 @@
 import { JobData, QueueConfig } from "@sidequest/core";
+import * as childProcess from "child_process";
+import { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
 import { JobBuilder } from "../job/job-builder";
+import { DummyJob } from "../test-jobs/dummy-job";
 import { DynamicDummyJob } from "../test-jobs/dynamic-dummy-job";
 import { Worker } from "./main";
 
-const executed: JobData[] = [];
+vi.mock("child_process", () => ({
+  fork: vi.fn(),
+}));
 
-// Use hoisted mock but don't close over `executed`
-vi.mock("child_process", () => {
-  const mod = {
-    fork: vi.fn(() => {
-      let onExit: () => unknown;
-
-      return {
-        on: vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
-          if (event === "message") {
-            handler("ready");
-          } else if (event === "exit") {
-            onExit = handler;
-          }
-        }),
-
-        send: vi.fn((msg: { job: JobData }) => {
-          executed.push(msg.job); // now references the correct array
-          onExit?.(); // simulate process exit
-        }),
-
-        kill: vi.fn(),
-      };
-    }),
-  };
-
-  return mod;
-});
+function mockChildProcess(fns?: { on?: ChildProcess["on"]; send?: ChildProcess["send"]; kill?: ChildProcess["kill"] }) {
+  // @ts-expect-error we should return a ChildProcess, but we only use those 3 methods
+  vi.spyOn(childProcess, "fork").mockImplementation(() => ({
+    on:
+      fns?.on ??
+      vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
+        if (event === "message") {
+          handler("ready");
+        }
+        return {} as ChildProcess;
+      }),
+    send: fns?.send ?? vi.fn(),
+    kill: fns?.kill ?? vi.fn(),
+  }));
+}
 
 describe("main.ts", () => {
   const highQueueName = `high-${randomUUID()}`;
@@ -56,18 +49,28 @@ describe("main.ts", () => {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await Engine.configure(config);
+    vi.clearAllMocks();
   });
 
-  afterAll(async () => {
-    await Engine.getBackend().close();
+  afterEach(async () => {
+    await Engine.close();
     unlink(dbLocation, () => {
       // noop
     });
   });
 
   it("should process queues based on priority order", async () => {
+    const executed: JobData[] = [];
+
+    mockChildProcess({
+      send: vi.fn((msg: { job: JobData }) => {
+        executed.push(msg.job);
+        return true;
+      }),
+    });
+
     const worker = new Worker();
     await worker.run(config);
 
@@ -76,10 +79,68 @@ describe("main.ts", () => {
     await new JobBuilder(DynamicDummyJob).queue(highQueueName).enqueue();
 
     // Wait a bit to allow processing
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await vi.waitUntil(() => executed.length >= 3);
 
     worker.stop();
 
     expect(executed.map((j) => j.queue)).toEqual([highQueueName, mediumQueueName, lowQueueName]);
+  });
+
+  it("should timeout", async () => {
+    const kilFn = vi.fn();
+    mockChildProcess({
+      send: vi.fn(() => {
+        // We never call the exit handler here to simulate a timeout
+        return true;
+      }),
+      kill: kilFn,
+    });
+
+    const worker = new Worker();
+    await worker.run(config);
+
+    await new JobBuilder(DummyJob).timeout(50).queue(lowQueueName).enqueue();
+
+    await vi.waitUntil(async () => {
+      const [job] = await Engine.getBackend().listJobs({ jobClass: DummyJob.name, state: "waiting" });
+      return job?.errors?.[0].message?.includes("timed out");
+    });
+
+    worker.stop();
+
+    expect(childProcess.fork).toHaveBeenCalled();
+    expect(kilFn).toHaveBeenCalled();
+  });
+
+  it("should exit with code !== 0", async () => {
+    let onExit: (code: number) => unknown;
+    mockChildProcess({
+      on: vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
+        if (event === "message") {
+          handler("ready");
+        } else if (event === "exit") {
+          onExit = handler;
+        }
+        return {} as ChildProcess;
+      }),
+      send: vi.fn(() => {
+        onExit(1);
+        return true;
+      }),
+    });
+
+    const worker = new Worker();
+    await worker.run(config);
+
+    await new JobBuilder(DummyJob).timeout(0).queue(lowQueueName).enqueue();
+
+    await vi.waitUntil(async () => {
+      const [job] = await Engine.getBackend().listJobs({ jobClass: DummyJob.name, state: "waiting" });
+      return job?.errors?.[0].message?.includes("exited with code");
+    });
+
+    worker.stop();
+
+    expect(childProcess.fork).toHaveBeenCalled();
   });
 });

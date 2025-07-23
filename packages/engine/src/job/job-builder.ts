@@ -1,4 +1,4 @@
-import { JobData } from "packages/core/dist";
+import { JobData } from "@sidequest/core";
 import { DefaultDeduplicationStrategy } from "../deduplication/default";
 import { Engine } from "../engine";
 import { JobClassType } from "./job";

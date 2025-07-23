@@ -18,7 +18,7 @@ export class JobActions {
     return await backend.updateJob(jobData);
   }
 
-  static async setFailed(jobData: JobData, error: Error) {
+  static async setExecutionFailed(jobData: JobData, error: Error) {
     const backend = Engine.getBackend();
     jobData.errors ??= [];
     const errData = {

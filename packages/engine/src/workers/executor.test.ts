@@ -3,55 +3,17 @@ import { unlink } from "fs";
 import path from "path";
 import { afterAll, beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
-import { Job } from "../job/job";
 import { JobActions } from "../job/job-actions";
-import { execute, executeTask } from "./executor";
+import { execute } from "./executor";
 
 describe("executror.ts", () => {
   const dbLocation = "./sidequest-test.sqlite";
   const config: SidequestConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
 
   afterAll(async () => {
-    await Engine.getBackend()?.close();
+    await Engine.close();
     unlink(dbLocation, () => {
       // noop
-    });
-  });
-
-  describe("executeTask", () => {
-    it("should resolve when job.run() resolves", async () => {
-      const job = {
-        run: () => "ok",
-      };
-
-      const result = await executeTask(job as Job, { args: [] } as unknown as JobData);
-      expect(result).toBe("ok");
-    });
-
-    it("should reject if job.run() throws an error", async () => {
-      const job = {
-        run: () => {
-          throw new Error("fail");
-        },
-      };
-
-      await expect(executeTask(job as unknown as Job, { args: [] } as unknown as JobData)).rejects.toThrow("fail");
-    });
-
-    it("should reject with a timeout error if job.run() hangs", async () => {
-      const job = {
-        script: "dumy-script",
-        className: "Dummy",
-        run: async () =>
-          new Promise(() => {
-            // never resolves
-          }),
-        class: "MyJob",
-      };
-
-      await expect(executeTask(job as unknown as Job, { args: [], timeout: 10 } as unknown as JobData)).rejects.toThrow(
-        /timed out/,
-      );
     });
   });
 
@@ -69,7 +31,7 @@ describe("executror.ts", () => {
       configureStub = vi.spyOn(Engine, "configure");
       setRunningStub = vi.spyOn(JobActions, "setRunning").mockImplementation(async (j) => Promise.resolve(j));
       setCompleteStub = vi.spyOn(JobActions, "setComplete").mockImplementation(async (j) => Promise.resolve(j));
-      setFailedStub = vi.spyOn(JobActions, "setFailed").mockImplementation(async () => {
+      setFailedStub = vi.spyOn(JobActions, "setExecutionFailed").mockImplementation(async () => {
         // noop
       });
 
