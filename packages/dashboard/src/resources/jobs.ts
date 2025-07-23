@@ -8,7 +8,7 @@ jobsRouter.get("/", async (req, res) => {
   const { status, start, end, queue, class: jobClass } = req.query;
   const backend = getBackend();
 
-  const time = typeof req.query.time === "string" && req.query.time.trim() ? req.query.time : "30m";
+  const time = typeof req.query.time === "string" && req.query.time.trim() ? req.query.time : "any";
 
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 30;
   const page = req.query.page ? Math.max(parseInt(req.query.page as string, 10), 1) : 1;

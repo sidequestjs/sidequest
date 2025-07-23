@@ -34,8 +34,9 @@
       </div>
 
       <div class="form-control w-48">
-        <label class="label label-text">Time Range</label>
+        <label class="label label-text">Attempted At</label>
         <select name="time" id="time-range" class="select select-bordered">
+          <option value="any" <%= !filters.time ? 'selected' : '' %>>Any</option>
           <option value="5m" <%= filters.time === '5m' ? 'selected' : '' %>>Last 5 minutes</option>
           <option value="15m" <%= filters.time === '15m' ? 'selected' : '' %>>Last 15 minutes</option>
           <option value="30m" <%= filters.time === '30m' ? 'selected' : '' %>>Last 30 minutes</option>
