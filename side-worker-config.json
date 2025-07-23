@@ -1,5 +1,4 @@
 {
-    "maxWorkers": 10,
     "tasks": [
         {
             "name": "Dummy Task",
