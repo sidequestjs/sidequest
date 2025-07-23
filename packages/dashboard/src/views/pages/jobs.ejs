@@ -1,96 +1,88 @@
 <section class="space-y-6">
-  <!-- Filters -->
-  <form method="GET" class="flex flex-wrap items-end gap-4 text-base" id="filter-form">
-    <div class="form-control w-48">
-      <label class="label label-text">Status</label>
-      <select name="status" class="select select-bordered">
-        <option value="">All</option>
-        <option value="waiting" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
-        <option value="claimed" <%= filters.status === 'claimed' ? 'selected' : '' %>>Claimed</option>
-        <option value="running" <%= filters.status === 'running' ? 'selected' : '' %>>Running</option>
-        <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
-        <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>Failed</option>
-        <option value="canceled" <%= filters.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
-      </select>
-    </div>
-
-    <div class="form-control w-48">
-      <label class="label label-text">Queue</label>
-      <input type="text" name="queue" value="<%= filters.queue || '' %>" placeholder="e.g. default" class="input input-bordered" />
-    </div>
-
-    <div class="form-control w-48">
-      <label class="label label-text">Class</label>
-      <input type="text" name="class" value="<%= filters.class || '' %>" placeholder="e.g. MyJobClass" class="input input-bordered" />
-    </div>
-
-    <div class="form-control w-48">
-      <label class="label label-text">Time Range</label>
-      <select name="time" id="time-range" class="select select-bordered">
-        <option value="15m" <%= filters.time === '15m' ? 'selected' : '' %>>Last 15 min</option>
-        <option value="1d" <%= filters.time === '1d' ? 'selected' : '' %>>Last 1 day</option>
-        <option value="custom" <%= filters.time === 'custom' ? 'selected' : '' %>>Custom</option>
-      </select>
-    </div>
-
-    <div id="custom-range" class="flex gap-2 <%= filters.time === 'custom' ? '' : 'hidden' %>">
-      <div class="form-control">
-        <label class="label label-text">Start</label>
-        <input type="datetime-local" name="start" value="<%= filters.start || '' %>" class="input input-bordered">
+  <form method="GET" id="filter-form" hx-get="/jobs" hx-target="#jobs-table" hx-trigger="change from:* delay:300ms, every 3s">
+    <div class="flex flex-wrap items-end gap-4 text-base mb-4">
+      <div class="form-control w-48">
+        <label class="label label-text">Status</label>
+        <select name="status" class="select select-bordered">
+          <option value="">All</option>
+          <option value="waiting" <%= filters.status === 'waiting' ? 'selected' : '' %>>Waiting</option>
+          <option value="claimed" <%= filters.status === 'claimed' ? 'selected' : '' %>>Claimed</option>
+          <option value="running" <%= filters.status === 'running' ? 'selected' : '' %>>Running</option>
+          <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
+          <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>Failed</option>
+          <option value="canceled" <%= filters.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+        </select>
       </div>
-      <div class="form-control">
-        <label class="label label-text">End</label>
-        <input type="datetime-local" name="end" value="<%= filters.end || '' %>" class="input input-bordered">
+
+      <div class="form-control w-48">
+        <div class="form-control w-48">
+          <label class="label label-text">Queue</label>
+          <select name="queue" class="select select-bordered">
+            <option value="">All</option>
+            <% queues.forEach(queue => { %>
+              <option value="<%= queue %>" <%= filters.queue === queue ? 'selected' : '' %>><%= queue %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-control w-48">
+        <label class="label label-text">Class</label>
+        <input type="text" name="class" value="<%= filters.class || '' %>" placeholder="e.g. MyJobClass" class="input input-bordered" />
+      </div>
+
+      <div class="form-control w-48">
+        <label class="label label-text">Time Range</label>
+        <select name="time" id="time-range" class="select select-bordered">
+          <option value="5m" <%= filters.time === '5m' ? 'selected' : '' %>>Last 5 minutes</option>
+          <option value="15m" <%= filters.time === '15m' ? 'selected' : '' %>>Last 15 minutes</option>
+          <option value="30m" <%= filters.time === '30m' ? 'selected' : '' %>>Last 30 minutes</option>
+          <option value="1h" <%= filters.time === '1h' ? 'selected' : '' %>>Last 1 hour</option>
+          <option value="4h" <%= filters.time === '4h' ? 'selected' : '' %>>Last 4 hours</option>
+          <option value="12h" <%= filters.time === '12h' ? 'selected' : '' %>>Last 12 hours</option>
+          <option value="24h" <%= filters.time === '24h' ? 'selected' : '' %>>Last 24 hours</option>
+          <option value="2d" <%= filters.time === '2d' ? 'selected' : '' %>>Last 2 days</option>
+          <option value="7d" <%= filters.time === '7d' ? 'selected' : '' %>>Last 7 days</option>
+          <option value="30d" <%= filters.time === '30d' ? 'selected' : '' %>>Last 30 days</option>
+          <option value="custom" <%= filters.time === 'custom' ? 'selected' : '' %>>Custom range…</option>
+        </select>
+      </div>
+
+      <div id="custom-range" class="flex gap-2 <%= filters.time === 'custom' ? '' : 'hidden' %>">
+        <div class="form-control">
+          <label class="label label-text">Start</label>
+          <input type="datetime-local" name="start" id="custom-start" value="<%= filters.start || '' %>" class="input input-bordered">
+        </div>
+        <div class="form-control">
+          <label class="label label-text">End</label>
+          <input type="datetime-local" name="end" id="custom-end" value="<%= filters.end || '' %>" class="input input-bordered">
+        </div>
       </div>
     </div>
 
-    <div>
-      <button type="submit" class="btn btn-primary">Apply Filters</button>
+    <div class="card bg-neutral text-neutral-content shadow-lg">
+      <div class="card-body">
+        <div class="overflow-x-auto" id="jobs-table">
+          <%- include('../partials/jobs-table', { jobs }) %>
+        </div>
+      </div>
     </div>
   </form>
-
-  <!-- Table -->
-  <div class="overflow-x-auto">
-    <table class="table rounded-lg">
-      <thead class="bg-neutral text-neutral-content">
-        <tr>
-          <th class="px-4 py-3">ID</th>
-          <th class="px-4 py-3">Class</th>
-          <th class="px-4 py-3">Queue</th>
-          <th class="px-4 py-3">State</th>
-          <th class="px-4 py-3">Attempts</th>
-          <th class="px-4 py-3">Available At</th>
-          <th class="px-4 py-3">Completed At</th>
-          <th class="px-4 py-3">Claimed By</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% jobs.forEach(job => { %>
-          <tr class="hover:bg-base-300">
-            <td class="px-4 py-3 text-base-content"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
-            <td class="px-4 py-3 text-base-content"><%= job.class %></td>
-            <td class="px-4 py-3"><%= job.queue %></td>
-            <td class="px-4 py-3">
-              <span class="badge <%= {
-                completed: 'badge-success',
-                failed: 'badge-error',
-                canceled: 'badge-neutral',
-                pending: 'badge-warning',
-                claimed: 'badge-info',
-                running: 'badge-primary',
-              }[job.state] || 'badge-neutral' %>">
-                <%= job.state.charAt(0).toUpperCase() + job.state.slice(1) %>
-              </span>
-            </td>
-            <td class="px-4 py-3"><%= job.attempt %> / <%= job.max_attempts %></td>
-            <td class="px-4 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
-            <td class="px-4 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
-            <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
 </section>
 
 <script src="/public/js/jobs.js"></script>
+
+<script>
+  const startUtc = "<%= filters.start %>";
+  const endUtc = "<%= filters.end %>";
+
+  function utcToLocal(utcString) {
+    if (!utcString) return "";
+    const date = new Date(utcString);
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0,16);
+  }
+
+  document.getElementById("custom-start").value = utcToLocal(startUtc);
+  document.getElementById("custom-end").value = utcToLocal(endUtc);
+</script>

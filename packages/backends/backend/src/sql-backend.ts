@@ -147,8 +147,8 @@ export abstract class SQLBackend implements Backend {
     queue?: string | string[];
     jobClass?: string | string[];
     state?: JobState | JobState[];
-    sinceId?: number;
     limit?: number;
+    offset?: number;
     args?: unknown[];
     timeRange?: {
       from?: Date;
@@ -156,16 +156,17 @@ export abstract class SQLBackend implements Backend {
     };
   }): Promise<JobData[]> {
     const limit = params?.limit ?? 50;
-    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit);
+    const offset = params?.offset ?? 0;
+
+    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit).offset(offset);
 
     if (params) {
-      const { queue, jobClass, state, sinceId, timeRange, args } = params;
+      const { queue, jobClass, state, timeRange, args } = params;
 
       whereOrWhereIn(query, "queue", queue);
       whereOrWhereIn(query, "class", jobClass);
       whereOrWhereIn(query, "state", state);
 
-      if (sinceId) query.where("id", ">=", sinceId);
       if (args) query.where("args", JSON.stringify(args));
       if (timeRange?.from) query.andWhere("attempted_at", ">=", timeRange.from);
       if (timeRange?.to) query.andWhere("attempted_at", "<=", timeRange.to);
