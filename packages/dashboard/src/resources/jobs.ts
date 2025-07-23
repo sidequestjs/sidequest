@@ -133,4 +133,15 @@ function computeTimeRange(time?: unknown, start?: unknown, end?: unknown) {
   return undefined;
 }
 
+jobsRouter.patch("/:id/cancel", async (req, res) => {
+  const backend = getBackend();
+
+  const jobId = parseInt(req.params.id);
+  const job = await backend?.getJob(jobId);
+
+  await backend.updateJob({ ...job, state: "canceled" });
+
+  res.header("HX-Trigger", "cancelJob").status(200).end();
+});
+
 export default jobsRouter;

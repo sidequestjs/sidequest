@@ -14,14 +14,14 @@
   <tbody>
     <% jobs.forEach(job => { %>
       <tr class="hover:bg-base-300">
-        <td class="px-4 py-3 text-base-content"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
+        <td class="px-4 py-3 text-base-content link"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
         <td class="px-4 py-3 text-base-content"><%= job.class %></td>
         <td class="px-4 py-3"><%= job.queue %></td>
         <td class="px-4 py-3">
           <span class="badge <%= {
             completed: 'badge-success',
             failed: 'badge-error',
-            canceled: 'badge-neutral',
+            canceled: 'badge-secondary',
             waiting: 'badge-warning',
             claimed: 'badge-info',
             running: 'badge-primary',

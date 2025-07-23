@@ -3,6 +3,7 @@ import path from "path";
 import Piscina from "piscina";
 
 import { JobData, JobResult } from "@sidequest/core";
+import EventEmitter from "events";
 
 const runnerPath = path.resolve(import.meta.dirname, "runner.js");
 export class RunnerPool {
@@ -16,8 +17,8 @@ export class RunnerPool {
     });
   }
 
-  run(job: JobData): Promise<JobResult> {
-    return this.pool.run(job);
+  run(job: JobData, signal?: EventEmitter): Promise<JobResult> {
+    return this.pool.run(job, { signal });
   }
 
   async destroy(): Promise<void> {

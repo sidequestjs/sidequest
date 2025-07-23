@@ -19,7 +19,7 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
     dispatcher = new Dispatcher(
       backend,
       new QueueManager(sidequestConfig, backend),
-      new ExecutorManager(sidequestConfig),
+      new ExecutorManager(sidequestConfig, backend),
     );
     dispatcher.start();
 

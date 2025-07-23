@@ -13,6 +13,7 @@ vi.mock("piscina", () => {
   };
 });
 
+import EventEmitter from "events";
 import { Engine, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 
@@ -45,10 +46,11 @@ describe("RunnerPool", () => {
   });
 
   it("should call pool.run with job data", async () => {
-    const result = await pool.run(jobData);
+    const emiter = new EventEmitter();
+    const result = await pool.run(jobData, emiter);
 
     expect(result).toEqual({ type: "completed", result: "ok" });
-    expect(piscinaMockInstance.run).toHaveBeenCalledWith(jobData);
+    expect(piscinaMockInstance.run).toHaveBeenCalledWith(jobData, { signal: emiter });
   });
 
   it("should call pool.destroy", async () => {
