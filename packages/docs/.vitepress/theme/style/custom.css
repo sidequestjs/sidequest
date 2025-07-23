@@ -1,0 +1,57 @@
+:root {
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f9fafb;
+  --vp-c-bg-soft: #f3f4f6;
+
+  --vp-c-text-1: #111827;
+  --vp-c-text-2: #374151;
+  --vp-c-text-3: #6b7280;
+
+  --vp-c-brand-1: #2b7cd3;
+  --vp-c-brand-2: #4c5faf;
+  --vp-c-brand-3: #3d7dd8;
+
+  --vp-c-surface: #e5e7eb;
+
+  --vp-c-info: #2563eb;
+  --vp-c-success: #16a34a;
+  --vp-c-warning: #f59e0b;
+  --vp-c-danger: #dc2626;
+
+  --vp-c-border: #d1d5db;
+  --vp-c-border-muted: #e5e7eb;
+
+  --vp-radius: 0.5rem;
+
+  --vp-button-brand-bg: var(--vp-c-brand-1);
+  --vp-button-brand-hover-bg: var(--vp-c-brand-2);
+  --vp-button-brand-active-bg: var(--vp-c-brand-3);
+  --vp-button-brand-text: #ffffff;
+
+  --vp-button-alt-bg: var(--vp-c-surface);
+  --vp-button-alt-text: var(--vp-c-text-1);
+}
+
+.dark {
+  --vp-c-bg: #0c1226;
+  --vp-c-bg-alt: #182038;
+  --vp-c-bg-soft: #2a3b5f;
+
+  --vp-c-text-1: #cdd5e0;
+  --vp-c-text-2: #9ca3af;
+  --vp-c-text-3: #6b7280;
+
+  --vp-c-brand-1: #2b7cd3;
+  --vp-c-brand-2: #4c5faf;
+  --vp-c-brand-3: #3d7dd8;
+
+  --vp-c-surface: #2c3448;
+
+  --vp-c-info: #3d7dd8;
+  --vp-c-success: #4faf75;
+  --vp-c-warning: #d2a94c;
+  --vp-c-danger: #b75252;
+
+  --vp-c-border: #2c3448;
+  --vp-c-border-muted: #182038;
+}

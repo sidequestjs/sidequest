@@ -17,3 +17,5 @@ migrations/
 .DS_Store
 *.log
 *.tmp
+
+packages/docs
