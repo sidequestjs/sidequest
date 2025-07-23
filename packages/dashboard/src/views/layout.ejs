@@ -1,53 +1,46 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= title || 'Sidequest Dashboard' %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/public/css/styles.css" rel="stylesheet" />
+    <script src="/public/js/htmx.js"></script>
+    <script src="/public/js/feather-icons.js"></script>
+    <script src="/public/js/highlight.js"></script>
+  </head>
+  <body class="h-full bg-base-100 text-base-content">
+    <div class="flex h-full">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-neutral border-r border-base-100 flex flex-col">
+        <div class="p-4 flex items-center gap-2 border-b border-base-100">
+          <img src="/public/img/logo.png" alt="Sidequest Logo" class="h-14 w-auto" />
+          <span class="text-xl font-semibold text-white">Sidequest</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 text-sm">
+          <a href="/" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Dashboard</a>
+          <a href="/jobs" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Jobs</a>
+          <a href="/queues" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Queues</a>
+        </nav>
+        <div class="p-4 border-t border-base-100 text-xs text-neutral-content">
+          v0.1.0 — OSS Edition
+        </div>
+      </aside>
 
-<head>
-  <meta charset="UTF-8" />
-  <title><%= title || 'Sidequest Dashboard' %></title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="/public/css/styles.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
-    integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
-    crossorigin="anonymous"></script>
-</head>
+      <!-- Main content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <%- body %>
+      </main>
+    </div>
 
-<body class="h-full bg-base-100 text-base-content">
-  <div class="flex h-full">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-neutral border-r border-base-100 flex flex-col">
-      <div class="p-4 flex items-center gap-2 border-b border-base-100">
-        <img src="/public/img/logo.png" alt="Sidequest Logo" class="h-14 w-auto" />
-        <span class="text-xl font-semibold text-white">
-          Sidequest
-        </span>
-      </div>
-      <nav class="flex-1 p-4 space-y-2 text-sm">
-        <a href="/"
-          class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">
-          Dashboard
-        </a>
-        <a href="/jobs"
-          class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">
-          Jobs
-        </a>
-        <a href="/queues"
-          class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">
-          Queues
-        </a>
-      </nav>
-      <div class="p-4 border-t border-base-100 text-xs text-neutral-content">
-        v0.1.0 — OSS Edition
-      </div>
-    </aside>
+    <script>
+      function loadLibs(){
+        feather.replace();
+        hljs.highlightAll();
+      }
 
-    <!-- Main content -->
-    <main class="flex-1 p-6 overflow-y-auto">
-      <header class="mb-6">
-        <h1 class="text-2xl font-bold"><%= title || ' Dashboard' %></h1>
-      </header>
-      <section><%- body %></section>
-    </main>
-  </div>
-</body>
-
+      document.addEventListener('htmx:afterSwap',  loadLibs);
+      loadLibs();
+    </script>
+  </body>
 </html>
