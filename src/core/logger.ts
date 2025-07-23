@@ -26,27 +26,37 @@ export function configureLogger(options: LoggerOptions){
     transports: [new winston.transports.Console()],
   });
   
-  function buildFormat(){
-    if(options.json){
+  function buildFormat() {
+    const addProcessInfo = winston.format((info) => {
+      info.pid = process.pid;
+      return info;
+    });
+  
+    if (options.json) {
       return winston.format.combine(
+        addProcessInfo(),
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         winston.format.label({ label: 'Sidequest' }),
         winston.format.json()
-      )
+      );
     }
   
     return winston.format.combine(
+      addProcessInfo(),
       winston.format.colorize(),
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
       winston.format.errors({ stack: true }),
       winston.format.label({ label: 'Sidequest' }),
-      winston.format.printf(({ timestamp, level, message, label, stack }) => {
-        return stack
-          ? `[${timestamp}] [${label}] ${level}: ${message}\n${stack}`
-          : `[${timestamp}] [${label}] ${level}: ${message}`;
+      winston.format.printf(({ timestamp, level, message, label, stack, pid, ...metadata }) => {
+        const metaStr = Object.keys(metadata).length
+          ? `\n${JSON.stringify(metadata, null, 2)}`
+          : '';
+  
+        const base = `[${level}] [${timestamp}] [pid:${pid}] [${label}] : ${message}${metaStr}`;
+        return stack ? `${base}\n${stack}` : base;
       })
-    )
+    );
   }
 
   _logger = newLogger;

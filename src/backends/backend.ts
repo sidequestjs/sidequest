@@ -5,7 +5,8 @@ export interface Backend {
   setup(): Promise<void> | void;
   close():  Promise<void> | void;
 
-  insertJob(job: JobData): void | Promise<void>;
+  insertJob(job: JobData): JobData | Promise<JobData>;
+  getJob(id: number): JobData | Promise<JobData>;
   claimPendingJob(queue: string, quatity?: number): Promise<JobData[]>;
 
   getQueuesFromJobs(): string[] | Promise<string[]>;

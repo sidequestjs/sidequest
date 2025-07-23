@@ -34,7 +34,11 @@ export class PostgresBackend implements Backend{
     return queues.map(q => q.queue);
   }
 
-  async insertJob(job: JobData): Promise<void> {
+  getJob(id: number): JobData | Promise<JobData> {
+    return this.knex('sidequest_jobs').where({id}).first();
+  }
+
+  async insertJob(job: JobData): Promise<JobData> {
     const data = {
       queue: job.queue,
       class: job.class,
@@ -42,7 +46,8 @@ export class PostgresBackend implements Backend{
       args: this.knex.raw('?', [JSON.stringify(job.args)])
     }
 
-    await this.knex('sidequest_jobs').insert(data).returning('*');
+    const inserted = await this.knex('sidequest_jobs').insert(data).returning('*');
+    return inserted[0];
   }
 
   async claimPendingJob(queue: string, quatity: number = 1): Promise<JobData[]> {

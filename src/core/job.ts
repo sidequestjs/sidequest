@@ -25,7 +25,7 @@ export abstract class Job {
   
   abstract run(): any | Promise<any>;
 
-  static async enqueue(this: { new (...args: any[]): Job }, ...args: any[]): Promise<void> {
+  static enqueue(this: { new (...args: any[]): Job }, ...args: any[]): JobData | Promise<JobData> {
     const job = new this(...args);
     const backend = Sidequest.getBackend();
     const jobData: JobData = {
@@ -36,7 +36,7 @@ export abstract class Job {
       attempt: 0,
       max_attempts: 5
     }
-    await backend.insertJob(jobData);
+    return backend.insertJob(jobData);
   }
 }
 

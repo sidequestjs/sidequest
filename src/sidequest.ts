@@ -4,26 +4,49 @@ import { Backend } from './backends/backend';
 import { grantQueueConfig } from './core/queue/grant-queue-config';
 import { QueueConfig } from './core/schema/queue-config';
 import { SqliteBackend } from './backends/sqlite/sqlite-backend';
-import { configureLogger, LoggerOptions } from './core/logger';
+import logger, { configureLogger, LoggerOptions } from './core/logger';
+import { PostgresBackend } from './backends/postgres/postgres-backend';
 
 const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
 let _backend: Backend;
 let _config: SidequestConfig;
-
 let _mainWorker: ChildProcess | undefined;
 
+const availableBackends = {
+  postgres: PostgresBackend,
+  sqlite: SqliteBackend
+}
+
+export type BackEndConfig = {
+  type: 'postgres' | 'sqlite' | 'redis';
+  config: any
+}
+
 export type SidequestConfig = {
-  backend?: Backend,
+  backend?: BackEndConfig,
   queues?: Map<string, QueueConfig>
-  logger?: LoggerOptions
+  logger?: LoggerOptions,
+  maxConcurrentJobs?: number
 }
 
 export  class Sidequest {
   static async configure(config?: SidequestConfig){
+    if(_config){
+      logger().warn("Sidequest already configured")
+      return;
+    }
     _config = config || { queues: new Map<string, QueueConfig>};
-    _backend = config?.backend || new SqliteBackend();
-    
+    if(config?.backend){
+      if (availableBackends[config.backend.type]){
+        _backend = new availableBackends[config.backend.type](config.backend.config);
+      } else {
+        throw new Error(`Unkown backend ${config.backend.type}`);
+      }
+    } else {
+      _backend =  new SqliteBackend();
+    }
+
     if(config?.logger){
       configureLogger(config.logger);
     }
@@ -55,7 +78,7 @@ export  class Sidequest {
           });
 
           _mainWorker.on('exit', ()=> {
-            console.log('sidequest main exited, creating new...')
+            logger().error('sidequest main exited, creating new...')
             runWorker()
           });
         }

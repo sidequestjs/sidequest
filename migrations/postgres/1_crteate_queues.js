@@ -5,6 +5,7 @@ exports.up = async function(knex) {
 
     table.string('state').notNullable().defaultTo('active');
     table.integer('concurrency').notNullable().defaultTo(10);
+    table.integer('priority').notNullable().defaultTo(0);
   });
 };
 

@@ -53,19 +53,23 @@ export function executeTask(job: Job){
   return Promise.race(promises);
 }
 
-process.on('message', async (message: {job: JobData, config: SidequestConfig}) => {
-  try {
-    await execute(message.job, message.config);
-    process.exit(0);
-  } catch (error: any){
-    logger().error(error);
-    process.exit(1);
-  }
-});
+const isChildProcess = !!process.send;
 
-process.on('disconnect', () => {
-  logger().warn('Parent process disconected, exiting...');
-  process.exit();
-});
+if(isChildProcess){
+  process.on('message', async (message: {job: JobData, config: SidequestConfig}) => {
+    try {
+      await execute(message.job, message.config);
+      process.exit(0);
+    } catch (error: any){
+      logger().error(error);
+      process.exit(1);
+    }
+  });
 
-if(process.send) process.send('ready');
+  process.on('disconnect', () => {
+    logger().warn('Parent process disconected, exiting...');
+    process.exit();
+  });
+
+  if(process.send) process.send('ready');
+}

@@ -25,6 +25,7 @@ exports.up = function(knex) {
       table.string('queue').notNullable().index();
       table.string('state').notNullable().defaultTo('active');
       table.integer('concurrency').notNullable().defaultTo(10);
+      table.integer('priority').notNullable().defaultTo(0);
     });
 };
 
