@@ -1,8 +1,8 @@
-import { SQLBackend } from "@sidequest/backend";
+import { Backend } from "@sidequest/backend";
 import { Request, Response, Router } from "express";
 import { getBackend } from "../backend-driver";
 
-export async function renderQueuesTable(backend: SQLBackend, req: Request, res: Response) {
+export async function renderQueuesTable(backend: Backend, req: Request, res: Response) {
   const queues = await backend.listQueues({ column: "name", order: "asc" });
   const jobsFromQueues = await backend?.listJobs({ queue: queues?.map((queue) => queue.name) });
   const parsedQueues = queues?.map((queue) => ({

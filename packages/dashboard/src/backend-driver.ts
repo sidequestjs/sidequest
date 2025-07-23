@@ -1,6 +1,6 @@
-import { BackendConfig, createBackendFromDriver, SQLBackend } from "@sidequest/backend";
+import { Backend, BackendConfig, createBackendFromDriver } from "@sidequest/backend";
 
-let backend: SQLBackend;
+let backend: Backend;
 
 export async function initBackend(config: BackendConfig) {
   backend = await createBackendFromDriver(config);

@@ -1,7 +1,7 @@
-import { SQLBackend } from "packages/backends/backend/dist";
+import { Backend } from "@sidequest/backend";
 
-export let backend: SQLBackend;
+export let backend: Backend;
 
-export function setTestBackend(newBackend: SQLBackend) {
+export function setTestBackend(newBackend: Backend) {
   backend = newBackend;
 }

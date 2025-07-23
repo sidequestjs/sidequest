@@ -1,4 +1,4 @@
-import { SQLBackend } from "packages/backends/backend/dist";
+import { Backend } from "packages/backends/backend/dist";
 import { QueueConfig } from "packages/core/dist";
 import { SidequestConfig } from "../engine";
 import { grantQueueConfig } from "../queue/grant-queue-config";
@@ -6,7 +6,7 @@ import { grantQueueConfig } from "../queue/grant-queue-config";
 export class QueueManager {
   constructor(
     private config: SidequestConfig,
-    private backend: SQLBackend,
+    private backend: Backend,
   ) {}
 
   async getActiveQueuesWithRunnableJobs() {

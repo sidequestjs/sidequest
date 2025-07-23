@@ -1,4 +1,4 @@
-import { BackendConfig, createBackendFromDriver, NewQueueData, SQLBackend } from "@sidequest/backend";
+import { Backend, BackendConfig, createBackendFromDriver, NewQueueData } from "@sidequest/backend";
 import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
@@ -9,7 +9,7 @@ import { gracefulShutdown } from "./utils/shutdown";
 
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
-let _backend: SQLBackend | undefined;
+let _backend: Backend | undefined;
 let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 let shuttingDown = false;

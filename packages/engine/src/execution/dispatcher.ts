@@ -1,4 +1,4 @@
-import { SQLBackend } from "@sidequest/backend";
+import { Backend } from "@sidequest/backend";
 import { JobData, logger } from "@sidequest/core";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
@@ -9,9 +9,9 @@ export class Dispatcher {
   private isRunning: boolean;
   private queueManager: QueueManager;
   private executorManager: ExecutorManager;
-  backend: SQLBackend;
+  backend: Backend;
 
-  constructor(backend: SQLBackend, queueManager: QueueManager, executorManager: ExecutorManager) {
+  constructor(backend: Backend, queueManager: QueueManager, executorManager: ExecutorManager) {
     this.isRunning = false;
     this.queueManager = queueManager;
     this.executorManager = executorManager;
