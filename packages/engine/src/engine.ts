@@ -14,15 +14,30 @@ let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 let shuttingDown = false;
 
+/**
+ * Configuration options for the Sidequest engine.
+ */
 export interface SidequestConfig {
+  /** Backend configuration. */
   backend?: BackendConfig;
+  /** List of queue configurations. */
   queues?: NewQueueData[];
+  /** Logger configuration options. */
   logger?: LoggerOptions;
+  /** Maximum number of concurrent jobs. */
   maxConcurrentJobs?: number;
   skipMigration?: boolean;
 }
 
+/**
+ * The main engine for managing job queues and workers in Sidequest.
+ */
 export class Engine {
+  /**
+   * Configures the Sidequest engine with the provided configuration.
+   * @param config Optional configuration object.
+   * @returns The resolved configuration.
+   */
   static async configure(config?: SidequestConfig): Promise<SidequestConfig> {
     if (_config) {
       logger().debug("Sidequest already configured");
@@ -55,6 +70,10 @@ export class Engine {
     return _config;
   }
 
+  /**
+   * Starts the Sidequest engine and worker process.
+   * @param config Optional configuration object.
+   */
   static async start(config?: SidequestConfig): Promise<void> {
     config = await Engine.configure(config);
 
@@ -100,24 +119,45 @@ export class Engine {
     });
   }
 
+  /**
+   * Gets the current engine configuration.
+   * @returns The current configuration, if set.
+   */
   static getConfig() {
     return _config;
   }
 
+  /**
+   * Gets the backend instance in use by the engine.
+   * @returns The backend instance, if set.
+   */
   static getBackend() {
     return _backend;
   }
 
+  /**
+   * Gets the configuration for a specific queue.
+   * @param queue The queue name.
+   * @returns The queue configuration, if found.
+   */
   static async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
     if (!_backend) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
     return _backend.getQueueConfig(queue);
   }
 
+  /**
+   * Closes the engine and releases resources.
+   */
   static async close() {
     _config = undefined;
     return _backend?.close();
   }
 
+  /**
+   * Builds a job using the provided job class.
+   * @param JobClass The job class constructor.
+   * @returns A new JobBuilder instance for the job class.
+   */
   static build<T extends JobClassType>(JobClass: T) {
     if (!_config) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
     if (shuttingDown) {

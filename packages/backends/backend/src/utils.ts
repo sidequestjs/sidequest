@@ -1,6 +1,11 @@
 import { JobData } from "@sidequest/core";
 import { Knex } from "knex";
 
+/**
+ * Safely parses a value as JSON, or returns the value if parsing fails.
+ * @param value The value to parse.
+ * @returns The parsed value, or null if input is null/undefined.
+ */
 export function safeParse<T>(value: unknown): T;
 export function safeParse(value: null | undefined): null;
 export function safeParse<T>(value: unknown): T | null {
@@ -15,6 +20,11 @@ export function safeParse<T>(value: unknown): T | null {
   }
 }
 
+/**
+ * Safely parses a value as a Date object.
+ * @param value The value to parse.
+ * @returns The parsed Date, or null if input is null/undefined.
+ */
 export function safeParseDate(value: string | number | Date): Date;
 export function safeParseDate(value: null | undefined): null;
 export function safeParseDate(value: null | Date): null;
@@ -26,6 +36,11 @@ export function safeParseDate(value?: string | number | Date | null): Date | nul
   }
 }
 
+/**
+ * Safely parses all relevant fields of a JobData object.
+ * @param job The job data to parse.
+ * @returns The parsed JobData object.
+ */
 export function safeParseJobData(job: JobData): JobData {
   return {
     ...job,
@@ -44,6 +59,13 @@ export function safeParseJobData(job: JobData): JobData {
   };
 }
 
+/**
+ * Adds a where or whereIn clause to a Knex query builder, depending on the value type.
+ * @param queryBuilder The Knex query builder.
+ * @param column The column name.
+ * @param value The value or array of values to filter by.
+ * @returns The query builder.
+ */
 export function whereOrWhereIn(queryBuilder: Knex.QueryBuilder, column: string, value?: string | string[]) {
   if (value) {
     if (typeof value === "string") {

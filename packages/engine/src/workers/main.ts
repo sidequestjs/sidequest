@@ -11,6 +11,10 @@ import { gracefulShutdown } from "../utils/shutdown";
 let shuttingDown = false;
 let dispatcher: Dispatcher | undefined;
 
+/**
+ * Starts a Sidequest worker process with the given configuration.
+ * @param sidequestConfig The Sidequest configuration for the worker.
+ */
 export async function runWorker(sidequestConfig: SidequestConfig) {
   try {
     await Engine.configure(sidequestConfig);
@@ -30,6 +34,9 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
   }
 }
 
+/**
+ * Gracefully shuts down the worker and releases resources.
+ */
 async function shutdown() {
   if (!shuttingDown) {
     shuttingDown = true;
@@ -38,6 +45,9 @@ async function shutdown() {
   }
 }
 
+/**
+ * Starts cron jobs for releasing stale jobs and cleaning up finished jobs.
+ */
 export function startCron() {
   const releaseTask = cron.schedule("0 * * * *", async () => {
     try {

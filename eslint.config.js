@@ -1,17 +1,23 @@
 // @ts-check
 
 import eslint from "@eslint/js";
-import prettier from "eslint-config-prettier";
+import prettierRecommended from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+
 export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   tseslint.configs.stylistic,
-  prettier,
-  prettier,
+  prettierRecommended,
   {
     ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**", "**/public/**", "**/views/**", "**/migrations/**"],
+  },
+  {
+    rules: {
+      "no-console": "error",
+      "prettier/prettier": "warn",
+    },
   },
   {
     files: ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.jsx"],
@@ -19,9 +25,6 @@ export default tseslint.config(
       globals: {
         ...globals.node,
       },
-    },
-    rules: {
-      "no-console": "error",
     },
   },
   {
@@ -33,9 +36,6 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
         sourceType: "module",
       },
-    },
-    rules: {
-      "no-console": "error",
     },
   },
 );

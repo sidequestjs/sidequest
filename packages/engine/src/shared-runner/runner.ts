@@ -1,6 +1,11 @@
 import { JobData, JobResult, logger, toErrorData } from "@sidequest/core";
 import { Job, JobClassType } from "../engine";
 
+/**
+ * Runs a job by dynamically importing its script and executing the specified class.
+ * @param jobData The job data to execute.
+ * @returns A promise resolving to the job result.
+ */
 export default async function run(jobData: JobData): Promise<JobResult> {
   let script: Record<string, JobClassType> = {};
   try {

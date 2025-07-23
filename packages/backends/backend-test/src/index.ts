@@ -12,9 +12,22 @@ import defineStaleJobsTestSuite from "./staleJobs";
 import defineTruncateTestSuite from "./truncate";
 import defineUpdateJobTestSuite from "./updateJob";
 
-export function testBackend<P>(config: P, backendFactory: (config: P) => Backend) {
+/**
+ * Sets up and runs a comprehensive test suite for a backend implementation.
+ *
+ * This function initializes the backend using the provided configuration and factory,
+ * and automatically registers a series of standardized test suites to validate
+ * backend behavior. It also manages backend setup and teardown for each test.
+ *
+ * **🚨 ATTENTION 🚨**: This function is intended for use in a testing environment only and with
+ * testing data. It will truncate the database after every test to ensure a clean state.
+ * It should not be used in production or with real data.
+ *
+ * @param backendFactory - A factory function that creates a backend instance.
+ */
+export function testBackend(backendFactory: () => Backend) {
   beforeEach(async () => {
-    setTestBackend(backendFactory(config));
+    setTestBackend(backendFactory());
     await backend.migrate();
   });
 

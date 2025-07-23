@@ -12,13 +12,55 @@ import {
   toErrorData,
 } from "@sidequest/core";
 
+/**
+ * Type for a job class constructor.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
 
+/**
+ * Abstract base class for Sidequest jobs.
+ * Concrete job classes should extend this class and implement the `run` method.
+ *
+ * There are a few convenience methods that can be used to return early and trigger a transition:
+ * - `snooze(delay: number)`: Returns a SnoozeResult to delay the job execution for a specified time.
+ * - `retry(reason: string | Error, delay?: number)`: Returns a RetryResult to retry the job with an optional delay.
+ * - `fail(reason: string | Error)`: Returns a FailedResult to mark the job as failed with a reason.
+ * - `complete(result: unknown)`: Returns a CompletedResult to mark the job as completed with a result.
+ *
+ * Calling any of these methods without returning its result will do absolutely nothing. Thus, you need to return
+ * the result of any of these methods to trigger the job transition.
+ *
+ * If there is an uncaught error in the `run` method, it will automatically return a RetryResult with the error data.
+ *
+ *  @example
+ * ```typescript
+ * class MyJob extends Job {
+ *   async run(arg1: string, arg2: number): Promise<string> {
+ *     // Your job logic here
+ *    if (someCondition) {
+ *      return this.snooze(1000); // Delay the job for 1 second
+ *    }
+ *    if (anotherCondition) {
+ *      return this.retry(new Error("Retrying due to some condition"), 500); // Retry after 500ms
+ *    }
+ *    if (yetAnotherCondition) {
+ *     return this.fail("Failed due to some reason"); // Mark the job as failed
+ *    }
+ *    // If everything is fine, return the result
+ *    return this.complete("Job completed successfully"); // Mark the job as completed
+ *    // Alternatively, you can just return a value, which will be treated as the job result:
+ *    return "Job completed successfully";
+ *   }
+ * }
+ */
 export abstract class Job {
   private _script?: string;
-  private scriptResolver: Promise<string | void>;
+  private scriptResolver: Promise<string>;
 
+  /**
+   * Initializes the job and resolves its script path.
+   */
   constructor() {
     /* IMPORTANT: the build path resolution must be called here.
      * This is important to ensure the path resolution is returning the Job implementation.
@@ -29,36 +71,84 @@ export abstract class Job {
     });
   }
 
+  /**
+   * The resolved script path for this job.
+   */
   get script() {
     return this._script;
   }
 
+  /**
+   * The class name of this job.
+   */
   get className() {
     return this.constructor.name;
   }
 
-  ready() {
-    return this.scriptResolver;
+  /**
+   * Waits until the job is ready (script path resolved).
+   * @returns A promise that resolves when ready.
+   */
+  async ready() {
+    return await this.scriptResolver;
   }
 
+  /**
+   * Returns a snooze result for this job.
+   * This will delay the job execution for the specified time by setting `available_at` to the current
+   * time plus the delay.
+   *
+   * @param delay The delay in milliseconds.
+   * @returns A SnoozeResult object.
+   */
   snooze(delay: number): SnoozeResult {
     return { __is_job_transition__: true, type: "snooze", delay: delay };
   }
 
+  /**
+   * Returns a retry result for this job. It will increase one attempt and set the `attempted_at`
+   * to the current time. If the number of attempts is increased to the maximum allowed, the transition
+   * will mark the job as failed.
+   *
+   * @param reason The reason for retrying.
+   * @param delay Optional delay in milliseconds.
+   * @returns A RetryResult object.
+   */
   retry(reason: string | Error, delay?: number): RetryResult {
     const error = toErrorData(reason);
     return { __is_job_transition__: true, type: "retry", error, delay };
   }
 
+  /**
+   * Returns a failed result for this job. This method will prevent any retry attempts and will mark the
+   * job as failed indefinitely.
+   *
+   * @param reason The reason for failure.
+   * @returns A FailedResult object.
+   */
   fail(reason: string | Error): FailedResult {
     const error = toErrorData(reason);
     return { __is_job_transition__: true, type: "failed", error };
   }
 
+  /**
+   * Returns a completed result for this job.
+   * This method will mark the job as completed.
+   *
+   * @param result The result value.
+   * @returns A CompletedResult object.
+   */
   complete(result: unknown): CompletedResult {
     return { __is_job_transition__: true, type: "completed", result };
   }
 
+  /**
+   * Runs the job and returns a JobResult.
+   * This method is intended to be used internally.
+   *
+   * @param args Arguments to pass to the run method.
+   * @returns A promise resolving to the job result.
+   */
   async perform<T extends JobClassType>(...args: Parameters<T["prototype"]["run"]>): Promise<JobResult> {
     try {
       const result = await this.run(...args);
@@ -73,10 +163,64 @@ export abstract class Job {
     }
   }
 
+  /**
+   * The main logic for the job. Must be implemented by subclasses.
+   *
+   * Returning anything from this method will be treated as the job result and mark the job for completion.
+   *
+   * If there is an uncaught error in the `run` method, it will automatically return a RetryResult with
+   * the error data, which will trigger a job retry.
+   *
+   * There are a few convenience methods that can be used inside this method to return early and trigger
+   * a job transition:
+   * - `snooze(delay: number)`: Returns a SnoozeResult to delay the job execution for a specified time.
+   * - `retry(reason: string | Error, delay?: number)`: Returns a RetryResult to retry the job with an
+   * optional delay.
+   * - `fail(reason: string | Error)`: Returns a FailedResult to mark the job as failed with a reason.
+   * - `complete(result: unknown)`: Returns a CompletedResult to mark the job as completed with a result.
+   *
+   * You must return the result of any of these convenience methods to trigger the job transition. Simply
+   * calling them without returning their result will do absolutely nothing.
+   *
+   * @example
+   * ```typescript
+   * async run(arg1: string, arg2: number): Promise<string> {
+   *  // Your job logic here
+   *  if (someCondition) {
+   *    return this.snooze(1000); // Delay the job for 1 second
+   *  }
+   *  if (anotherCondition) {
+   *    return this.retry(new Error("Retrying due to some condition"), 500); // Retry after 500ms
+   *  }
+   *  if (yetAnotherCondition) {
+   *   return this.fail("Failed due to some reason"); // Mark the job as failed
+   *  }
+   *  // If everything is fine, return the result
+   *  return this.complete("Job completed successfully"); // Mark the job as completed
+   *  // Alternatively, you can just return a value, which will be treated as the job result:
+   *  return "Job completed successfully";
+   * }
+   * ```
+   *
+   * @param args Arguments for the job, if any.
+   * @returns The result of the job.
+   */
   abstract run(...args: unknown[]): unknown;
 }
 
 // TODO need to test this with unit tests
+/**
+ * Attempts to determine the file path where a given class is exported by analyzing the current call stack.
+ *
+ * This function inspects the stack trace of a newly created error to extract file paths,
+ * then checks each file to see if it exports the specified class. If found, returns the file path
+ * as a `file://` URI. If not found, returns the first file path in the stack as a fallback.
+ * Throws an error if no file paths can be determined.
+ *
+ * @param className - The name of the class to search for in the stack trace files.
+ * @returns A promise that resolves to the `file://` URI of the file exporting the class, or the first file in the stack.
+ * @throws If no file paths can be determined from the stack trace.
+ */
 async function buildPath(className: string) {
   const err = new Error();
   let stackLines = err.stack?.split("\n") ?? [];
@@ -106,6 +250,17 @@ async function buildPath(className: string) {
   throw new Error("Could not determine the task path");
 }
 
+/**
+ * Checks if a given file exports a class with the specified name.
+ *
+ * This function attempts to import the module at the provided file path and
+ * determines if it exports a class (either as a named export or as the default export)
+ * matching the given class name.
+ *
+ * @param filePath - The absolute path to the module file to check.
+ * @param className - The name of the class to look for in the module's exports.
+ * @returns A promise that resolves to `true` if the class is exported, or `false` otherwise.
+ */
 async function hasClassExported(filePath: string, className: string): Promise<boolean> {
   try {
     await access(filePath);

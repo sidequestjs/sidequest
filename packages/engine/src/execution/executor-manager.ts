@@ -5,6 +5,9 @@ import { SidequestConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
 
+/**
+ * Manages job execution and worker concurrency for Sidequest.
+ */
 export class ExecutorManager {
   private activeByQueue: Record<string, Set<number>>;
   private activeJobs: Set<number>;
@@ -12,6 +15,11 @@ export class ExecutorManager {
   private backend: Backend;
   private runnerPool: RunnerPool;
 
+  /**
+   * Creates a new ExecutorManager.
+   * @param sidequestConfig The Sidequest configuration.
+   * @param backend The backend instance.
+   */
   constructor(sidequestConfig: SidequestConfig, backend: Backend) {
     this.activeByQueue = {};
     this.activeJobs = new Set();
@@ -20,6 +28,11 @@ export class ExecutorManager {
     this.runnerPool = new RunnerPool();
   }
 
+  /**
+   * Gets the number of available slots for a given queue.
+   * @param queueConfig The queue configuration.
+   * @returns The number of available slots.
+   */
   availableSlotsByQueue(queueConfig: QueueConfig) {
     if (!this.activeByQueue[queueConfig.name]) {
       this.activeByQueue[queueConfig.name] = new Set();
@@ -34,6 +47,10 @@ export class ExecutorManager {
     return availableSlots;
   }
 
+  /**
+   * Gets the number of available slots globally.
+   * @returns The number of available slots.
+   */
   availableSlotsGlobal() {
     const limit = this.sidequestConfig.maxConcurrentJobs ?? 10;
     const availableSlots = limit - this.activeJobs.size;
@@ -43,10 +60,19 @@ export class ExecutorManager {
     return availableSlots;
   }
 
+  /**
+   * Gets the total number of active workers.
+   * @returns The number of active jobs.
+   */
   totalActiveWorkers() {
     return this.activeJobs.size;
   }
 
+  /**
+   * Executes a job in the given queue.
+   * @param queueConfig The queue configuration.
+   * @param job The job data to execute.
+   */
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
     if (!this.activeByQueue[queueConfig.name]) {
       this.activeByQueue[queueConfig.name] = new Set();
@@ -68,6 +94,7 @@ export class ExecutorManager {
         if (watchedJob?.state === "canceled") {
           signal.emit("abort");
           isRunning = false;
+          return;
         }
         await new Promise((r) => setTimeout(r, 1000));
       }

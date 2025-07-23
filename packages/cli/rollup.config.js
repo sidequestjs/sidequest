@@ -7,7 +7,6 @@ import pkg from "./package.json" with { type: "json" };
 
 const external = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})];
 
-
 export default {
   input: "src/cli.ts",
   output: {

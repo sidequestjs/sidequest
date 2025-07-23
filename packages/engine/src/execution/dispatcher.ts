@@ -5,12 +5,21 @@ import { QueueManager } from "./queue-manager";
 
 const sleepDelay = 100;
 
+/**
+ * Dispatcher for managing job execution and queue polling.
+ */
 export class Dispatcher {
   private isRunning: boolean;
   private queueManager: QueueManager;
   private executorManager: ExecutorManager;
   backend: Backend;
 
+  /**
+   * Creates a new Dispatcher.
+   * @param backend The backend instance.
+   * @param queueManager The queue manager instance.
+   * @param executorManager The executor manager instance.
+   */
   constructor(backend: Backend, queueManager: QueueManager, executorManager: ExecutorManager) {
     this.isRunning = false;
     this.queueManager = queueManager;
@@ -18,6 +27,10 @@ export class Dispatcher {
     this.backend = backend;
   }
 
+  /**
+   * Main loop for polling queues and dispatching jobs.
+   * @private
+   */
   private async listen() {
     while (this.isRunning) {
       const queues = await this.queueManager.getActiveQueuesWithRunnableJobs();
@@ -58,15 +71,28 @@ export class Dispatcher {
     }
   }
 
+  /**
+   * Sleeps for the given delay in milliseconds.
+   * @param delay The delay in milliseconds.
+   * @returns A promise that resolves after the delay.
+   * @private
+   */
   private sleep(delay: number): Promise<void> {
     return new Promise((r) => setTimeout(r, delay));
   }
 
+  /**
+   * Starts the dispatcher loop.
+   */
   start() {
     this.isRunning = true;
     void this.listen();
   }
 
+  /**
+   * Stops the dispatcher and waits for all active jobs to finish.
+   * @returns A promise that resolves when all jobs are finished.
+   */
   async stop() {
     this.isRunning = false;
 

@@ -1,6 +1,10 @@
 import { Backend } from "@sidequest/backend";
 import { logger } from "@sidequest/core";
 
+/**
+ * Finds and releases stale jobs, making them available for processing again.
+ * @param backend The backend instance to operate on.
+ */
 export async function releaseStaleJobs(backend: Backend) {
   const staleJobs = await backend.staleJobs();
 
