@@ -74,7 +74,7 @@ describe("executror.ts", () => {
         id: 1,
         queue: "default",
         state: "claimed",
-        script: `file://${path.resolve("packages/engine/src/test-jobs/dummy-job.js").replaceAll("\\", "/")}`,
+        script: `file://${path.resolve("packages/engine/src/test-jobs/dummy-job.js").replaceAll("\\\\", "/")}`,
         class: "DummyJob",
         args: [],
         attempt: 0,
@@ -96,7 +96,7 @@ describe("executror.ts", () => {
     });
 
     it("executes a failing job", async () => {
-      claimedJobData.script = `file://${path.resolve("packages/engine/src/test-jobs/dummy-failed-job.js").replaceAll("\\", "/")}`;
+      claimedJobData.script = `file://${path.resolve("packages/engine/src/test-jobs/dummy-failed-job.js").replaceAll("\\\\", "/")}`;
 
       await expect(execute(claimedJobData, config)).rejects.toThrow("failed job");
 

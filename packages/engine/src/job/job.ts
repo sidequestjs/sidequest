@@ -48,7 +48,7 @@ function buildPath() {
   const stackLines = err.stack?.split("\n");
   stackLines?.shift();
   const callerLine = stackLines?.find((line) => {
-    const exclude = import.meta.filename.replaceAll("\\", "/");
+    const exclude = import.meta.filename.replaceAll("\\\\", "/");
     return !line.includes(exclude);
   });
   const match = callerLine?.match(/(file:\/\/)?((\w:)?[/\\].+):\d+:\d+/);
