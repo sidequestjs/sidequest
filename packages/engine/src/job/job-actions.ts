@@ -22,7 +22,7 @@ export class JobActions {
     const backend = Engine.getBackend();
     jobData.errors ??= [];
     const errData = {
-      ...error,
+      ...serializeError(error),
       attempt: jobData.attempt,
       attempted_at: jobData.attempted_at,
       attempt_by: jobData.claimed_by,
@@ -43,4 +43,35 @@ function calculateBackoff(attempt: number, baseDelay = 1000, maxDelay = 3600000)
   const jitter = Math.random() + 0.5;
   const delay = Math.min(baseDelay * Math.pow(2, attempt - 1) * jitter, maxDelay);
   return new Date(Date.now() + delay);
+}
+
+interface SerializedError {
+  name: string;
+  message: string;
+  stack?: string;
+  [key: string]: unknown; // allow custom fields declared on extended errors
+};
+
+/**
+ * Generate serializable errors.
+ * Error objects are not fully serializable by default because their fields are not enumerable.
+ * For example:
+ *   const err = new Error("my error");
+ *   const foo = { ...err };        // foo is {}
+ *   JSON.stringify(err);           // returns '{}'
+ * This function extracts all own properties, making the error serializable for logs and transport.
+ */
+function serializeError(err: Error): SerializedError{
+  const plain = {
+    name:    err.name,
+    message: err.message,
+    stack:   err.stack,
+    ...Object.getOwnPropertyNames(err)
+      .filter(k => !['name','message','stack'].includes(k))
+      .reduce((acc, k) => {
+        acc[k] = err[k] as unknown;
+        return acc;
+      }, {})
+  };
+  return plain;
 }
