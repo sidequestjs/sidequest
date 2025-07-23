@@ -37,8 +37,8 @@ jobs:
           cache: false
 
       - name: Build project
-        env: 
-          VITE_GA_TAG: ${{ vars.VITE_GA_TAG }}
+        env:
+          VITE_GA_TAG: ${{ secrets.VITE_GA_TAG }}
         run: yarn workspace @sidequest/docs build
 
       - name: Upload artifact
