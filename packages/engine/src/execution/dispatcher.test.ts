@@ -57,7 +57,11 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(1);
 
-      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(config, backend),
+        new ExecutorManager(config, backend),
+      );
       dispatcher.start();
 
       runMock.mockImplementation(() => {
@@ -79,7 +83,11 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
-      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(config, backend),
+        new ExecutorManager(config, backend),
+      );
       dispatcher.start();
 
       runMock.mockImplementation(() => {
@@ -107,7 +115,11 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
-      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(config, backend),
+        new ExecutorManager(config, backend),
+      );
       dispatcher.start();
 
       runMock.mockImplementation(() => {

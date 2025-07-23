@@ -114,6 +114,21 @@ jobsRouter.patch("/:id/run", async (req, res) => {
   }
 });
 
+
+jobsRouter.patch("/:id/cancel", async (req, res) => {
+  const backend = getBackend();
+
+  const jobId = parseInt(req.params.id);
+  const job = await backend?.getJob(jobId);
+
+  if(job){
+    await backend.updateJob({ ...job, state: "canceled" });
+    res.header("HX-Trigger", "cancelJob").status(200).end();
+  } else {
+    res.status(404).end();
+  }
+});
+
 function computeTimeRange(time?: unknown, start?: unknown, end?: unknown) {
   if (typeof time !== "string") return undefined;
 

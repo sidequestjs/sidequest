@@ -35,8 +35,13 @@
       <td><%= queue.jobs.filter(job => job.state === "completed").length %></td>
       <td><%= queue.jobs.filter(job => job.state === "failed").length %></td>
       <td>
-        <button class="btn btn-outline <%= queue.state==="active" ? "btn-warning" : "btn-primary" %>"
-          hx-patch="/queues/<%= queue.name %>/toggle" hx-target="#queues-table" hx-swap="outerHTML">
+        <button class="btn btn-sm"
+          hx-patch="/queues/<%= queue.name %>/toggle">
+          <% if(queue.state==="active") { %>
+            <i data-feather="pause" class="w-4 h-4"></i>
+          <% } else { %>
+            <i data-feather="play" class="w-4 h-4"></i>
+          <% } %>
           <%= queue.state==="active" ? "Pause" : "Activate" %>
         </button>
       </td>
