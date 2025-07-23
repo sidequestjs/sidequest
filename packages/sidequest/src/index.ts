@@ -1,14 +1,13 @@
 import { Engine, SidequestConfig } from "@sidequest/engine";
-import { runWeb } from "@sidequest/dashboard";
+import { SidequestDashboard, DashboardConfig } from "@sidequest/dashboard";
 
 export * from "@sidequest/engine";
 
 export class Sidequest {
-  static start(config: SidequestConfig){
+  static start(config: SidequestConfig, dashboardConfig?: DashboardConfig){
     const engine = Engine.start(config);
 
-    runWeb();
-
+    SidequestDashboard.start(dashboardConfig);
     return engine;
   }
 }

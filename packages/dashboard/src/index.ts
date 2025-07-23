@@ -2,79 +2,88 @@ import express from "express";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
 import { Engine } from "@sidequest/engine";
+import { DashboardConfig } from "./config";
 
-export function runWeb(port: number = 8678) {
-  const app = express();
+export class SidequestDashboard {
+  static start(config?: DashboardConfig) {
+    const enabled = config?.enabled ?? true;
+    if(!enabled) return;
 
-  app.use(expressLayouts);
-  app.set("view engine", "ejs");
-  app.set("views", path.join(import.meta.dirname, "views"));
-  app.set("layout", path.join(import.meta.dirname, "views", "layout"));
-
-  app.use("/public", express.static(path.join(import.meta.dirname, "public")));
-
-  app.get("/", function (req, res) {
-    res.render("pages/index", { title: "Sidequest Dashboard" });
-  });
-
-  app.get("/jobs", async (req, res) => {
-    const { status, time, start, end, sinceId, queue, class: klass } = req.query;
-    const backend = Engine.getBackend();
-
-    const filters: {
-      queue?: string;
-      state?: string;
-      sinceId?: number;
-      limit: number;
-      class?: string;
-      timeRange?: {
-        from?: Date;
-        to?: Date;
-      };
-    } = {
-      limit: 20,
-      queue: typeof queue === "string" && queue.trim() !== "" ? queue : undefined,
-      class: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
-      state: typeof status === "string" && status.trim() !== "" ? status : undefined,
-      sinceId: sinceId ? parseInt(sinceId as string, 10) : undefined,
-    };
-
-    if (time === "15m") {
-      filters.timeRange = { from: new Date(Date.now() - 15 * 60 * 1000) };
-    } else if (time === "1d") {
-      filters.timeRange = { from: new Date(Date.now() - 24 * 60 * 60 * 1000) };
-    } else if (time === "custom" && typeof start === "string" && typeof end === "string") {
-      filters.timeRange = {
-        from: new Date(start),
-        to: new Date(end),
-      };
-    }
-
-    const jobs = await backend.listJobs(filters);
-
-    res.render("pages/jobs", {
-      title: "Jobs",
-      jobs,
-      filters: {
-        status: status || "",
-        time: time || "",
-        start: start || "",
-        end: end || "",
-        queue: queue || "",
-        class: klass || "",
-      },
+    const app = express();
+  
+    app.use(expressLayouts);
+    app.set("view engine", "ejs");
+    app.set("views", path.join(import.meta.dirname, "views"));
+    app.set("layout", path.join(import.meta.dirname, "views", "layout"));
+  
+    app.use("/public", express.static(path.join(import.meta.dirname, "public")));
+  
+    app.get("/", function (req, res) {
+      res.render("pages/index", { title: "Sidequest Dashboard" });
     });
-  });
-
-  app.get("/queues", async (req, res) => {
-    const backend = Engine.getBackend();
-    const queues = await backend.listQueues();
-
-    res.render("pages/queues", {
-      title: "Queues",
-      queues,
+  
+    app.get("/jobs", async (req, res) => {
+      const { status, time, start, end, sinceId, queue, class: klass } = req.query;
+      const backend = Engine.getBackend();
+  
+      const filters: {
+        queue?: string;
+        state?: string;
+        sinceId?: number;
+        limit: number;
+        class?: string;
+        timeRange?: {
+          from?: Date;
+          to?: Date;
+        };
+      } = {
+        limit: 20,
+        queue: typeof queue === "string" && queue.trim() !== "" ? queue : undefined,
+        class: typeof klass === "string" && klass.trim() !== "" ? klass : undefined,
+        state: typeof status === "string" && status.trim() !== "" ? status : undefined,
+        sinceId: sinceId ? parseInt(sinceId as string, 10) : undefined,
+      };
+  
+      if (time === "15m") {
+        filters.timeRange = { from: new Date(Date.now() - 15 * 60 * 1000) };
+      } else if (time === "1d") {
+        filters.timeRange = { from: new Date(Date.now() - 24 * 60 * 60 * 1000) };
+      } else if (time === "custom" && typeof start === "string" && typeof end === "string") {
+        filters.timeRange = {
+          from: new Date(start),
+          to: new Date(end),
+        };
+      }
+  
+      const jobs = await backend.listJobs(filters);
+  
+      res.render("pages/jobs", {
+        title: "Jobs",
+        jobs,
+        filters: {
+          status: status || "",
+          time: time || "",
+          start: start || "",
+          end: end || "",
+          queue: queue || "",
+          class: klass || "",
+        },
+      });
     });
-  });
-
-  app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
+  
+    app.get("/queues", async (req, res) => {
+      const backend = Engine.getBackend();
+      const queues = await backend.listQueues();
+  
+      res.render("pages/queues", {
+        title: "Queues",
+        queues,
+      });
+    });
+  
+    const port = config?.port ?? 8678;
+    app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
+  } 
 }
+
+export *  from "./config";
