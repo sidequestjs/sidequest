@@ -28,6 +28,11 @@ const configs = createConfig(pkg, "src/index.ts", [
         dest: "dist/public/js",
         rename: "highlight.js",
       },
+      {
+        src: "../../node_modules/chart.js/dist/chart.umd.min.js",
+        dest: "dist/public/js",
+        rename: "chart.js",
+      },
     ],
   }),
 ]);

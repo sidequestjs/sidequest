@@ -7,6 +7,7 @@ import { initBackend } from "./backend-driver";
 import { DashboardConfig } from "./config";
 import jobsRouter from "./resources/jobs";
 import queuesRouter from "./resources/queues";
+import dashboardRouter from "./resources/dashboard";
 
 export class SidequestDashboard {
   static async start(config?: DashboardConfig) {
@@ -26,7 +27,6 @@ export class SidequestDashboard {
 
     this.setupAuth(app, _config);
     this.setupEJS(app);
-    this.setupHomepage(app);
     this.setupRoutes(app);
 
     this.listen(app, _config);
@@ -54,13 +54,8 @@ export class SidequestDashboard {
     app.use("/public", express.static(path.join(import.meta.dirname, "public")));
   }
 
-  static setupHomepage(app: express.Express) {
-    app.get("/", function (req, res) {
-      res.render("pages/index", { title: "Sidequest Dashboard" });
-    });
-  }
-
   static setupRoutes(app: express.Express) {
+    app.use("/", dashboardRouter);
     app.use("/jobs", jobsRouter);
     app.use("/queues", queuesRouter);
   }

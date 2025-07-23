@@ -1,87 +1,22 @@
-<!-- Indicadores principais -->
-<div class="grid grid-cols-3 gap-4 mb-8">
-  <div class="bg-gray-800 p-4 rounded shadow border border-gray-700">
-    <div class="text-sm text-gray-400">Completed Jobs</div>
-    <div class="text-2xl font-bold text-green-400">1234</div>
+<div class="flex flex-col gap-8">
+  <div class="form-control w-48">
+    <label class="label label-text">Jobs in the last</label>
+    <select id="graph-range" name="range" class="select select-bordered">
+      <option value="12m" selected>12 minutes</option>
+      <option value="12h">12 hours</option>
+      <option value="12d">12 days</option>
+    </select>
   </div>
-  <div class="bg-gray-800 p-4 rounded shadow border border-gray-700">
-    <div class="text-sm text-gray-400">Failed Jobs</div>
-    <div class="text-2xl font-bold text-red-400">27</div>
-  </div>
-  <div class="bg-gray-800 p-4 rounded shadow border border-gray-700">
-    <div class="text-sm text-gray-400">Scheduled</div>
-    <div class="text-2xl font-bold text-yellow-400">89</div>
-  </div>
-</div>
 
-<!-- Timeline de Jobs Executados (últimos 12 minutos) -->
-<div class="bg-gray-800 p-6 rounded shadow border border-gray-700 mt-8">
-  <div class="text-lg font-semibold text-gray-300 mb-4">Jobs Executados por Minuto (Últimos 12 min)</div>
-  <div class="w-full h-96">
-    <canvas id="jobsTimeline" class="w-full h-full"></canvas>
+  <!-- Stats -->
+  <%- include('../partials/dashboard-stats') %>
+
+  <!-- Graph -->
+  <div class="bg-gray-800 p-6 rounded shadow border border-gray-700 flex flex-col gap-2">
+    <div class="w-full h-96">
+      <canvas id="jobsTimeline" class="w-full h-full"></canvas>
+    </div>
   </div>
 </div>
 
-<button class="btn btn-soft">Default</button>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Gera os últimos 12 minutos como labels
-  const now = new Date();
-  const labels = [];
-  for (let i = 11; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60000);
-    labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-  }
-
-  const ctx = document.getElementById('jobsTimeline').getContext('2d');
-
-  const jobsTimeline = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Completed',
-          data: [3, 7, 4, 6, 8, 9, 5, 7, 6, 10, 12, 8],
-          borderColor: 'rgb(34, 197, 94)',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          tension: 0.4,
-          fill: true,
-        },
-        {
-          label: 'Failed',
-          data: [0, 1, 0, 0, 0, 2, 0, 1, 0, 1, 0, 0],
-          borderColor: 'rgb(239, 68, 68)',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          tension: 0.4,
-          fill: true,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          ticks: { color: '#ccc' },
-          grid: { color: '#333' },
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { color: '#ccc' },
-          grid: { color: '#333' },
-        },
-      },
-      plugins: {
-        legend: {
-          labels: { color: '#ccc' }
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-        },
-      },
-    },
-  });
-</script>
+<script src="/public/js/dashboard.js"></script>

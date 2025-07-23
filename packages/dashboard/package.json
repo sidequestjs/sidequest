@@ -27,6 +27,7 @@
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
     "@types/feather-icons": "^4",
+    "chart.js": "^4.5.0",
     "daisyui": "^5.0.43",
     "feather-icons": "^4.29.2",
     "htmx.org": "^2.0.4"
