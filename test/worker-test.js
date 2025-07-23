@@ -44,9 +44,9 @@ describe("Worker", () => {
         });
     });
     
-    it("should have be killed", (done) => {
+    it("should have to be killed", (done) => {
         worker.on('done', (task) => {
-            done(new Error("Some error message here"));
+            done(new Error("Fail, task was finished!"));
         });
         worker.execute( {
             "name": "Task",
