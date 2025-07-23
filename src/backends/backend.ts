@@ -1,5 +1,4 @@
 import { QueueConfig } from "src/core/schema/queue-config";
-import { Job } from "../core/job";
 import { JobData } from "src/core/schema/job-data";
 
 export interface Backend {

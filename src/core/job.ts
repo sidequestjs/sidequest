@@ -1,19 +1,29 @@
 import { Sidequest } from "../sidequest";
 import { JobData, JobState } from "./schema/job-data";
 
+export type JobOptions = {
+  queue?: string,
+  timeout?: number
+}
 
 export abstract class Job {
   queue: string;
   script: string;
   class: string;
+  timeout?: number;
 
-  constructor(queue?: string) {
-    this.queue = queue || 'default';
+  constructor(jobOptions?: JobOptions) {
+    const options = Object.assign({
+      queue: 'default'
+    }, jobOptions);
+    
+    this.queue = options.queue;
     this.script = buildPath();
     this.class = this.constructor.name;
+    this.timeout = options.timeout;
   }
   
-  abstract run(): void | Promise<void>;
+  abstract run(): any | Promise<any>;
 
   static async enqueue(this: { new (...args: any[]): Job }, ...args: any[]): Promise<void> {
     const job = new this(...args);
