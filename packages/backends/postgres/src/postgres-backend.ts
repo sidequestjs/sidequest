@@ -42,6 +42,7 @@ export default class PostgresBackend implements Backend {
       class: job.class,
       script: job.script,
       args: this.knex.raw("?", [JSON.stringify(job.args)]),
+      constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
       timeout: job.timeout,
       state: job.state,
     };
@@ -92,7 +93,7 @@ export default class PostgresBackend implements Backend {
       attempted_at: job.attempted_at,
       available_at: job.available_at,
       completed_at: job.completed_at,
-      discarded_at: job.discarded_at,
+      failed_at: job.failed_at,
       cancelled_at: job.cancelled_at,
       claimed_at: job.claimed_at,
       claimed_by: job.claimed_by,

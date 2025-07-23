@@ -14,7 +14,7 @@ exports.up = function(knex) {
       table.timestamp('inserted_at');
       table.timestamp('attempted_at');
       table.timestamp('completed_at');
-      table.timestamp('discarded_at');
+      table.timestamp('failed_at');
       table.timestamp('cancelled_at');
       table.timestamp('claimed_at');
       table.string('claimed_by');

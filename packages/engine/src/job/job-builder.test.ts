@@ -25,7 +25,7 @@ describe("JobBuilder", () => {
         inserted_at: expect.any(String) as string,
         attempted_at: null,
         completed_at: null,
-        discarded_at: null,
+        failed_at: null,
         cancelled_at: null,
         claimed_at: null,
         claimed_by: null,

@@ -1,9 +1,9 @@
-import { JobData } from "@sidequest/core";
+import { CompleteTransition, JobData, JobTransition, RetryTransition, RunningTransition } from "@sidequest/core";
 import { unlink } from "fs";
 import path from "path";
 import { afterAll, beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
-import { JobActions } from "../job/job-actions";
+import { JobTransitioner } from "../job/job-transitioner";
 import { execute } from "./executor";
 
 describe("executror.ts", () => {
@@ -21,19 +21,17 @@ describe("executror.ts", () => {
     let claimedJobData: JobData = {} as JobData;
 
     let configureStub: MockInstance<(config?: SidequestConfig) => Promise<SidequestConfig>>;
-    let setRunningStub: MockInstance<(jobData: JobData) => Promise<JobData>>;
-    let setCompleteStub: MockInstance<(jobData: JobData, result: unknown) => Promise<JobData>>;
-    let setFailedStub: MockInstance<(jobData: JobData, error: Error) => Promise<void>>;
-
+    let applyTransitionStub: MockInstance<(jobData: JobData, transition: unknown) => Promise<JobData>>;
     beforeEach(() => {
       vi.restoreAllMocks();
 
       configureStub = vi.spyOn(Engine, "configure");
-      setRunningStub = vi.spyOn(JobActions, "setRunning").mockImplementation(async (j) => Promise.resolve(j));
-      setCompleteStub = vi.spyOn(JobActions, "setComplete").mockImplementation(async (j) => Promise.resolve(j));
-      setFailedStub = vi.spyOn(JobActions, "setExecutionFailed").mockImplementation(async () => {
-        // noop
-      });
+
+      applyTransitionStub = vi
+        .spyOn(JobTransitioner, "apply")
+        .mockImplementation(async (jobData: JobData, transition: JobTransition) => {
+          return Promise.resolve(transition.apply(jobData));
+        });
 
       claimedJobData = {
         id: 1,
@@ -56,20 +54,9 @@ describe("executror.ts", () => {
       await execute(claimedJobData, config);
 
       expect(configureStub).toHaveBeenCalledOnce();
-      expect(setRunningStub).toHaveBeenCalledOnce();
-      expect(setCompleteStub).toHaveBeenCalledOnce();
-      expect(setFailedStub).not.toHaveBeenCalled();
-    });
-
-    it("executes a failing job", async () => {
-      claimedJobData.script = `file://${path.resolve("packages/engine/src/test-jobs/dummy-failed-job.js").replaceAll("\\\\", "/")}`;
-
-      await expect(execute(claimedJobData, config)).rejects.toThrow("failed job");
-
-      expect(configureStub).toHaveBeenCalledOnce();
-      expect(setRunningStub).toHaveBeenCalledOnce();
-      expect(setCompleteStub).not.toHaveBeenCalled();
-      expect(setFailedStub).toHaveBeenCalledOnce();
+      expect(applyTransitionStub).toHaveBeenCalledWith(expect.anything(), expect.any(RunningTransition));
+      expect(applyTransitionStub).toHaveBeenCalledWith(expect.anything(), expect.any(CompleteTransition));
+      expect(applyTransitionStub).not.toHaveBeenCalledWith(expect.anything(), expect.any(RetryTransition));
     });
 
     it("fails with wrong class", async () => {
@@ -78,9 +65,9 @@ describe("executror.ts", () => {
       await expect(execute(claimedJobData, config)).rejects.toThrow("Invalid job class: BadClass");
 
       expect(configureStub).toHaveBeenCalledOnce();
-      expect(setRunningStub).not.toHaveBeenCalled();
-      expect(setCompleteStub).not.toHaveBeenCalled();
-      expect(setFailedStub).not.toHaveBeenCalled();
+      expect(applyTransitionStub).not.toHaveBeenCalledWith(expect.anything(), expect.any(RunningTransition));
+      expect(applyTransitionStub).not.toHaveBeenCalledWith(expect.anything(), expect.any(CompleteTransition));
+      expect(applyTransitionStub).not.toHaveBeenCalledWith(expect.anything(), expect.any(RetryTransition));
     });
   });
 });

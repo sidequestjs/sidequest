@@ -1,10 +1,10 @@
-import { QueueConfig } from "@sidequest/core";
+import { CompleteTransition, QueueConfig } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
 import { describe, it, vi } from "vitest";
 import { Engine, SidequestConfig } from "../engine";
-import { JobActions } from "../job/job-actions";
 import { JobBuilder } from "../job/job-builder";
+import { JobTransitioner } from "../job/job-transitioner";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Worker } from "./main";
 
@@ -55,7 +55,7 @@ describe("main.ts", () => {
     const jobData = await new JobBuilder(DummyJob).enqueue();
 
     mocks.fork.mockImplementation(() => {
-      void JobActions.setComplete(jobData, "result");
+      void JobTransitioner.apply(jobData, new CompleteTransition());
       return fakeChild;
     });
 

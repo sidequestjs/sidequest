@@ -1,3 +1,4 @@
+import { CompleteTransition, FailTransition, JobTransition, RetryTransition, SnoozeTransition } from "@sidequest/core";
 export type JobClassType = (new (...args: unknown[]) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
 
 export abstract class Job {
@@ -16,6 +17,34 @@ export abstract class Job {
 
   get className() {
     return this.constructor.name;
+  }
+
+  snooze(delay: number) {
+    return new SnoozeTransition(delay);
+  }
+
+  retry(reason: string | Error, delay?: number) {
+    return new RetryTransition(reason, delay);
+  }
+
+  fail(reason: string | Error) {
+    return new FailTransition(reason);
+  }
+
+  complete(result: unknown) {
+    return new CompleteTransition(result);
+  }
+
+  async perform<T extends JobClassType>(...args: Parameters<T["prototype"]["run"]>): Promise<JobTransition> {
+    try {
+      const result = await this.run(...args);
+      if (result instanceof JobTransition) {
+        return result;
+      }
+      return new CompleteTransition(result);
+    } catch (error) {
+      return new RetryTransition(error as Error);
+    }
   }
 
   abstract run(...args: unknown[]): unknown;

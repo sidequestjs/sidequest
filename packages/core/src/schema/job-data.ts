@@ -1,4 +1,4 @@
-import { ErrorData } from "./errordata";
+import { ErrorData } from "./error-data";
 
 export type JobState =
   | "waiting" // Ready or scheduled for execution
@@ -25,7 +25,7 @@ export interface JobData {
   attempted_at?: Date;
   available_at?: Date;
   completed_at?: Date;
-  discarded_at?: Date;
+  failed_at?: Date;
   cancelled_at?: Date;
   claimed_at?: Date;
   claimed_by?: string;

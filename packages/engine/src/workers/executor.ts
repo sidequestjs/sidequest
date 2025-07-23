@@ -1,7 +1,7 @@
-import { JobData, logger } from "@sidequest/core";
+import { JobData, logger, RunningTransition } from "@sidequest/core";
 import { Engine, SidequestConfig } from "../engine";
 import { Job, JobClassType } from "../job/job";
-import { JobActions } from "../job/job-actions";
+import { JobTransitioner } from "../job/job-transitioner";
 
 export async function execute(jobData: JobData, config: SidequestConfig): Promise<void> {
   await Engine.configure(config);
@@ -15,16 +15,10 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
 
   const job: Job = new JobClass(jobData.constructor_args);
 
-  jobData = await JobActions.setRunning(jobData);
-  try {
-    logger().info(`Running job ${jobData.class} with args: ${JSON.stringify(jobData.args)}`);
-    const result = await job.run(...jobData.args);
-    jobData = await JobActions.setComplete(jobData, result);
-    logger().info(`Job ${jobData.class} has completed with args: ${JSON.stringify(jobData.args)}`);
-  } catch (error) {
-    await JobActions.setExecutionFailed(jobData, error as Error);
-    throw error;
-  }
+  jobData = await JobTransitioner.apply(jobData, new RunningTransition());
+
+  const result = await job.perform(...jobData.args);
+  await JobTransitioner.apply(jobData, result);
 }
 
 const isChildProcess = !!process.send;
@@ -36,6 +30,7 @@ if (isChildProcess) {
       await execute(message.job, message.config);
       process.exit(0);
     } catch (error) {
+      // avoid hidden errors, ex: when backend operation fail when updating job
       logger().error(error);
       process.exit(0);
     }

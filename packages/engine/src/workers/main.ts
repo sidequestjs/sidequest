@@ -1,8 +1,8 @@
-import { JobData, logger, QueueConfig } from "@sidequest/core";
+import { JobData, logger, QueueConfig, RetryTransition } from "@sidequest/core";
 import { fork } from "child_process";
 import path from "path";
 import { Engine, SidequestConfig } from "../engine";
-import { JobActions } from "../job/job-actions";
+import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
@@ -69,6 +69,7 @@ export class Worker {
             const startTimeout = setTimeout(() => {
               logger().error(`timeout on starting executor for job ${job.script}`);
               child.kill();
+              // TODO: create a JobTransition for this.
               job.state = "waiting";
               void backend.updateJob(job);
             }, 2000);
@@ -83,7 +84,10 @@ export class Worker {
                   if (jobTimeout) clearTimeout(jobTimeout);
                   if (code && code > 0 && !timedOut) {
                     logger().error(`Executor for job ${job.script} exited with code ${code}`);
-                    void JobActions.setExecutionFailed(job, new Error(`Executor exited with code ${code}`));
+                    void JobTransitioner.apply(
+                      job,
+                      new RetryTransition(new Error(`Executor exited with code ${code}`)),
+                    );
                   }
                 });
 
@@ -95,7 +99,7 @@ export class Worker {
                     timedOut = true;
                     const error = `Executor for job ${job.script} timed out after ${job.timeout}ms`;
                     logger().error(error);
-                    void JobActions.setExecutionFailed(job, new Error(error));
+                    void JobTransitioner.apply(job, new RetryTransition(new Error(error)));
                   }, job.timeout);
                 }
               }

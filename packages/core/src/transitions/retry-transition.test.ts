@@ -1,0 +1,111 @@
+import { JobData } from "../schema";
+import { RetryTransition } from "./retry-transition";
+
+describe("RetryTransition", () => {
+  let jobData: JobData;
+  beforeEach(() => {
+    jobData = {
+      queue: "default",
+      script: "./dummy-script.js",
+      class: "DummyClass",
+      args: [],
+      constructor_args: [],
+      attempt: 1,
+      max_attempts: 10,
+      claimed_by: "node@worker",
+      attempted_at: new Date(),
+    };
+  });
+
+  it("allows retry setting a message", () => {
+    const result = new RetryTransition("custom failed message").apply(jobData);
+    const now = new Date();
+    expect(result).toEqual({
+      queue: "default",
+      script: "./dummy-script.js",
+      class: "DummyClass",
+      args: [],
+      constructor_args: [],
+      attempt: 1,
+      claimed_by: "node@worker",
+      attempted_at: jobData.attempted_at,
+      max_attempts: 10,
+      state: "waiting",
+      available_at: expect.any(Date) as Date,
+      errors: [
+        {
+          attempt: 1,
+          attempt_by: "node@worker",
+          attempted_at: jobData.attempted_at,
+          message: "custom failed message",
+        },
+      ],
+    });
+    expect(result.available_at?.getTime()).toBeGreaterThan(now.getTime());
+  });
+
+  it("allows retry setting a error", () => {
+    const result = new RetryTransition(new Error("custom error")).apply(jobData);
+    const now = new Date();
+    expect(result).toEqual({
+      queue: "default",
+      script: "./dummy-script.js",
+      class: "DummyClass",
+      args: [],
+      constructor_args: [],
+      attempt: 1,
+      claimed_by: "node@worker",
+      attempted_at: jobData.attempted_at,
+      max_attempts: 10,
+      state: "waiting",
+      available_at: expect.any(Date) as Date,
+      errors: [
+        {
+          attempt: 1,
+          attempt_by: "node@worker",
+          attempted_at: jobData.attempted_at,
+          message: "custom error",
+          name: "Error",
+          stack: expect.any(String) as string,
+          level: expect.any(String) as string,
+          pid: expect.any(Number) as number,
+          timestamp: expect.any(String) as string,
+        },
+      ],
+    });
+    expect(result.available_at?.getTime()).toBeGreaterThan(now.getTime());
+  });
+
+  it("allows retry setting delay", () => {
+    const result = new RetryTransition(new Error("custom error"), 3600000).apply(jobData);
+    const inAlmostOneHour = new Date();
+    inAlmostOneHour.setTime(inAlmostOneHour.getTime() - 3600000 - 300);
+    expect(result).toEqual({
+      queue: "default",
+      script: "./dummy-script.js",
+      class: "DummyClass",
+      args: [],
+      constructor_args: [],
+      attempt: 1,
+      claimed_by: "node@worker",
+      attempted_at: jobData.attempted_at,
+      max_attempts: 10,
+      state: "waiting",
+      available_at: expect.any(Date) as Date,
+      errors: [
+        {
+          attempt: 1,
+          attempt_by: "node@worker",
+          attempted_at: jobData.attempted_at,
+          message: "custom error",
+          name: "Error",
+          stack: expect.any(String) as string,
+          level: expect.any(String) as string,
+          pid: expect.any(Number) as number,
+          timestamp: expect.any(String) as string,
+        },
+      ],
+    });
+    expect(result.available_at?.getTime()).toBeGreaterThanOrEqual(inAlmostOneHour.getTime());
+  });
+});

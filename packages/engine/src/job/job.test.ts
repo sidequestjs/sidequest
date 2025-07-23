@@ -1,7 +1,7 @@
-import { JobState } from "@sidequest/core";
+import { CompleteTransition, FailTransition, JobState, RetryTransition, SnoozeTransition } from "@sidequest/core";
 import { unlink } from "fs";
 import { DefaultDeduplicationStrategy } from "../deduplication/default";
-import { Engine, SidequestConfig } from "../engine";
+import { Engine, Job, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
 
@@ -20,6 +20,12 @@ describe("job.ts", () => {
     unlink(dbLocation, () => {
       // noop
     });
+  });
+
+  it("should expose script and className correctly", () => {
+    const job = new DummyJob();
+    expect(typeof job.script).toBe("string");
+    expect(job.className).toBe("DummyJob");
   });
 
   it("should enqueue job", async () => {
@@ -130,5 +136,79 @@ describe("job.ts", () => {
     });
 
     expect(jobData.length).toBe(expected);
+  });
+
+  it("creates a complete transition", () => {
+    const job = new DummyJob();
+    const transition = job.complete("result");
+    expect(transition).toBeInstanceOf(CompleteTransition);
+    expect(transition.result).toBe("result");
+  });
+
+  it("creates a fail transition", () => {
+    const job = new DummyJob();
+    const transition = job.fail("error");
+    expect(transition).toBeInstanceOf(FailTransition);
+    expect(transition.reason).toBe("error");
+  });
+
+  it("creates a retry transition", () => {
+    const job = new DummyJob();
+    const transition = job.retry("reason", 1000);
+    expect(transition).toBeInstanceOf(RetryTransition);
+    expect(transition.reason).toBe("reason");
+    expect(transition.delay).toBe(1000);
+  });
+
+  it("creates a snooze transition", () => {
+    const job = new DummyJob();
+    const transition = job.snooze(1000);
+    expect(transition).toBeInstanceOf(SnoozeTransition);
+    expect(transition.delay).toBe(1000);
+  });
+
+  it("fail/retry should accept an Error object", () => {
+    const job = new DummyJob();
+    const error = new Error("fail");
+    expect(job.fail(error)).toBeInstanceOf(FailTransition);
+    expect(job.retry(error)).toBeInstanceOf(RetryTransition);
+  });
+
+  describe("perform", () => {
+    it("should return CompleteTransition if run returns a value", async () => {
+      class ValueJob extends Job {
+        run() {
+          return "abc";
+        }
+      }
+      const job = new ValueJob();
+      const transition = await job.perform();
+      expect(transition).toBeInstanceOf(CompleteTransition);
+      expect((transition as CompleteTransition).result).toBe("abc");
+    });
+
+    it("should return transition if run returns a JobTransition", async () => {
+      class TransitionJob extends Job {
+        run() {
+          return new RetryTransition("fail!");
+        }
+      }
+      const job = new TransitionJob();
+      const transition = await job.perform();
+      expect(transition).toBeInstanceOf(RetryTransition);
+      expect((transition as RetryTransition).reason).toBe("fail!");
+    });
+
+    it("should return RetryTransition if run throws", async () => {
+      class ErrorJob extends Job {
+        run() {
+          throw new Error("fail!");
+        }
+      }
+      const job = new ErrorJob();
+      const transition = await job.perform();
+      expect(transition).toBeInstanceOf(RetryTransition);
+      expect((transition as RetryTransition).reason).toBeInstanceOf(Error);
+    });
   });
 });

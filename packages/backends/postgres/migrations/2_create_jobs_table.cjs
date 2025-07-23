@@ -19,7 +19,7 @@ exports.up = async function(knex) {
     table.timestamp('attempted_at').nullable();
     table.timestamp('available_at').notNullable().defaultTo(knex.fn.now()); // for retry/delay
     table.timestamp('completed_at').nullable();
-    table.timestamp('discarded_at').nullable();
+    table.timestamp('failed_at').nullable();
     table.timestamp('cancelled_at').nullable();
 
     table.string('claimed_by').nullable();
