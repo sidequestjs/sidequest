@@ -1,11 +1,11 @@
-import { DuplicatedJobError, logger } from "@sidequest/core";
+import { logger } from "@sidequest/core";
 import cron from "node-cron";
 import { Engine, SidequestConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
 import { ExecutorManager } from "../execution/executor-manager";
 import { QueueManager } from "../execution/queue-manager";
-import { CleanupFinishedJobs } from "../internal-jobs/cleanup-finished-job";
-import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
+import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
+import { releaseStaleJobs } from "../routines/release-stale-jobs";
 import { gracefulShutdown } from "../utils/shutdown";
 
 let shuttingDown = false;
@@ -23,7 +23,7 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
     );
     dispatcher.start();
 
-    startCron(sidequestConfig);
+    startCron();
   } catch (error) {
     logger().error(error);
     process.exit(1);
@@ -32,44 +32,26 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
 
 async function shutdown() {
   if (!shuttingDown) {
+    shuttingDown = true;
     await dispatcher?.stop();
     await Engine.close();
   }
-  shuttingDown = true;
 }
 
-export function startCron(config: SidequestConfig) {
-  const releaseTask = cron.schedule("*/5 * * * *", async () => {
+export function startCron() {
+  const releaseTask = cron.schedule("0 * * * *", async () => {
     try {
-      await Engine.build(ReleaseStaleJob)
-        .with(config)
-        .queue("sidequest_internal")
-        .unique({ period: "second" })
-        .timeout(10_000)
-        .enqueue();
+      await releaseStaleJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      if (error instanceof DuplicatedJobError) {
-        logger().debug("ReleaseStaleJob already scheduled by another worker");
-      } else {
-        logger().error("Error on enqueuing ReleaseStaleJob!", error);
-      }
+      logger().error("Error on enqueuing ReleaseStaleJob!", error);
     }
   });
 
   const cleanupTask = cron.schedule("0 * * * *", async () => {
     try {
-      await Engine.build(CleanupFinishedJobs)
-        .with(config)
-        .queue("sidequest_internal")
-        .unique({ period: "hour" })
-        .timeout(10_000)
-        .enqueue();
+      await cleanupFinishedJobs(Engine.getBackend()!);
     } catch (error: unknown) {
-      if (error instanceof DuplicatedJobError) {
-        logger().debug("CleanupJob already scheduled by another worker");
-      } else {
-        logger().error("Error on enqueuing CleanupJob!", error);
-      }
+      logger().error("Error on enqueuing CleanupJob!", error);
     }
   });
 
@@ -86,10 +68,7 @@ const isChildProcess = !!process.send;
 if (isChildProcess) {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   process.on("message", async ({ type, sidequestConfig }: { type: string; sidequestConfig?: SidequestConfig }) => {
-    if (type === "shutdown") {
-      logger().info("Received shutdown signal, stopping worker...");
-      await shutdown();
-    } else if (type === "start") {
+    if (type === "start") {
       if (!shuttingDown) {
         logger().info("Starting worker with provided configuration...");
         return await runWorker(sidequestConfig!);

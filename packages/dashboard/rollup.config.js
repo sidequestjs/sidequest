@@ -1,9 +1,11 @@
 import createConfig from "../../rollup.config.base.js";
 import pkg from "./package.json" with { type: "json" };
 
-import copy from "rollup-plugin-copy";
+import copy from "rollup-plugin-copy-watch";
 import del from "rollup-plugin-delete";
 import postcss from "rollup-plugin-postcss";
+
+const isWatch = process.env.ROLLUP_WATCH === "true";
 
 const configs = createConfig(pkg, "src/index.ts", [
   copy({
@@ -46,6 +48,11 @@ configs.push(
       // changes inside those dirs.
       copy({
         verbose: true,
+        ...(isWatch
+          ? {
+              watch: ["src/views/**/*", "src/public/**/*"],
+            }
+          : {}),
         targets: [
           { src: "src/views", dest: "dist" },
           { src: "src/public/img", dest: "dist/public" },
