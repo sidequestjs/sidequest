@@ -6,10 +6,12 @@ export * from "@sidequest/core";
 export * from "@sidequest/engine";
 
 export class Sidequest {
-  static start(config?: SidequestConfig, dashboardConfig?: DashboardConfig) {
-    const engine = Engine.start(config);
+  static async start(config?: SidequestConfig, dashboardConfig?: Omit<DashboardConfig, "backendConfig">) {
+    const engineConfig = await Engine.configure(config);
+    const engine = Engine.start(engineConfig);
 
-    SidequestDashboard.start(dashboardConfig);
+    await SidequestDashboard.start({ ...dashboardConfig, backendConfig: engineConfig.backend });
+
     return engine;
   }
 

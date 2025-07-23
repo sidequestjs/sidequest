@@ -3,23 +3,33 @@ import express from "express";
 import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
+import { initBackend } from "./backend-driver";
 import { DashboardConfig } from "./config";
 import jobsRouter from "./resources/jobs";
 import queuesRouter from "./resources/queues";
 
 export class SidequestDashboard {
-  static start(config?: DashboardConfig) {
-    const enabled = config?.enabled ?? true;
-    if (!enabled) return;
+  static async start(config?: DashboardConfig) {
+    const _config = {
+      enabled: true,
+      backendConfig: {
+        driver: "@sidequest/sqlite-backend",
+      },
+      ...config,
+    };
+
+    if (!_config.enabled) return;
+
+    await initBackend(_config.backendConfig);
 
     const app = express();
 
-    this.setupAuth(app, config);
+    this.setupAuth(app, _config);
     this.setupEJS(app);
     this.setupHomepage(app);
     this.setupRoutes(app);
 
-    this.listen(app, config);
+    this.listen(app, _config);
   }
 
   static setupAuth(app: express.Express, config?: DashboardConfig) {

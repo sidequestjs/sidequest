@@ -1,4 +1,4 @@
-import { NewQueueData, SQLBackend } from "@sidequest/backend";
+import { BackendConfig, createBackendFromDriver, NewQueueData, SQLBackend } from "@sidequest/backend";
 import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
@@ -14,11 +14,6 @@ let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 let shuttingDown = false;
 
-export interface BackendConfig {
-  driver: "@sidequest/postgres-backend" | "@sidequest/sqlite-backend";
-  config: unknown;
-}
-
 export interface SidequestConfig {
   backend?: BackendConfig;
   queues?: NewQueueData[];
@@ -26,25 +21,25 @@ export interface SidequestConfig {
   maxConcurrentJobs?: number;
 }
 
-interface BackendModule {
-  default: new (...args: unknown[]) => SQLBackend;
-}
-
 export class Engine {
-  static async configure(config?: SidequestConfig) {
+  static async configure(config?: SidequestConfig): Promise<SidequestConfig> {
     if (_config) {
-      logger().warn("Sidequest already configured");
+      logger().debug("Sidequest already configured");
       return _config;
     }
-    _config = config ?? { queues: [] };
-    const driver = config?.backend?.driver ?? "@sidequest/sqlite-backend";
-    const mod = (await import(driver)) as BackendModule;
-    const BackendClass = mod.default;
-    _backend = new BackendClass(config?.backend?.config);
+    _config = {
+      queues: [],
+      backend: {
+        driver: "@sidequest/sqlite-backend",
+      },
+      ...config,
+    };
 
-    if (config?.logger) {
-      configureLogger(config.logger);
+    if (_config?.logger) {
+      configureLogger(_config.logger);
     }
+
+    _backend = await createBackendFromDriver(_config.backend!);
 
     await _backend.setup();
     if (_config.queues) {
@@ -53,13 +48,7 @@ export class Engine {
       }
     }
 
-    return {
-      ..._config,
-      backend: {
-        driver: driver,
-        config: _config.backend?.config,
-      },
-    };
+    return _config;
   }
 
   static async start(config?: SidequestConfig): Promise<void> {

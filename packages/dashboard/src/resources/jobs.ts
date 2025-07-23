@@ -1,12 +1,12 @@
 import { JobState } from "@sidequest/core";
-import { Engine } from "@sidequest/engine";
 import { Router } from "express";
+import { getBackend } from "../backend-driver";
 
 const jobsRouter = Router();
 
 jobsRouter.get("/", async (req, res) => {
   const { status, time, start, end, sinceId, queue, class: klass } = req.query;
-  const backend = Engine.getBackend();
+  const backend = getBackend();
 
   const filters: {
     queue?: string;
