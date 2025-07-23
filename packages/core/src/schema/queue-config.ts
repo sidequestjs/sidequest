@@ -1,8 +1,8 @@
 export type QueueState = "active" | "paused";
 
-export type QueueConfig = {
+export interface QueueConfig {
   queue: string;
   concurrency?: number;
   state?: QueueState;
   priority?: number;
-};
+}

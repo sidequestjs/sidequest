@@ -1,11 +1,18 @@
 {
   "name": "@sidequest/sqlite-backend",
   "version": "1.0.0-alpha.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "type": "module",
+  "main": "./dist/sqlite-backend.cjs",
+  "module": "./dist/sqlite-backend.js",
+  "types": "./dist/sqlite-backend.d.ts",
+  "exports": {
+    "import": "./dist/sqlite-backend.js",
+    "require": "./dist/sqlite-backend.cjs",
+    "types": "./dist/sqlite-backend.d.ts"
+  },
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
   },
   "dependencies": {
     "@sidequest/core": "workspace:*",

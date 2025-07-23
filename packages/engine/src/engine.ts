@@ -9,27 +9,28 @@ let _backend: Backend;
 let _config: SidequestConfig;
 let _mainWorker: ChildProcess | undefined;
 
-export type BackendConfig = {
+export interface BackendConfig {
   driver: "@sidequest/postgres-backend" | "@sidequest/sqlite-backend";
-  config: any;
-};
+  config: unknown;
+}
 
-export type SidequestConfig = {
+export interface SidequestConfig {
   backend?: BackendConfig;
-  queues?: Map<string, QueueConfig>;
+  queues?: Record<string, QueueConfig>;
   logger?: LoggerOptions;
   maxConcurrentJobs?: number;
-};
+}
 
 export class Engine {
   static async configure(config?: SidequestConfig) {
     if (_config) {
       logger().warn("Sidequest already configured");
-      return;
+      return _config;
     }
-    _config = config || { queues: new Map<string, QueueConfig>() };
+    _config = config ?? { queues: {} };
     const driver = config?.backend?.driver ?? "@sidequest/sqlite-backend";
-    const mod = await import(driver);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    const mod: { default: new (...args: any) => Backend } = await import(driver);
     const BackendClass = mod.default;
     _backend = new BackendClass(config?.backend?.config);
 
@@ -38,16 +39,24 @@ export class Engine {
     }
     await _backend.setup();
     if (_config.queues) {
-      for (let queue of Object.keys(_config.queues)) {
+      for (const queue of Object.keys(_config.queues)) {
         await grantQueueConfig(queue, _config.queues[queue]);
       }
     }
+
+    return {
+      ..._config,
+      backend: {
+        driver: driver,
+        config: _config.backend?.config,
+      },
+    };
   }
 
   static async start(config: SidequestConfig): Promise<void> {
     await Engine.configure(config);
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("timeout on starting sidequest fork!"));
       }, 5000);

@@ -49,8 +49,9 @@ export function configureLogger(options: LoggerOptions) {
       winston.format.label({ label: "Sidequest" }),
       winston.format.printf(({ timestamp, level, message, label, stack, pid, ...metadata }) => {
         const metaStr = Object.keys(metadata).length ? `\n${JSON.stringify(metadata, null, 2)}` : "";
-
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const base = `[${level}] [${timestamp}] [pid:${pid}] [${label}] : ${message}${metaStr}`;
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
         return stack ? `${base}\n${stack}` : base;
       }),
     );

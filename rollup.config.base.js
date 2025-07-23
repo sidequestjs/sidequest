@@ -25,6 +25,7 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
         ? [
             replace({
               preventAssignment: true,
+              delimiters: ["", ""],
               values: {
                 "import.meta.dirname": "__dirname",
                 "import.meta.url": "__filename",
@@ -50,9 +51,7 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
         sourcemap: true,
       },
       external,
-      plugins: [
-        withReplace(false)
-      ],
+      plugins: [withReplace(false)],
     },
     // CJS build
     {
@@ -67,10 +66,7 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
         exports: "named",
       },
       external,
-      plugins: [
-        withReplace(true),
-        ...plugins
-      ]
+      plugins: [withReplace(true), ...plugins],
     },
     // Typescript declaration files
     {

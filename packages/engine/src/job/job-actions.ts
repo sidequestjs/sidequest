@@ -1,5 +1,5 @@
 import { JobData } from "@sidequest/core";
-import { Engine } from "../sidequest";
+import { Engine } from "../engine";
 
 export class JobActions {
   static async setRunning(jobData: JobData): Promise<JobData> {
@@ -10,7 +10,7 @@ export class JobActions {
     return await backend.updateJob(jobData);
   }
 
-  static async setComplete(jobData: JobData, result: any): Promise<JobData> {
+  static async setComplete(jobData: JobData, result: unknown): Promise<JobData> {
     const backend = Engine.getBackend();
     jobData.completed_at = new Date();
     jobData.state = "completed";
@@ -20,13 +20,13 @@ export class JobActions {
 
   static async setFailed(jobData: JobData, error: Error) {
     const backend = Engine.getBackend();
-    if (!jobData.errors) {
-      jobData.errors = [];
-    }
-    const errData = serializeError(error);
-    errData.attempt = jobData.attempt;
-    errData.attempted_at = jobData.attempted_at;
-    errData.attempt_by = jobData.claimed_by;
+    jobData.errors ??= [];
+    const errData = {
+      ...error,
+      attempt: jobData.attempt,
+      attempted_at: jobData.attempted_at,
+      attempt_by: jobData.claimed_by,
+    };
     jobData.errors.push(errData);
     jobData.available_at = calculateBackoff(jobData.attempt);
     const max_attempts = jobData.max_attempts;
@@ -37,21 +37,6 @@ export class JobActions {
     }
     await backend.updateJob(jobData);
   }
-}
-
-function serializeError(err: Error): any {
-  const plain = {
-    name: err.name,
-    message: err.message,
-    stack: err.stack,
-    ...Object.getOwnPropertyNames(err)
-      .filter((k) => !["name", "message", "stack"].includes(k))
-      .reduce((acc, k) => {
-        acc[k] = err[k];
-        return acc;
-      }, {}),
-  };
-  return plain;
 }
 
 function calculateBackoff(attempt: number, baseDelay = 1000, maxDelay = 3600000): Date {

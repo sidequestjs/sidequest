@@ -1,7 +1,7 @@
-import { Job } from "../sidequest";
+import { Job } from "../engine";
 
 export class DummyJob extends Job {
-  run(): any {
+  run() {
     throw new Error("failed job");
   }
 }

@@ -1,7 +1,7 @@
-import { Job } from "../sidequest";
+import { Job } from "../engine";
 
 export class DynamicDummyJob extends Job {
-  async run(): Promise<any> {
+  async run() {
     await new Promise((r) => {
       setTimeout(r, 800);
     });

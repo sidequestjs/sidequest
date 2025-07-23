@@ -2,6 +2,7 @@
 
 import eslint from "@eslint/js";
 import prettier from "eslint-config-prettier";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -9,12 +10,20 @@ export default tseslint.config(
   tseslint.configs.recommended,
   tseslint.configs.stylistic,
   prettier,
+  prettier,
   {
     ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**", "**/public/**", "**/views/**", "**/migrations/**"],
-    files: ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.ts", "**/*.mts", "**/*.cts", "**/*.jsx", "**/*.tsx"],
   },
   {
-    files: ["**/*.ts", "**/*.mts", "**/*.cts"],
+    files: ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.jsx"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.mts", "**/*.cts", "**/*.tsx"],
     extends: [tseslint.configs.recommendedTypeChecked, tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       parserOptions: {

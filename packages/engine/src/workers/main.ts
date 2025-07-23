@@ -1,8 +1,8 @@
 import { JobData, logger, QueueConfig } from "@sidequest/core";
 import { fork } from "child_process";
 import path from "path";
+import { Engine, SidequestConfig } from "../engine";
 import { grantQueueConfig } from "../queue/grant-queue-config";
-import { Engine, SidequestConfig } from "../sidequest";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
 
@@ -14,7 +14,7 @@ export class Worker {
   activeJobsPerQueue: Record<string, Set<ReturnType<typeof fork>>> = {};
 
   async run(sidequestConfig: SidequestConfig) {
-    await Engine.configure(sidequestConfig);
+    sidequestConfig = await Engine.configure(sidequestConfig);
     this.isRunning = true;
 
     const maxConcurrentJobs = sidequestConfig.maxConcurrentJobs ?? 10;
@@ -65,11 +65,11 @@ export class Worker {
               activeJobs.delete(child);
             });
 
-            const timeout = setTimeout(async () => {
+            const timeout = setTimeout(() => {
               logger().error(`timeout on starting executor for job ${job.script}`);
               child.kill();
               job.state = "waiting";
-              await backend.updateJob(job);
+              void backend.updateJob(job);
             }, 2000);
 
             child.on("message", (msg) => {
@@ -89,7 +89,7 @@ export class Worker {
       }
     };
 
-    this.timeout = setTimeout(heartBeat, 100);
+    this.timeout = setTimeout(() => void heartBeat(), 100);
     logger().info(`Sidequest is up and running — using backend: "${sidequestConfig.backend?.driver}"`);
   }
 

@@ -1,4 +1,4 @@
 export interface DashboardConfig {
-  enabled: boolean,
-  port?: number
+  enabled: boolean;
+  port?: number;
 }

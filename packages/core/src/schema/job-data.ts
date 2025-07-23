@@ -1,10 +1,12 @@
+import { ErrorData } from "./errordata";
+
 export type JobState =
-  | "waiting"     // Ready or scheduled for execution
-  | "claimed"     // Reserved by a worker
-  | "running"     // Currently executing
-  | "failed"      // Permanently failed (max attempts exceeded)
-  | "completed"   // Finished successfully
-  | "canceled";   // Manually canceled
+  | "waiting" // Ready or scheduled for execution
+  | "claimed" // Reserved by a worker
+  | "running" // Currently executing
+  | "failed" // Permanently failed (max attempts exceeded)
+  | "completed" // Finished successfully
+  | "canceled"; // Manually canceled
 
 export interface JobData {
   id?: number;
@@ -12,12 +14,12 @@ export interface JobData {
   state?: JobState;
   script: string;
   class: string;
-  args: any[];
+  args: unknown[];
   timeout?: number;
   attempt: number;
   max_attempts: number;
-  result?: any;
-  errors?: any[];
+  result?: unknown;
+  errors?: ErrorData[];
   inserted_at?: Date;
   attempted_at?: Date;
   available_at?: Date;

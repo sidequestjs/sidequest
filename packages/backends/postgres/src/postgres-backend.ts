@@ -1,10 +1,10 @@
-import { Backend, JobData, QueueConfig } from "@sidequest/core";
+import { Backend, JobData, logger, QueueConfig } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import os from "os";
 import path from "path";
 
 export default class PostgresBackend implements Backend {
-  knex: Knex<any, unknown[]>;
+  knex: Knex;
 
   constructor(dbConfig: { connection: string | Knex.ConnectionConfig }) {
     this.knex = createKnex({
@@ -20,15 +20,15 @@ export default class PostgresBackend implements Backend {
 
   async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
     const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
-    return newConfig[0];
+    return newConfig[0] as QueueConfig;
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ queue: queue }).first();
+    return this.knex("sidequest_queues").where({ queue: queue }).first() as Promise<QueueConfig>;
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
-    const queues = await this.knex("sidequest_jobs").select("queue").distinct();
+    const queues: QueueConfig[] = await this.knex("sidequest_jobs").select("queue").distinct();
     return queues.map((q) => q.queue);
   }
 
@@ -46,14 +46,14 @@ export default class PostgresBackend implements Backend {
     };
 
     const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
-    return inserted[0];
+    return inserted[0] as JobData;
   }
 
-  async claimPendingJob(queue: string, quatity: number = 1): Promise<JobData[]> {
+  async claimPendingJob(queue: string, quatity = 1): Promise<JobData[]> {
     const workerName = `sidequest@${os.hostname()}-${process.pid}`;
 
     const result = await this.knex.transaction(async (trx) => {
-      return await trx("sidequest_jobs")
+      return (await trx("sidequest_jobs")
         .update({
           claimed_by: workerName,
           claimed_at: this.knex.fn.now(),
@@ -70,14 +70,14 @@ export default class PostgresBackend implements Backend {
             .skipLocked()
             .limit(quatity);
         })
-        .returning("*");
+        .returning("*")) as JobData[];
     });
 
     return result;
   }
 
   async updateJob(job: JobData): Promise<JobData> {
-    const data: any = {
+    const data: Record<string, unknown> = {
       id: job.id,
       queue: job.queue,
       state: job.state,
@@ -103,7 +103,7 @@ export default class PostgresBackend implements Backend {
 
     const updated = await this.knex("sidequest_jobs").update(data).where({ id: job.id }).returning("*");
 
-    if (updated.length > 0) return updated[0];
+    if (updated.length > 0) return updated[0] as JobData;
 
     throw Error("Cannot update job, not found.");
   }
@@ -131,22 +131,22 @@ export default class PostgresBackend implements Backend {
     if (timeRange?.to) query.where("attempted_at", "<=", timeRange.to);
 
     const result = await query;
-    return result;
+    return result as JobData[];
   }
 
   async listQueues(): Promise<QueueConfig[]> {
-    return await this.knex("sidequest_queues").select("*").orderBy("priority", "desc");
+    return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
   }
 
   async setup(): Promise<void> {
     try {
-      const [batchNo, log] = await this.knex.migrate.latest();
+      const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
       if (log.length > 0) {
-        console.log(`Migrated batch ${batchNo}:`);
-        log.forEach((file: any) => console.log(`  - ${file}`));
+        logger().info(`Migrated batch ${batchNo}:`);
+        log.forEach((file) => logger().info(`  - ${file}`));
       }
     } catch (err) {
-      console.error("Migration failed:", err);
+      logger().error("Migration failed:", err);
     }
   }
 

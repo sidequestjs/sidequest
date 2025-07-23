@@ -1,18 +1,18 @@
-import { Backend, JobData, QueueConfig } from "@sidequest/core";
+import { Backend, JobData, logger, QueueConfig } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import os from "os";
 import path from "path";
 
-function safeParse<T = any>(value: any): T | null {
+function safeParse<T = unknown>(value: unknown): T | null {
   try {
-    return typeof value === "string" ? JSON.parse(value) : value;
+    return (typeof value === "string" ? JSON.parse(value) : value) as T;
   } catch {
     return null;
   }
 }
 
 export default class SqliteBackend implements Backend {
-  knex: Knex<any, unknown[]>;
+  knex: Knex;
 
   constructor(filePath = "./sidequest.sqlite") {
     this.knex = createKnex({
@@ -30,16 +30,16 @@ export default class SqliteBackend implements Backend {
   }
 
   async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const [newConfig] = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
-    return newConfig;
+    const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
+    return newConfig[0] as QueueConfig;
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ queue }).first();
+    return this.knex("sidequest_queues").where({ queue }).first() as Promise<QueueConfig>;
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
-    const queues = await this.knex("sidequest_jobs").select("queue").distinct();
+    const queues: QueueConfig[] = await this.knex("sidequest_jobs").select("queue").distinct();
     return queues.map((q) => q.queue);
   }
 
@@ -49,43 +49,33 @@ export default class SqliteBackend implements Backend {
 
   async insertJob(job: JobData): Promise<JobData> {
     const data = {
-      queue: job.queue,
-      class: job.class,
-      script: job.script,
+      ...job,
       args: JSON.stringify(job.args),
       result: job.result ? JSON.stringify(job.result) : null,
       errors: job.errors ? JSON.stringify(job.errors) : null,
-      state: job.state || "waiting",
-      available_at: job.available_at || new Date().toISOString(),
-      inserted_at: job.inserted_at || new Date().toISOString(),
-      attempted_at: job.attempted_at,
-      completed_at: job.completed_at,
-      discarded_at: job.discarded_at,
-      cancelled_at: job.cancelled_at,
-      claimed_at: job.claimed_at,
-      claimed_by: job.claimed_by,
-      attempt: job.attempt,
-      max_attempts: job.max_attempts,
+      state: job.state ?? "waiting",
+      available_at: job.available_at ?? new Date().toISOString(),
+      inserted_at: job.inserted_at ?? new Date().toISOString(),
     };
 
     const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
 
-    return inserted[0];
+    return inserted[0] as JobData;
   }
 
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
     const workerName = `sidequest@${os.hostname()}-${process.pid}`;
 
-    return await this.knex.transaction(async (trx) => {
-      const jobs = await trx("sidequest_jobs")
+    return this.knex.transaction(async (trx) => {
+      const jobs = (await trx("sidequest_jobs")
         .where("state", "waiting")
         .andWhere("queue", queue)
         .andWhere("available_at", "<=", new Date().toISOString())
         .orderBy("inserted_at")
         .limit(quantity)
-        .forUpdate();
+        .forUpdate()) as JobData[];
 
-      const ids = jobs.map((j) => j.id);
+      const ids = jobs.map((j) => j.id!);
       if (ids.length === 0) return [];
 
       await trx("sidequest_jobs")
@@ -96,39 +86,28 @@ export default class SqliteBackend implements Backend {
         })
         .whereIn("id", ids);
 
-      const claimedJobs = await trx("sidequest_jobs").whereIn("id", ids);
+      const claimedJobs = (await trx("sidequest_jobs").whereIn("id", ids)) as JobData[];
       return claimedJobs.map((job) => ({
         ...job,
         args: safeParse(job.args),
         result: safeParse(job.result),
         errors: safeParse(job.errors),
-      }));
+      })) as JobData[];
     });
   }
 
   async updateJob(job: JobData): Promise<JobData> {
-    const data: any = {
-      id: job.id,
-      queue: job.queue,
-      state: job.state,
-      script: job.script,
-      class: job.class,
-      attempt: job.attempt,
-      max_attempts: job.max_attempts,
-      inserted_at: job.inserted_at,
-      attempted_at: job.attempted_at,
-      available_at: job.available_at,
-      completed_at: job.completed_at,
-      discarded_at: job.discarded_at,
-      cancelled_at: job.cancelled_at,
-      claimed_at: job.claimed_at,
-      claimed_by: job.claimed_by,
+    const data = {
+      ...job,
       args: job.args ? JSON.stringify(job.args) : null,
       result: job.result ? JSON.stringify(job.result) : null,
       errors: job.errors ? JSON.stringify(job.errors) : null,
     };
 
-    const [updated] = await this.knex("sidequest_jobs").where({ id: job.id }).update(data).returning("*");
+    const [updated] = (await this.knex("sidequest_jobs")
+      .where({ id: job.id })
+      .update(data)
+      .returning("*")) as JobData[];
 
     if (!updated) throw new Error("Cannot update job, not found.");
 
@@ -137,7 +116,7 @@ export default class SqliteBackend implements Backend {
       args: safeParse(updated.args),
       result: safeParse(updated.result),
       errors: safeParse(updated.errors),
-    };
+    } as JobData;
   }
 
   async listJobs(params: {
@@ -162,29 +141,29 @@ export default class SqliteBackend implements Backend {
     if (timeRange?.from) query.where("attempted_at", ">=", timeRange.from.toISOString());
     if (timeRange?.to) query.where("attempted_at", "<=", timeRange.to.toISOString());
 
-    const rawJobs = await query;
+    const rawJobs = (await query) as JobData[];
 
     return rawJobs.map((job) => ({
       ...job,
       args: safeParse(job.args),
       result: safeParse(job.result),
       errors: safeParse(job.errors),
-    }));
+    })) as JobData[];
   }
 
   async listQueues(): Promise<QueueConfig[]> {
-    return await this.knex("sidequest_queues").select("*").orderBy("priority", "desc");
+    return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
   }
 
   async setup(): Promise<void> {
     try {
-      const [batchNo, log] = await this.knex.migrate.latest();
+      const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
       if (log.length > 0) {
-        console.log(`Migrated batch ${batchNo}:`);
-        log.forEach((file: any) => console.log(`  - ${file}`));
+        logger().info(`Migrated batch ${batchNo}:`);
+        log.forEach((file) => logger().info(`  - ${file}`));
       }
     } catch (err) {
-      console.error("Migration failed:", err);
+      logger().error("Migration failed:", err);
     }
   }
 

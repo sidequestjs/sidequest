@@ -1,13 +1,13 @@
 import { JobData, logger } from "@sidequest/core";
+import { Engine, SidequestConfig } from "../engine";
 import { Job, JobOptions } from "../job/job";
 import { JobActions } from "../job/job-actions";
-import { Engine, SidequestConfig } from "../sidequest";
 
 export async function execute(jobData: JobData, config: SidequestConfig): Promise<void> {
   await Engine.configure(config);
 
   const script = (await import(jobData.script)) as Record<string, new (jobOptions?: JobOptions) => Job>;
-  const JobClass = script[jobData.class];
+  const JobClass = script[jobData.class] ?? script.default;
 
   if (!JobClass || typeof JobClass !== "function") {
     throw new Error(`Invalid job class: ${jobData.class}`);
@@ -31,7 +31,6 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
 export function executeTask(job: Job, args: unknown[]) {
   const promises: Promise<unknown>[] = [];
 
-  console.log(job);
   if (job.timeout) {
     const timeout = new Promise((resolve, reject) =>
       setTimeout(() => {
@@ -51,11 +50,12 @@ export function executeTask(job: Job, args: unknown[]) {
 const isChildProcess = !!process.send;
 
 if (isChildProcess) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   process.on("message", async (message: { job: JobData; config: SidequestConfig }) => {
     try {
       await execute(message.job, message.config);
       process.exit(0);
-    } catch (error: any) {
+    } catch (error) {
       logger().error(error);
       process.exit(1);
     }

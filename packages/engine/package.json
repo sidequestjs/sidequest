@@ -1,39 +1,23 @@
 {
   "name": "@sidequest/engine",
   "version": "1.0.0-alpha.1",
-  "description": "",
-  "main": "./dist/sidequest.cjs",
-  "module": "./dist/sidequest.js",
-  "types": "./dist/sidequest.d.ts",
   "type": "module",
+  "main": "./dist/engine.cjs",
+  "module": "./dist/engine.js",
+  "types": "./dist/engine.d.ts",
+  "exports": {
+    "import": "./dist/engine.js",
+    "require": "./dist/engine.cjs",
+    "types": "./dist/engine.d.ts"
+  },
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "test": "mocha --recursive './src/**/*.test.ts'",
-    "test:coverage": "nyc yarn test",
-    "prepublish": "yarn build"
+    "dev": "rollup -c -w"
   },
   "author": "Lucas Merencia <lucas@merencia.com>",
   "license": "ISC",
   "dependencies": {
     "@sidequest/core": "workspace:*"
-  },
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript",
-    "check-coverage": true,
-    "all": true,
-    "include": [
-      "src/**/!(*.test.*).[tj]s?(x)"
-    ],
-    "exclude": [
-      "src/**/*.test.ts"
-    ],
-    "reporter": [
-      "html",
-      "lcov",
-      "text"
-    ],
-    "report-dir": "coverage"
   },
   "packageManager": "yarn@4.9.2"
 }

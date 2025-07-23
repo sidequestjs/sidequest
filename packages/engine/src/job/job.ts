@@ -1,10 +1,13 @@
 import { JobData } from "@sidequest/core";
-import { Engine } from "../sidequest";
+import { Engine } from "../engine";
 
 export interface JobOptions {
   queue?: string;
   timeout?: number;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JobClassType = (new (...args: any[]) => Job) & { prototype: { run: (...args: any[]) => any } };
 
 export abstract class Job {
   queue: string;
@@ -28,11 +31,14 @@ export abstract class Job {
 
   abstract run(...args: unknown[]): unknown;
 
-  static config(this: new (...args: any[]) => Job, jobOptions: JobOptions) {
+  static config<T extends JobClassType>(this: T, jobOptions?: JobOptions) {
     return new JobBuilder(this).config(jobOptions);
   }
 
-  static enqueue(this: new (...args: any[]) => Job, ...args: any[]): JobData | Promise<JobData> {
+  static enqueue<T extends JobClassType>(
+    this: T,
+    ...args: Parameters<T["prototype"]["run"]>
+  ): JobData | Promise<JobData> {
     return new JobBuilder(this).enqueue(...args);
   }
 }
@@ -42,7 +48,8 @@ function buildPath() {
   const stackLines = err.stack?.split("\n");
   stackLines?.shift();
   const callerLine = stackLines?.find((line) => {
-    return !line.includes(import.meta.filename);
+    const exclude = import.meta.filename.replaceAll("\\", "/");
+    return !line.includes(exclude);
   });
   const match = callerLine?.match(/(file:\/\/)?((\w:)?[/\\].+):\d+:\d+/);
 
@@ -53,23 +60,18 @@ function buildPath() {
   throw new Error("Could not determine the task path");
 }
 
-class JobBuilder {
-  JobClass: new (...args: any[]) => Job;
+class JobBuilder<T extends JobClassType> {
   job?: Job;
 
-  constructor(JobClass: new (...args: any[]) => Job) {
-    this.JobClass = JobClass;
-  }
+  constructor(public JobClass: T) {}
 
-  config(options: JobOptions) {
-    this.job = new this.JobClass(options);
+  config(jobOptions?: JobOptions) {
+    this.job = new this.JobClass(jobOptions);
     return this;
   }
 
-  enqueue(...args: any[]) {
-    if (!this.job) {
-      this.job = new this.JobClass({ queue: "default" });
-    }
+  enqueue(...args: Parameters<T["prototype"]["run"]>) {
+    this.job ??= new this.JobClass({ queue: "default" });
 
     const backend = Engine.getBackend();
     const jobData: JobData = {

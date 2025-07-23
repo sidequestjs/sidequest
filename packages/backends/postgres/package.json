@@ -1,11 +1,18 @@
 {
   "name": "@sidequest/postgres-backend",
   "version": "1.0.0-alpha.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "type": "module",
+  "main": "./dist/postgres-backend.cjs",
+  "module": "./dist/postgres-backend.js",
+  "types": "./dist/postgres-backend.d.ts",
+  "exports": {
+    "import": "./dist/postgres-backend.js",
+    "require": "./dist/postgres-backend.cjs",
+    "types": "./dist/postgres-backend.d.ts"
+  },
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
   },
   "dependencies": {
     "@sidequest/core": "workspace:*",

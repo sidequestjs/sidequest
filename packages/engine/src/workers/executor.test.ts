@@ -1,79 +1,80 @@
 import { JobData } from "@sidequest/core";
-import { assert } from "chai";
+import { unlink } from "fs";
 import path from "path";
-import sinon from "sinon";
+import { afterAll, beforeEach, describe, expect, it, MockInstance, vi } from "vitest";
+import { Engine, SidequestConfig } from "../engine";
+import { Job } from "../job/job";
 import { JobActions } from "../job/job-actions";
-import { Engine } from "../sidequest";
 import { execute, executeTask } from "./executor";
 
 describe("executror.ts", () => {
-  after(() => {
-    Engine.getBackend()?.close();
+  const dbLocation = "./sidequest-test.sqlite";
+  const config: SidequestConfig = { backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+
+  afterAll(async () => {
+    await Engine.getBackend()?.close();
+    unlink(dbLocation, () => {
+      // noop
+    });
   });
 
   describe("executeTask", () => {
     it("should resolve when job.run() resolves", async () => {
       const job = {
-        run: async () => "ok",
+        run: () => "ok",
       };
 
-      const result = await executeTask(job as any, []);
-      assert.equal(result, "ok");
+      const result = await executeTask(job as Job, []);
+      expect(result).toBe("ok");
     });
 
     it("should reject if job.run() throws an error", async () => {
       const job = {
-        run: async () => {
+        run: () => {
           throw new Error("fail");
         },
       };
 
-      try {
-        await executeTask(job as any, []);
-        assert.fail("Expected error, but promise resolved");
-      } catch (err: any) {
-        assert.instanceOf(err, Error);
-        assert.equal(err.message, "fail");
-      }
+      await expect(executeTask(job as unknown as Job, [])).rejects.toThrow("fail");
     });
 
     it("should reject with a timeout error if job.run() hangs", async () => {
       const job = {
-        run: async () => new Promise(() => {}), // never resolves
+        run: async () =>
+          new Promise(() => {
+            // never resolves
+          }),
         timeout: 10,
         class: "MyJob",
       };
 
-      try {
-        await executeTask(job as any, []);
-        assert.fail("Expected timeout, but promise resolved");
-      } catch (err: any) {
-        assert.instanceOf(err, Error);
-        assert.match(err.message, /timed out/);
-      }
+      await expect(executeTask(job as Job, [])).rejects.toThrow(/timed out/);
     });
   });
 
   describe("execute", () => {
-    const sandbox = sinon.createSandbox();
     let claimedJobData: JobData = {} as JobData;
 
-    let configureStub: sinon.SinonStub;
-    let setRunningStub: sinon.SinonStub;
-    let setCompleteStub: sinon.SinonStub;
-    let setFailedStub: sinon.SinonStub;
+    let configureStub: MockInstance<(config?: SidequestConfig) => Promise<SidequestConfig>>;
+    let setRunningStub: MockInstance<(jobData: JobData) => Promise<JobData>>;
+    let setCompleteStub: MockInstance<(jobData: JobData, result: unknown) => Promise<JobData>>;
+    let setFailedStub: MockInstance<(jobData: JobData, error: Error) => Promise<void>>;
 
     beforeEach(() => {
-      configureStub = sandbox.stub(Engine, "configure");
-      setRunningStub = sandbox.stub(JobActions, "setRunning").callsFake(async (j) => j);
-      setCompleteStub = sandbox.stub(JobActions, "setComplete").callsFake(async (j) => j);
-      setFailedStub = sandbox.stub(JobActions, "setFailed");
+      vi.restoreAllMocks();
+
+      configureStub = vi.spyOn(Engine, "configure");
+      setRunningStub = vi.spyOn(JobActions, "setRunning").mockImplementation(async (j) => Promise.resolve(j));
+      setCompleteStub = vi.spyOn(JobActions, "setComplete").mockImplementation(async (j) => Promise.resolve(j));
+      setFailedStub = vi.spyOn(JobActions, "setFailed").mockImplementation(async () => {
+        // noop
+      });
 
       claimedJobData = {
         id: 1,
         queue: "default",
         state: "claimed",
-        script: path.resolve("src/test-jobs/dummy-job.ts"),
+        script: `file://${path.resolve("packages/engine/src/test-jobs/dummy-job.js").replaceAll("\\", "/")}`,
         class: "DummyJob",
         args: [],
         attempt: 0,
@@ -85,44 +86,35 @@ describe("executror.ts", () => {
       };
     });
 
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it("executes a job", async () => {
-      await execute(claimedJobData, {});
-      assert.isTrue(configureStub.calledOnce, "should call Sidequest.configure");
-      assert.isTrue(setRunningStub.calledOnce, "should call JobActions.setRunning");
-      assert.isTrue(setCompleteStub.calledOnce, "should call JobActions.setComplete");
-      assert.isTrue(setFailedStub.notCalled, "should not call JobActions.setComplete");
+      await execute(claimedJobData, config);
+
+      expect(configureStub).toHaveBeenCalledOnce();
+      expect(setRunningStub).toHaveBeenCalledOnce();
+      expect(setCompleteStub).toHaveBeenCalledOnce();
+      expect(setFailedStub).not.toHaveBeenCalled();
     });
 
     it("executes a failing job", async () => {
-      claimedJobData.script = path.resolve("src/test-jobs/dummy-failed-job.ts");
+      claimedJobData.script = `file://${path.resolve("packages/engine/src/test-jobs/dummy-failed-job.js").replaceAll("\\", "/")}`;
 
-      try {
-        await execute(claimedJobData, {});
-      } catch (error: any) {
-        assert.isTrue(configureStub.calledOnce, "should call Sidequest.configure");
-        assert.isTrue(setRunningStub.calledOnce, "should call JobActions.setRunning");
-        assert.isTrue(setCompleteStub.notCalled, "should not call JobActions.setComplete");
-        assert.isTrue(setFailedStub.calledOnce, "should call JobActions.setComplete");
-        assert.equal(error.message, "failed job");
-      }
+      await expect(execute(claimedJobData, config)).rejects.toThrow("failed job");
+
+      expect(configureStub).toHaveBeenCalledOnce();
+      expect(setRunningStub).toHaveBeenCalledOnce();
+      expect(setCompleteStub).not.toHaveBeenCalled();
+      expect(setFailedStub).toHaveBeenCalledOnce();
     });
 
     it("fails with wrong class", async () => {
       claimedJobData.class = "BadClass";
 
-      try {
-        await execute(claimedJobData, {});
-      } catch (error: any) {
-        assert.isTrue(configureStub.calledOnce, "should call Sidequest.configure");
-        assert.isTrue(setRunningStub.notCalled, "should not call JobActions.setRunning");
-        assert.isTrue(setCompleteStub.notCalled, "should not call JobActions.setComplete");
-        assert.isTrue(setCompleteStub.notCalled, "should not call JobActions.setComplete");
-        assert.equal(error.message, "Invalid job class: BadClass");
-      }
+      await expect(execute(claimedJobData, config)).rejects.toThrow("Invalid job class: BadClass");
+
+      expect(configureStub).toHaveBeenCalledOnce();
+      expect(setRunningStub).not.toHaveBeenCalled();
+      expect(setCompleteStub).not.toHaveBeenCalled();
+      expect(setFailedStub).not.toHaveBeenCalled();
     });
   });
 });
