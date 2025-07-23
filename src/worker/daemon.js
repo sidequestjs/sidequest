@@ -6,7 +6,8 @@ process.on('message', (message) => {
             type: 'task-registred',
             task: task
         });
-    } 
+    }
+    t.run();
 });
 
 // notificar quando não tem mais tasks, para ser finalizado

@@ -1,11 +1,15 @@
 const { fork } = require('child_process');
 const events = require('events');
+const path = require('path');
+
+const id = require('../id');
 
 const daemonPath = `${__dirname}/daemon.js`;
 
 function Worker() {
     const process = fork(daemonPath);
     const tasks = [];
+    const workerId = id.generate();
 
     events.EventEmitter.call(this);
 
@@ -17,10 +21,20 @@ function Worker() {
     });
 
     this.register = (task) => {
+        task.path = path.resolve(task.path);
+        task.id = id.generate();
         process.send({
             type: 'taks-registration',
             task: task
         });
+    }
+
+    this.id = () => {
+        return workerId;
+    }
+
+    this.pid = () => {
+        return process.pid.toString();
     }
 
     this.tasks = () => {
