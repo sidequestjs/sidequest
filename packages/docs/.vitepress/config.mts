@@ -4,9 +4,20 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Sidequest.js",
   description: "Robust distributed job processing for Node.js",
-  head: [["link", { rel: "icon", href: "/logo-modern.png" }]],
   lang: "en-US",
   cleanUrls: true,
+  head: [
+    ["link", { rel: "icon", href: "/logo-modern.png" }],
+    ["script", { async: "", src: `https://www.googletagmanager.com/gtag/js?id=${process.env.VITE_GA_TAG}` }],
+    [
+      "script",
+      {},
+      `window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${process.env.VITE_GA_TAG}');`,
+    ],
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
