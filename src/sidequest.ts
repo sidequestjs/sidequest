@@ -1,46 +1,55 @@
-import { fork } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import { Job } from './core/job';
 import path from 'path';
 import { Backend } from './backends/backend';
-import nodeCron from 'node-cron';
+import { PostgresBackend } from './sidequest';
 
 type JobConstructor<T extends Job = Job> = new (...args: any[]) => T;
 
-const daemonPath = path.resolve(__dirname, 'core', 'daemon.js');
+const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
 let _backend: Backend;
+let _config: SidequestConfig;
+
+let _mainWorker: ChildProcess | undefined;
+
+export type QueueConfig = {
+  concurrency?: number,
+  globalConcurrency?: number
+}
+
+export type SidequestConfig = {
+  backend_url: string,
+  queues: Map<string, QueueConfig>
+}
 
 export class Sidequest {
-  static enqueue<T extends Job>(JobClass: JobConstructor<T>, ...args: ConstructorParameters<JobConstructor<T>>): void{
-    const job = new JobClass(...args);
-    const metadata = {
-      filePath: job.script,
-      className: job.className,
-      args: args
-    }
-
-    const daemon = fork(daemonPath);
-
-    daemon.send(metadata);
+  static configure(config: SidequestConfig){
+    _config = config;
+    _backend = new PostgresBackend({ connection: config.backend_url });
   }
 
-  static async useBackend(backend: Backend): Promise<void> {
-    _backend = backend;
-    await _backend.setup();
+  static start(config: SidequestConfig){
+    if(!_mainWorker){
+      Sidequest.configure(config);
+      _mainWorker = fork(workerPath);
+      _mainWorker.send(config);
+    }
   }
 
   static getBackend(){
     return _backend;
   }
 
-  static run(){
-    nodeCron.schedule('* * * * * *', async () => {
-      // claim job
-      const job = await _backend.claimPendingJob('priority');
+  static getQueueConfig(queue: string): QueueConfig {
+    const config = _config.queues[queue];
+    if(config){
+      return config;
+    }
 
-      console.log(job);
-      // dispatch to daemon
-    });
+    return {
+      concurrency: 10
+    }
   }
 }
 

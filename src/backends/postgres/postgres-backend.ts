@@ -20,18 +20,23 @@ export class PostgresBackend implements Backend{
     });
   }
 
+  async getQueuesNames(): Promise<string[]> {
+    const queues = await this.knex('sidequest_jobs').select('queue').distinct().where({ state: 'pending' });
+    return queues.map(q => q.queue);
+  }
+
   async insertJob(job: Job, args: any[] = []): Promise<void> {
     args = Array.isArray(args) ? args : []
     const data = {
       queue: job.queue,
-      class: job.className,
+      class: job.class,
       script: job.script,
       args: this.knex.raw('?', [JSON.stringify(['arg1', 'arg2'])])
     }
     await this.knex('sidequest_jobs').insert(data);
   }
 
-  async claimPendingJob(queue: string): Promise<any> {
+  async claimPendingJob(queue: string, quatity: number = 1): Promise<any> {
     const workerName = `sidequest@${os.hostname()}-${process.pid}`;
 
     const result = await this.knex.transaction(async (trx) => {
@@ -50,7 +55,7 @@ export class PostgresBackend implements Backend{
             .orderBy('inserted_at')
             .forUpdate()
             .skipLocked()
-            .limit(1);
+            .limit(quatity);
         })
         .returning('*');
     });

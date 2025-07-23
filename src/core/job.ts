@@ -1,14 +1,21 @@
 import { Sidequest } from "../sidequest";
 
-export abstract class Job {
+export interface JobData {
   script: string;
-  className: string;
+  class: string;
+  queue: string;
+  args?: any[];
+}
+
+export abstract class Job implements JobData{
+  script: string;
+  class: string;
   queue: string;
 
   constructor(queue?: string) {
     this.queue = queue || 'default';
     this.script = buildPath();
-    this.className = this.constructor.name;
+    this.class = this.constructor.name;
   }
   
   abstract run(): void | Promise<void>;
