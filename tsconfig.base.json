@@ -14,7 +14,8 @@
     "noImplicitAny": false,
     "allowJs": true,
     "skipLibCheck": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "noEmitOnError": true
   },
   "exclude": ["**/dist/**", "**/node_modules/**"]
 }
