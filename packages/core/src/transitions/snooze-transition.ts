@@ -13,7 +13,7 @@ export class SnoozeTransition extends JobTransition {
   apply(job: JobData): JobData {
     logger().info(`Job ${job.class} snoozed by ${this.delay}ms`);
     job.state = "waiting";
-    if(job.attempt > 0){
+    if (job.attempt > 0) {
       job.attempt -= 1;
     }
     job.available_at = new Date(Date.now() + this.delay);

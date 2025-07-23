@@ -1,5 +1,9 @@
 import { JobClassType } from "../job/job";
 
 export interface DeduplicationStrategy {
-  isDuplicated<T extends JobClassType>(JobClass: T, args: Parameters<T["prototype"]["run"]>): Promise<boolean>;
+  getDigest<T extends JobClassType>(
+    JobClass: T,
+    constructorArgs: ConstructorParameters<T>,
+    args: Parameters<T["prototype"]["run"]>,
+  ): string;
 }

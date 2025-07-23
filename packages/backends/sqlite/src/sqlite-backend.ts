@@ -1,4 +1,4 @@
-import { Backend, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
+import { Backend, DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import os from "os";
 import path from "path";
@@ -59,15 +59,31 @@ export default class SqliteBackend implements Backend {
       inserted_at: job.inserted_at ?? new Date().toISOString(),
     };
 
-    const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
+    try {
+      const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
 
-    return {
-      ...inserted[0],
-      args: safeParse(job.args),
-      constructor_args: safeParse(job.constructor_args),
-      result: safeParse(job.result),
-      errors: safeParse(job.errors),
-    } as JobData;
+      return {
+        ...inserted[0],
+        args: safeParse(job.args),
+        constructor_args: safeParse(job.constructor_args),
+        result: safeParse(job.result),
+        errors: safeParse(job.errors),
+      } as JobData;
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "SQLITE_CONSTRAINT" &&
+        "message" in error &&
+        typeof error.message === "string" &&
+        error.message.includes("sidequest_jobs.unique_digest")
+      ) {
+        throw new DuplicatedJobError(job);
+      }
+
+      throw error;
+    }
   }
 
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {

@@ -1,6 +1,13 @@
-exports.up = function(knex) {
-  return knex.schema
-    .createTable('sidequest_jobs', function (table) {
+exports.up = async function(knex) {
+  await knex.schema.createTable('sidequest_queues', function (table) {
+    table.increments('id').primary();
+    table.string('queue').notNullable().index();
+    table.string('state').notNullable().defaultTo('active');
+    table.integer('concurrency').notNullable().defaultTo(10);
+    table.integer('priority').notNullable().defaultTo(0);
+  });
+  
+  await knex.schema.createTable('sidequest_jobs', function (table) {
       table.increments('id').primary();
       table.string('queue').notNullable();
       table.string('class');
@@ -21,14 +28,15 @@ exports.up = function(knex) {
       table.integer('attempt');
       table.integer('max_attempts');
       table.integer('timeout').nullable();
-    })
-    .createTable('sidequest_queues', function (table) {
-      table.increments('id').primary();
-      table.string('queue').notNullable().index();
-      table.string('state').notNullable().defaultTo('active');
-      table.integer('concurrency').notNullable().defaultTo(10);
-      table.integer('priority').notNullable().defaultTo(0);
+      table.string('unique_digest').nullable();
     });
+
+    await knex.raw(`
+      CREATE UNIQUE INDEX sidequest_jobs_unique_digest_active_idx
+        ON sidequest_jobs (unique_digest)
+        WHERE unique_digest IS NOT NULL
+          AND state IN ('waiting', 'claimed', 'running');
+    `);
 };
 
 exports.down = function(knex) {

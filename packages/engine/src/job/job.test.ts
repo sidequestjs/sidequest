@@ -68,7 +68,7 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs", async () => {
-    await new JobBuilder(DummyJob).enqueue();
+    await new JobBuilder(DummyJob).unique(true).enqueue();
     await expect(new JobBuilder(DummyJob).unique(true).enqueue()).rejects.toThrow();
 
     const jobData = await Engine.getBackend().listJobs({
@@ -79,7 +79,7 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs with different args withargs=false", async () => {
-    await new JobBuilder(DummyJob).enqueue();
+    await new JobBuilder(DummyJob).unique(true).enqueue();
     await expect(new JobBuilder(DummyJob).unique(true).enqueue("arg1")).rejects.toThrow();
 
     const jobData = await Engine.getBackend().listJobs({
@@ -101,7 +101,7 @@ describe("job.ts", () => {
   });
 
   it("should not be able to enqueue duplicated jobs with same args withargs=true", async () => {
-    await new JobBuilder(DummyJob).enqueue("arg1");
+    await new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1");
     await expect(
       new JobBuilder(DummyJob).unique(true).deduplication(new DefaultDeduplicationStrategy(true)).enqueue("arg1"),
     ).rejects.toThrow();
@@ -121,7 +121,7 @@ describe("job.ts", () => {
     [2, "failed"],
     [2, "completed"],
   ] as [number, JobState][])("should have %i jobs if first job is %s", async (expected, state) => {
-    const job1 = await new JobBuilder(DummyJob).enqueue();
+    const job1 = await new JobBuilder(DummyJob).unique(true).enqueue();
 
     await Engine.getBackend().updateJob({ ...job1, state });
 

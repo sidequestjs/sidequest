@@ -1,22 +1,23 @@
-import { Engine } from "../engine";
 import { JobClassType } from "../job/job";
 import { DeduplicationStrategy } from "./strategy";
+
+import crypto from "crypto";
+import stableStringify from "json-stable-stringify";
 
 export class DefaultDeduplicationStrategy implements DeduplicationStrategy {
   constructor(public withArgs = false) {}
 
-  async isDuplicated<T extends JobClassType>(JobClass: T, args: Parameters<T["prototype"]["run"]>) {
-    const backend = Engine.getBackend();
-    const queuedJob = await backend.listJobs({
-      jobClass: JobClass.name,
-      state: ["claimed", "running", "waiting"],
-      args: this.withArgs ? args : undefined,
-    });
-
-    if (queuedJob.length > 0) {
-      return true;
+  getDigest<T extends JobClassType>(
+    JobClass: T,
+    constructorArgs: ConstructorParameters<T>,
+    args: Parameters<T["prototype"]["run"]>,
+  ): string {
+    let key = JobClass.name;
+    if (this.withArgs) {
+      // stableStringify parses in a deterministic way
+      key += "::args=" + stableStringify(args ?? []);
+      key += "::ctor=" + stableStringify(constructorArgs ?? []);
     }
-
-    return false;
+    return crypto.createHash("sha256").update(key).digest("hex");
   }
 }

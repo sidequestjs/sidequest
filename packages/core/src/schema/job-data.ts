@@ -29,4 +29,5 @@ export interface JobData {
   cancelled_at?: Date;
   claimed_at?: Date;
   claimed_by?: string;
+  unique_digest?: string;
 }

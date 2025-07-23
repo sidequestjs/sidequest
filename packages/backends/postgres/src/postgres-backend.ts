@@ -1,4 +1,4 @@
-import { Backend, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
+import { Backend, DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import os from "os";
 import path from "path";
@@ -38,17 +38,28 @@ export default class PostgresBackend implements Backend {
 
   async insertJob(job: JobData): Promise<JobData> {
     const data = {
-      queue: job.queue,
-      class: job.class,
-      script: job.script,
+      ...job,
       args: this.knex.raw("?", [JSON.stringify(job.args)]),
       constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
-      timeout: job.timeout,
-      state: job.state,
     };
 
-    const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
-    return inserted[0] as JobData;
+    try {
+      const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
+      return inserted[0] as JobData;
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "23505" &&
+        "constraint" in error &&
+        error.constraint === "sidequest_jobs_unique_digest_active_idx"
+      ) {
+        throw new DuplicatedJobError(job);
+      }
+
+      throw error;
+    }
   }
 
   async claimPendingJob(queue: string, quatity = 1): Promise<JobData[]> {

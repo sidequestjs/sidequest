@@ -46,10 +46,6 @@ export class JobBuilder<T extends JobClassType> {
   async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
     const job = new this.JobClass(...this.constructorArgs);
 
-    if (this.uniqueJob && (await this.deduplicationStrategy.isDuplicated(this.JobClass, args))) {
-      throw new Error(`The job ${job.className} with args ${args.toString()} is duplicated.`);
-    }
-
     const backend = Engine.getBackend();
     const jobData: JobData = {
       queue: this.queueName,
@@ -60,7 +56,11 @@ export class JobBuilder<T extends JobClassType> {
       attempt: 0,
       max_attempts: 5,
       timeout: this.jobTimeout,
+      unique_digest: this.uniqueJob
+        ? this.deduplicationStrategy.getDigest(this.JobClass, this.constructorArgs, args)
+        : undefined,
     };
+
     return backend.insertJob(jobData);
   }
 }
