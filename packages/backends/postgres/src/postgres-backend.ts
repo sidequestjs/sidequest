@@ -41,7 +41,7 @@ export default class PostgresBackend implements Backend {
       ...job,
       args: this.knex.raw("?", [JSON.stringify(job.args)]),
       constructor_args: this.knex.raw("?", [JSON.stringify(job.constructor_args)]),
-      uniqueness_config: this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]),
+      uniqueness_config: job.uniqueness_config ? this.knex.raw("?", [JSON.stringify(job.uniqueness_config)]) : null,
       timeout: job.timeout,
       state: job.state,
     };
