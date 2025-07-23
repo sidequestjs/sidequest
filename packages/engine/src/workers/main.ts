@@ -32,10 +32,10 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
 
 async function shutdown() {
   if (!shuttingDown) {
+    shuttingDown = true;
     await dispatcher?.stop();
     await Engine.close();
   }
-  shuttingDown = true;
 }
 
 export function startCron(config: SidequestConfig) {
@@ -86,10 +86,7 @@ const isChildProcess = !!process.send;
 if (isChildProcess) {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   process.on("message", async ({ type, sidequestConfig }: { type: string; sidequestConfig?: SidequestConfig }) => {
-    if (type === "shutdown") {
-      logger().info("Received shutdown signal, stopping worker...");
-      await shutdown();
-    } else if (type === "start") {
+    if (type === "start") {
       if (!shuttingDown) {
         logger().info("Starting worker with provided configuration...");
         return await runWorker(sidequestConfig!);
