@@ -1,23 +1,19 @@
 {
-    "adminServer": {
-        "port": 5000,
-        "host": "0.0.0.0"
-    } ,
-    "queues": [
-      {
-        "name": "high",
-        "workers": 10
-      },
-      {
-        "name": "default",
-        "workers": 2
-      }
-    ],
-    "tasks": [
-        {
-            "name": "MyJob",
-            "path": "./playground/my-job.js",
-            "queue": "high"
-        }
-    ]
+  "queues": [
+    {
+      "name": "high",
+      "workers": 10
+    },
+    {
+      "name": "default",
+      "workers": 2
+    }
+  ],
+  "tasks": [
+    {
+      "name": "MyJob",
+      "path": "./playground/my-job.js",
+      "queue": "high"
+    }
+  ]
 }
