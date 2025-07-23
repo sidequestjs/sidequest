@@ -2,7 +2,7 @@
   id="job-details"
   hx-get="/jobs/<%= job.id %>"
   hx-swap="outerHTML"
-  hx-trigger="every 3s, cancelJob"
+  hx-trigger="every 3s, runJob, cancelJob"
 >
   <div class="flex w-full">
     <h1 class="text-2xl font-bold flex-1">
@@ -67,13 +67,13 @@
             </span>
             Failed
           </li>
-          <% } else if (job.state === 'canceled') { %>
-            <li class="step step-secondary">
-              <span class="step-icon">
-                <i data-feather="alert-circle" class="w-4 h-4"></i>
-              </span>
-              Canceled
-            </li>
+        <% } else if (job.state === 'canceled') { %>
+          <li class="step step-secondary">
+            <span class="step-icon">
+              <i data-feather="alert-circle" class="w-4 h-4"></i>
+            </span>
+            Canceled
+          </li>
         <% } else { %>
           <li class="step">
             <span class="step-icon">
