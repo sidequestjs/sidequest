@@ -23,20 +23,14 @@ export abstract class Job {
     this.timeout = options.timeout;
   }
   
-  abstract run(): any | Promise<any>;
+  abstract run(...args: any[]): any | Promise<any>;
+
+  static config(this: { new (...args: any[]): Job }, jobOptions: JobOptions){
+    return new JobBuilder(this).config(jobOptions);
+  }
 
   static enqueue(this: { new (...args: any[]): Job }, ...args: any[]): JobData | Promise<JobData> {
-    const job = new this(...args);
-    const backend = Sidequest.getBackend();
-    const jobData: JobData = {
-      queue: job.queue,
-      script: job.script,
-      class: job.class,
-      args: args,
-      attempt: 0,
-      max_attempts: 5
-    }
-    return backend.insertJob(jobData);
+    return new JobBuilder(this).enqueue(args);
   }
 }
 
@@ -52,4 +46,36 @@ function buildPath() {
   }
 
   throw new Error('Could not determine the task path');
+}
+
+class JobBuilder{
+  JobClass: new (...args: any[]) => Job;
+  job?: Job;
+
+  constructor(JobClass: { new (...args: any[]): Job }){
+    this.JobClass = JobClass;
+  }
+
+  config(options: JobOptions){
+    this.job = new this.JobClass(options);
+    return this;
+  }
+
+  enqueue(...args: any[]){
+    if(!this.job){
+      this.job = new this.JobClass({ queue: 'default' });
+    }
+
+    const backend = Sidequest.getBackend();
+    const jobData: JobData = {
+      queue: this.job.queue,
+      script: this.job.script,
+      class: this.job.class,
+      args: args,
+      attempt: 0,
+      max_attempts: 5,
+      timeout: this.job.timeout
+    }
+    return backend.insertJob(jobData);
+  }
 }

@@ -15,12 +15,12 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
   }
 
   const args = jobData.args;
-  const job: Job = new JobClass(...args);
+  const job: Job = new JobClass({ queue: jobData.queue, timeout: jobData.timeout });
   
   jobData = await JobActions.setRunning(jobData);
   try {
     logger().info(`Running job ${jobData.class} with args: ${JSON.stringify(jobData.args)}`);
-    const result = await executeTask(job);
+    const result = await executeTask(job, args);
     jobData = await JobActions.setComplete(jobData, result);
     logger().info(`Job ${jobData.class} has completed with args: ${JSON.stringify(jobData.args)}`);
   } catch (error: any){
@@ -29,9 +29,10 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
   }
 }
 
-export function executeTask(job: Job){
+export function executeTask(job: Job, args: any[]){
   const promises: Promise<any>[] = [];
 
+  console.log(job)
   if(job.timeout){
     const timeout = new Promise((resolve, reject) => setTimeout(()=> {
       reject(new Error(`Job ${job.class} timed out: ${ JSON.stringify(job) }`));
@@ -41,7 +42,7 @@ export function executeTask(job: Job){
 
   const run = new Promise(async (resolve, reject) => {
     try {
-      const result = await job.run();
+      const result = await job.run(...args);
       resolve(result);
     } catch(error: any){
       reject(error);

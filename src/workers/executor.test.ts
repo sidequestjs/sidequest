@@ -17,7 +17,7 @@ describe('executror.ts', ()=>{
         run: async () => 'ok'
       };
 
-      const result = await executeTask(job as any);
+      const result = await executeTask(job as any, []);
       assert.equal(result, 'ok');
     });
 
@@ -27,7 +27,7 @@ describe('executror.ts', ()=>{
       };
 
       try {
-        await executeTask(job as any);
+        await executeTask(job as any, []);
         assert.fail('Expected error, but promise resolved');
       } catch (err: any) {
         assert.instanceOf(err, Error);
@@ -43,7 +43,7 @@ describe('executror.ts', ()=>{
       };
 
       try {
-        await executeTask(job as any);
+        await executeTask(job as any, []);
         assert.fail('Expected timeout, but promise resolved');
       } catch (err: any) {
         assert.instanceOf(err, Error);
