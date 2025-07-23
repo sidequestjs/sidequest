@@ -90,6 +90,10 @@ export class Engine {
   static async getQueueConfig(queue: string): Promise<QueueConfig> {
     return _backend.getQueueConfig(queue);
   }
+
+  static async close() {
+    return _backend.close();
+  }
 }
 
 export { Job } from "./job/job";
