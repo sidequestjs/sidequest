@@ -1,5 +1,5 @@
 import { JobCounts, UpdateJobData } from "@sidequest/backend";
-import { JobState } from "packages/core/dist";
+import { JobState } from "@sidequest/core";
 import { describe, expect, it } from "vitest";
 import { backend } from "./backend";
 

@@ -11,6 +11,7 @@ import {
 } from "@sidequest/backend";
 import { JobData, JobState, QueueConfig } from "@sidequest/core";
 import { Collection, Db, Filter, MongoClient } from "mongodb";
+import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRange, parseTimeRange } from "./utils";
 
 export default class MongoBackend implements Backend {
   private client: MongoClient;
@@ -68,6 +69,7 @@ export default class MongoBackend implements Backend {
 
   async close(): Promise<void> {
     await this.client.close();
+    this._connected = false;
   }
 
   async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
@@ -197,22 +199,21 @@ export default class MongoBackend implements Backend {
     // If timeRange is specified, add computed timestamp field and match stage
     if (timeRange?.from || timeRange?.to) {
       // Add computed field for the relevant timestamp (first non-null value)
-      pipeline.push(this.coalesceDates());
+      pipeline.push(
+        addCoalescedField(
+          "timestamp",
+          "completed_at",
+          "failed_at",
+          "canceled_at",
+          "attempted_at",
+          "claimed_at",
+          "inserted_at",
+        ),
+      );
 
       // Apply time range filter to the computed timestamp
-      const timeMatch: Record<string, object> = {};
-      if (timeRange.from) {
-        timeMatch.$gte = timeRange.from;
-      }
-      if (timeRange.to) {
-        timeMatch.$lte = timeRange.to;
-      }
-
-      pipeline.push({
-        $match: {
-          timestamp: timeMatch,
-        },
-      });
+      const matchStage = matchDateRange("timestamp", timeRange);
+      if (matchStage) pipeline.push(matchStage);
     }
 
     // Group by state and count
@@ -247,60 +248,26 @@ export default class MongoBackend implements Backend {
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
     await this.ensureConnected();
 
-    // Parse time range (e.g., "12m", "12h", "12d")
-    const match = /^(\d+)([mhd])$/.exec(timeRange);
-    if (!match) {
-      throw new Error("Invalid time range format. Use format like '12m', '12h', or '12d'");
-    }
+    const { amount, unit } = parseTimeRange(timeRange);
 
-    const amount = parseInt(match[1], 10);
-    const unit = match[2] as "m" | "h" | "d";
-
-    let intervalMs: number;
-    let granularityMs: number;
-    let dateGrouping: Record<string, object>;
-
-    switch (unit) {
-      case "m":
-        intervalMs = amount * 60 * 1000; // minutes to ms
-        granularityMs = 60 * 1000; // 1 minute
-        dateGrouping = {
-          year: { $year: "$timestamp" },
-          month: { $month: "$timestamp" },
-          day: { $dayOfMonth: "$timestamp" },
-          hour: { $hour: "$timestamp" },
-          minute: { $minute: "$timestamp" },
-        };
-        break;
-      case "h":
-        intervalMs = amount * 60 * 60 * 1000; // hours to ms
-        granularityMs = 60 * 60 * 1000; // 1 hour
-        dateGrouping = {
-          year: { $year: "$timestamp" },
-          month: { $month: "$timestamp" },
-          day: { $dayOfMonth: "$timestamp" },
-          hour: { $hour: "$timestamp" },
-        };
-        break;
-      case "d":
-        intervalMs = amount * 24 * 60 * 60 * 1000; // days to ms
-        granularityMs = 24 * 60 * 60 * 1000; // 1 day
-        dateGrouping = {
-          year: { $year: "$timestamp" },
-          month: { $month: "$timestamp" },
-          day: { $dayOfMonth: "$timestamp" },
-        };
-        break;
-    }
+    const { intervalMs, granularityMs, dateGrouping } = getTimeRangeConfig(amount, unit);
 
     const now = new Date();
     const startTime = new Date(now.getTime() - intervalMs);
 
-    // Create aggregation pipeline
     const pipeline = [
-      // Add a computed field for the relevant timestamp
-      this.coalesceDates(),
-      // Filter by time range
+      // Add a "timestamp" field using the first non-null value among the given columns
+      addCoalescedField(
+        "timestamp",
+        "completed_at",
+        "failed_at",
+        "canceled_at",
+        "attempted_at",
+        "claimed_at",
+        "inserted_at",
+      ),
+
+      // Filter documents so only those within the desired timestamp range are included
       {
         $match: {
           timestamp: {
@@ -309,28 +276,34 @@ export default class MongoBackend implements Backend {
           },
         },
       },
-      // Group by time bucket and state
+
+      // Group by both time bucket (dateGrouping) and state,
+      // counting how many documents are in each combination
       {
         $group: {
           _id: {
-            timeBucket: dateGrouping,
+            timeBucket: dateGrouping, // e.g., group by hour, day, etc.
             state: "$state",
           },
-          count: { $sum: 1 },
+          count: { $sum: 1 }, // count documents per group
         },
       },
-      // Group again to reshape the data
+
+      // Regroup by just time bucket,
+      // collecting all states/counts for each time interval into an array
       {
         $group: {
-          _id: "$_id.timeBucket",
+          _id: "$_id.timeBucket", // now just by time bucket
           states: {
             $push: {
-              state: "$_id.state",
-              count: "$count",
+              state: "$_id.state", // push the state
+              count: "$count", // and its count
             },
           },
         },
       },
+
+      // Sort the results by time bucket (ascending)
       {
         $sort: { _id: 1 },
       },
@@ -353,27 +326,7 @@ export default class MongoBackend implements Backend {
     const results = (await this.jobs.aggregate(pipeline).toArray()) as AggregationResult[];
 
     // Generate all time buckets in the range
-    const timeBuckets: Date[] = [];
-    for (
-      let time = new Date(startTime.getTime() + granularityMs);
-      time <= now;
-      time = new Date(time.getTime() + granularityMs)
-    ) {
-      // Round down to the appropriate granularity
-      const bucket = new Date(time);
-      switch (unit) {
-        case "m":
-          bucket.setUTCSeconds(0, 0);
-          break;
-        case "h":
-          bucket.setUTCMinutes(0, 0, 0);
-          break;
-        case "d":
-          bucket.setUTCHours(0, 0, 0, 0);
-          break;
-      }
-      timeBuckets.push(bucket);
-    }
+    const timeBuckets = generateTimeBuckets(startTime, now, granularityMs, unit);
 
     // Create a map of results for easy lookup
     const resultMap = new Map<string, Map<JobState, number>>();
@@ -415,36 +368,6 @@ export default class MongoBackend implements Backend {
         ...counts,
       };
     });
-  }
-
-  private coalesceDates() {
-    return {
-      $addFields: {
-        timestamp: {
-          $ifNull: [
-            "$completed_at",
-            {
-              $ifNull: [
-                "$failed_at",
-                {
-                  $ifNull: [
-                    "$canceled_at",
-                    {
-                      $ifNull: [
-                        "$attempted_at",
-                        {
-                          $ifNull: ["$claimed_at", "$inserted_at"],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      },
-    };
   }
 
   async staleJobs(maxStaleMs = 60_000, maxClaimedMs = 5 * 60_000): Promise<JobData[]> {

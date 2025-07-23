@@ -14,7 +14,8 @@
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",
-    "test:ci": "npx vitest run"
+    "test:ci": "npx vitest run",
+    "test": "npx vitest"
   },
   "dependencies": {
     "@sidequest/backend": "workspace:*",
