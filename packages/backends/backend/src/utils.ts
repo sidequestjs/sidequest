@@ -1,4 +1,5 @@
 import { JobData } from "@sidequest/core";
+import { Knex } from "knex";
 
 export function safeParse<T>(value: unknown): T;
 export function safeParse(value: null | undefined): null;
@@ -41,4 +42,15 @@ export function safeParseJobData(job: JobData): JobData {
     failed_at: safeParseDate(job.failed_at),
     inserted_at: safeParseDate(job.inserted_at),
   };
+}
+
+export function whereOrWhereIn(queryBuilder: Knex.QueryBuilder, column: string, value?: string | string[]) {
+  if (value) {
+    if (typeof value === "string") {
+      queryBuilder.where(column, value);
+    } else {
+      queryBuilder.whereIn(column, value);
+    }
+  }
+  return queryBuilder;
 }

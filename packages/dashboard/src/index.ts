@@ -46,7 +46,7 @@ export class SidequestDashboard {
         state?: JobState;
         sinceId?: number;
         limit?: number;
-        args?: unknown;
+        args?: unknown[];
         timeRange?: {
           from?: Date;
           to?: Date;

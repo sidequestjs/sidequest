@@ -1,7 +1,7 @@
 import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import { Knex } from "knex";
 import { hostname } from "os";
-import { safeParseJobData } from "./utils";
+import { safeParseJobData, whereOrWhereIn } from "./utils";
 
 export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "constructor_args"> &
   Partial<Pick<JobData, "max_attempts" | "available_at" | "timeout" | "unique_digest" | "uniqueness_config">> & {
@@ -136,18 +136,38 @@ export abstract class SQLBackend {
     return safeParseJobData(updated);
   }
 
-  abstract listJobs(params: {
-    queue?: string;
-    jobClass?: string;
+  async listJobs(params?: {
+    queue?: string | string[];
+    jobClass?: string | string[];
     state?: JobState | JobState[];
     sinceId?: number;
     limit?: number;
-    args?: unknown;
+    args?: unknown[];
     timeRange?: {
       from?: Date;
       to?: Date;
     };
-  }): Promise<JobData[]>;
+  }): Promise<JobData[]> {
+    const limit = params?.limit ?? 50;
+    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit);
+
+    if (params) {
+      const { queue, jobClass, state, sinceId, timeRange, args } = params;
+
+      whereOrWhereIn(query, "queue", queue);
+      whereOrWhereIn(query, "class", jobClass);
+      whereOrWhereIn(query, "state", state);
+
+      if (sinceId) query.where("id", ">=", sinceId);
+      if (args) query.where("args", JSON.stringify(args));
+      if (timeRange?.from) query.andWhere("attempted_at", ">=", timeRange.from);
+      if (timeRange?.to) query.andWhere("attempted_at", "<=", timeRange.to);
+    }
+
+    const rawJobs = (await query) as JobData[];
+
+    return rawJobs.map(safeParseJobData);
+  }
 
   async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
     const now = new Date();
