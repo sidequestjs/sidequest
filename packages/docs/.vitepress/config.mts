@@ -9,7 +9,10 @@ export default defineConfig({
   cleanUrls: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [{ text: "Home", link: "/" }],
+    nav: [
+      { text: "Home", link: "/" },
+      { text: "Docs", link: "/overview" },
+    ],
 
     sidebar: [
       { text: "🔭 Overview", link: "/overview" },
