@@ -100,7 +100,7 @@ jobsRouter.get("/:id", async (req, res) => {
   }
 });
 
-jobsRouter.post("/:id/run", async (req, res) => {
+jobsRouter.patch("/:id/run", async (req, res) => {
   const backend = getBackend();
 
   const jobId = parseInt(req.params.id);

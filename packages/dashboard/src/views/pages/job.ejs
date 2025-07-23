@@ -1,8 +1,8 @@
 <section class="space-y-6"
   id="job-details"
-  hx-get="/job/<%= job.id %>"
+  hx-get="/jobs/<%= job.id %>"
   hx-swap="outerHTML"
-  hx-trigger="every 3s"
+  hx-trigger="every 3s, runJob"
 >
   <div class="flex w-full">
     <h1 class="text-2xl font-bold flex-1">
@@ -19,6 +19,9 @@
     </span>
     </h1>
     <div class="flex justify-end space-x-2">
+      <% if (job.available_at > new Date()) { %>
+      <button type="button" class="btn btn-sm btn-outline" hx-patch="/jobs/<%= job.id %>/run"><i data-feather="play" class="w-4 h-4"></i>Run</button>
+      <% } %>
       <button class="btn btn-sm btn-outline"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
       <button class="btn btn-sm btn-outline"><i data-feather="refresh-ccw" class="w-4 h-4"></i>Re-Run</button>
       <button class="btn btn-sm btn-outline"><i data-feather="trash" class="w-4 h-4"></i>Delete</button>

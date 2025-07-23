@@ -36,7 +36,7 @@
       <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
       <% if (job.available_at > new Date()) { %>
       <td class="px-4 py-3">
-        <button type="button" class="btn btn-sm" hx-post="/jobs/<%= job.id %>/run">Run</button>
+        <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run">Run</button>
       </td>
       <% } %>
     </tr>
