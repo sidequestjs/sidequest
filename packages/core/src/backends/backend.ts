@@ -1,4 +1,4 @@
-import { JobData } from "../schema/job-data";
+import { JobData, JobState } from "../schema/job-data";
 import { QueueConfig } from "../schema/queue-config";
 
 export interface Backend {
@@ -19,9 +19,10 @@ export interface Backend {
   listJobs(params: {
     queue?: string;
     jobClass?: string;
-    state?: string;
+    state?: JobState | JobState[];
     sinceId?: number;
     limit?: number;
+    args?: unknown;
     timeRange?: {
       from?: Date;
       to?: Date;

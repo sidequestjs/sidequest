@@ -6,7 +6,7 @@ import { grantQueueConfig } from "./queue/grant-queue-config";
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
 let _backend: Backend;
-let _config: SidequestConfig;
+let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 
 export interface BackendConfig {
@@ -92,6 +92,7 @@ export class Engine {
   }
 
   static async close() {
+    _config = undefined;
     return _backend.close();
   }
 }

@@ -44,11 +44,10 @@ describe("executror.ts", () => {
           new Promise(() => {
             // never resolves
           }),
-        timeout: 10,
         class: "MyJob",
       };
 
-      await expect(executeTask(job as Job, [])).rejects.toThrow(/timed out/);
+      await expect(executeTask(job as Job, [], 10)).rejects.toThrow(/timed out/);
     });
   });
 

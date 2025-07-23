@@ -19,7 +19,7 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
   jobData = await JobActions.setRunning(jobData);
   try {
     logger().info(`Running job ${jobData.class} with args: ${JSON.stringify(jobData.args)}`);
-    const result = await executeTask(job, args);
+    const result = await executeTask(job, args, jobData.timeout);
     jobData = await JobActions.setComplete(jobData, result);
     logger().info(`Job ${jobData.class} has completed with args: ${JSON.stringify(jobData.args)}`);
   } catch (error) {
@@ -28,16 +28,16 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
   }
 }
 
-export function executeTask(job: Job, args: unknown[]) {
+export function executeTask(job: Job, args: unknown[], timeout?: number) {
   const promises: Promise<unknown>[] = [];
 
-  if (job.timeout) {
-    const timeout = new Promise((resolve, reject) =>
+  if (timeout) {
+    const timeoutPromise = new Promise((resolve, reject) =>
       setTimeout(() => {
         reject(new Error(`Job ${job.class} timed out: ${JSON.stringify(job)}`));
-      }, job.timeout),
+      }, timeout),
     );
-    promises.push(timeout);
+    promises.push(timeoutPromise);
   }
 
   const run = Promise.resolve().then(() => job.run(...args));

@@ -1,45 +1,35 @@
 import { JobData } from "@sidequest/core";
+import { DefaultDeduplicationStrategy } from "../deduplication/default";
+import { DeduplicationStrategy } from "../deduplication/strategy";
 import { Engine } from "../engine";
 
 export interface JobOptions {
   queue?: string;
   timeout?: number;
+  unique?: boolean;
+  deduplicationStrategy?: DeduplicationStrategy;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JobClassType = (new (...args: any[]) => Job) & { prototype: { run: (...args: any[]) => any } };
+export type JobClassType = (new (...args: any[]) => Job) & { prototype: { run: (...args: any[]) => any } };
 
 export abstract class Job {
-  queue: string;
   script: string;
   class: string;
-  timeout?: number;
 
-  constructor(jobOptions?: JobOptions) {
-    const options = Object.assign(
-      {
-        queue: "default",
-      },
-      jobOptions,
-    );
-
-    this.queue = options.queue;
+  constructor() {
     this.script = buildPath();
     this.class = this.constructor.name;
-    this.timeout = options.timeout;
   }
 
   abstract run(...args: unknown[]): unknown;
 
-  static config<T extends JobClassType>(this: T, jobOptions?: JobOptions) {
-    return new JobBuilder(this).config(jobOptions);
-  }
-
   static enqueue<T extends JobClassType>(
     this: T,
+    jobOptions?: JobOptions,
     ...args: Parameters<T["prototype"]["run"]>
   ): JobData | Promise<JobData> {
-    return new JobBuilder(this).enqueue(...args);
+    return JobBuilder.enqueue(this, jobOptions, ...args);
   }
 }
 
@@ -62,28 +52,32 @@ function buildPath() {
   throw new Error("Could not determine the task path");
 }
 
-class JobBuilder<T extends JobClassType> {
-  job?: Job;
+class JobBuilder {
+  static async enqueue<T extends JobClassType>(
+    JobClass: T,
+    jobOptions?: JobOptions,
+    ...args: Parameters<T["prototype"]["run"]>
+  ) {
+    const job = new JobClass();
 
-  constructor(public JobClass: T) {}
+    const queue = jobOptions?.queue ?? "default";
+    const timeout = jobOptions?.timeout;
+    const unique = jobOptions?.unique ?? false;
+    const deduplicationStrategy = jobOptions?.deduplicationStrategy ?? new DefaultDeduplicationStrategy();
 
-  config(jobOptions?: JobOptions) {
-    this.job = new this.JobClass(jobOptions);
-    return this;
-  }
-
-  enqueue(...args: Parameters<T["prototype"]["run"]>) {
-    this.job ??= new this.JobClass({ queue: "default" });
+    if (unique && (await deduplicationStrategy.isDuplicated(JobClass, args))) {
+      throw new Error(`The job ${job.class} with args ${args.toString()} is duplicated.`);
+    }
 
     const backend = Engine.getBackend();
     const jobData: JobData = {
-      queue: this.job.queue,
-      script: this.job.script,
-      class: this.job.class,
-      args: args,
+      queue,
+      script: job.script,
+      class: job.class,
+      args,
       attempt: 0,
       max_attempts: 5,
-      timeout: this.job.timeout,
+      timeout,
     };
     return backend.insertJob(jobData);
   }

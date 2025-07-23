@@ -70,9 +70,9 @@ describe("main.ts", () => {
     const worker = new Worker();
     await worker.run(config);
 
-    await DynamicDummyJob.config({ queue: lowQueueName }).enqueue();
-    await DynamicDummyJob.config({ queue: mediumQueueName }).enqueue();
-    await DynamicDummyJob.config({ queue: highQueueName }).enqueue();
+    await DynamicDummyJob.enqueue({ queue: lowQueueName });
+    await DynamicDummyJob.enqueue({ queue: mediumQueueName });
+    await DynamicDummyJob.enqueue({ queue: highQueueName });
 
     // Wait a bit to allow processing
     await new Promise((resolve) => setTimeout(resolve, 200));
