@@ -1314,6 +1314,7 @@ __metadata:
   dependencies:
     "@sidequest/core": "workspace:*"
     "@sidequest/engine": "workspace:*"
+    daisyui: "npm:^5.0.43"
     ejs: "npm:^3.1.10"
     express: "npm:^5.1.0"
     express-basic-auth: "npm:^1.2.1"
@@ -2993,6 +2994,13 @@ __metadata:
   dependencies:
     css-tree: "npm:^1.1.2"
   checksum: 10c0/f8c6b1300efaa0f8855a7905ae3794a29c6496e7f16a71dec31eb6ca7cfb1f058a4b03fd39b66c4deac6cb06bf6b4ba86da7b67d7320389cb9994d52b924b903
+  languageName: node
+  linkType: hard
+
+"daisyui@npm:^5.0.43":
+  version: 5.0.43
+  resolution: "daisyui@npm:5.0.43"
+  checksum: 10c0/c493eaf699677729d204558aa08d9d80329e80371d32e044fa635b53ffd29c80a87c270aa82b3535e0b25af89c0ab8ba4fec255bf026046ccf3c9018ffcb347e
   languageName: node
   linkType: hard
 

@@ -11,13 +11,14 @@
     "types": "./dist/index.d.ts"
   },
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "build": "npx rollup -c",
+    "dev": "npx rollup -c -w"
   },
   "license": "ISC",
   "dependencies": {
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
+    "daisyui": "^5.0.43",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
