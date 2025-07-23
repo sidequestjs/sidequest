@@ -1,0 +1,99 @@
+<section class="space-y-6">
+  <!-- Filters -->
+  <form method="GET" class="flex flex-wrap items-end gap-4 text-sm text-gray-300" id="filter-form">
+    <div>
+      <label class="block mb-1">Status</label>
+      <select name="status" class="bg-gray-800 border border-gray-700 rounded px-3 py-2">
+        <option value="">all</option>
+
+        <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>pending</option>
+        <option value="claimed" <%= filters.status === 'claimed' ? 'selected' : '' %>>claimed</option>
+        <option value="running" <%= filters.status === 'running' ? 'selected' : '' %>>running</option>
+        <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>completed</option>
+        <option value="failed" <%= filters.status === 'failed' ? 'selected' : '' %>>failed</option>
+        <option value="canceled" <%= filters.status === 'canceled' ? 'selected' : '' %>>canceled</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block mb-1">Queue</label>
+      <input type="text" name="queue" value="<%= filters.queue || '' %>" placeholder="e.g. default"
+        class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" />
+    </div>
+    
+    <div>
+      <label class="block mb-1">Class</label>
+      <input type="text" name="class" value="<%= filters.class || '' %>" placeholder="e.g. MyJobClass"
+        class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" />
+    </div>
+
+    <div>
+      <label class="block mb-1">Time Range</label>
+      <select name="time" id="time-range" class="bg-gray-800 border border-gray-700 rounded px-3 py-2">
+        <option value="15m" <%= filters.time === '15m' ? 'selected' : '' %>>Last 15 min</option>
+        <option value="1d" <%= filters.time === '1d' ? 'selected' : '' %>>Last 1 day</option>
+        <option value="custom" <%= filters.time === 'custom' ? 'selected' : '' %>>Custom</option>
+      </select>
+    </div>
+
+    <div id="custom-range" class="<%= filters.time === 'custom' ? '' : 'hidden' %>">
+      <label class="block mb-1">Custom Range</label>
+      <div class="flex gap-2">
+        <input type="datetime-local" name="start" value="<%= filters.start || '' %>" class="bg-gray-800 border border-gray-700 rounded px-3 py-2">
+        <input type="datetime-local" name="end" value="<%= filters.end || '' %>" class="bg-gray-800 border border-gray-700 rounded px-3 py-2">
+      </div>
+    </div>
+
+    <div>
+      <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded">
+        Apply Filters
+      </button>
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-left text-gray-300 border border-gray-700">
+      <thead class="bg-gray-800 border-b border-gray-700">
+        <tr>
+          <th class="px-4 py-2">ID</th>
+          <th class="px-4 py-2">Class</th>
+          <th class="px-4 py-2">Queue</th>
+          <th class="px-4 py-2">State</th>
+          <th class="px-4 py-2">Attempts</th>
+          <th class="px-4 py-2">Available At</th>
+          <th class="px-4 py-2">Completed At</th>
+          <th class="px-4 py-2">Claimed By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% jobs.forEach(job => { %>
+          <tr class="border-t border-gray-800 hover:bg-gray-800">
+            <td class="px-4 py-2 text-gray-400"><%= job.id %></td>
+            <td class="px-4 py-2 text-gray-400"><%= job.class %></td>
+            <td class="px-4 py-2"><%= job.queue %></td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-1 rounded text-xs font-medium <%= {
+                completed: 'bg-green-700 text-green-200',
+                failed: 'bg-red-700 text-red-200',
+                canceled: 'bg-red-800 text-red-100',
+                pending: 'bg-gray-600 text-gray-200',
+                claimed: 'bg-blue-700 text-blue-200',
+                running: 'bg-indigo-600 text-indigo-200',
+              }[job.state] || 'bg-gray-700 text-gray-200' %>">
+                <%= job.state.charAt(0).toUpperCase() + job.state.slice(1) %>
+              </span>
+            </td>
+            <td class="px-4 py-2"><%= job.attempt %> / <%= job.max_attempts %></td>
+            <td class="px-4 py-2"><%= job.available_at?.toISOString?.() || '-' %></td>
+            <td class="px-4 py-2"><%= job.completed_at?.toISOString?.() || '-' %></td>
+            <td class="px-4 py-2 text-gray-400"><%= job.claimed_by || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  
+</section>
+
+<script src="/public/js/jobs.js"></script>

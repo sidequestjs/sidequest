@@ -8,8 +8,6 @@ import sinon from 'sinon';
 import { JobActions } from '../core/job/job-actions';
 import { JobData } from '../core/schema/job-data';
 import { randomUUID } from 'node:crypto';
-import logger from '../core/logger';
-
 
 describe('main.ts', ()=> {
   let sandbox = sinon.createSandbox();
@@ -76,8 +74,6 @@ describe('main.ts', ()=> {
 
   it('should process queues based on priority order', async () => {
     const worker = new Worker();
-  
-    const backend = Sidequest.getBackend();
     
     await worker.run(config);
     

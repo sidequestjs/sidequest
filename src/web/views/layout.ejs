@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= title || 'Sidequest Dashboard' %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/public/css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="h-full bg-gray-900 text-gray-200">
+    <div class="flex h-full">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+        <div class="p-4 text-xl font-semibold text-indigo-400 border-b border-gray-700">
+          🧩 Sidequest
+        </div>
+        <nav class="flex-1 p-4 space-y-2 text-sm">
+          <a href="/dashboard" class="block px-3 py-2 rounded hover:bg-gray-700">Dashboard</a>
+          <a href="/jobs" class="block px-3 py-2 rounded hover:bg-gray-700">Jobs</a>
+          <a href="/queues" class="block px-3 py-2 rounded hover:bg-gray-700">Queues</a>
+        </nav>
+        <div class="p-4 border-t border-gray-700 text-xs text-gray-500">
+          v0.1.0 — OSS Edition
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <header class="mb-6">
+          <h1 class="text-2xl font-bold"><%= title || 'Dashboard' %></h1>
+        </header>
+        <section>
+          <%- body %>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

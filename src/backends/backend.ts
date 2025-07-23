@@ -15,4 +15,18 @@ export interface Backend {
   insertQueueConfig(queueConfig: QueueConfig): QueueConfig | Promise<QueueConfig>;
   
   updateJob(job: JobData): Promise<JobData>;
+  
+  listJobs(params: {
+    queue?: string;
+    jobClass?: string;
+    state?: string;
+    sinceId?: number;
+    limit?: number;
+    timeRange?: {
+      from?: Date;
+      to?: Date;
+    };
+  }): Promise<JobData[]>;
+
+  listQueues(): Promise<QueueConfig[]>;
 }

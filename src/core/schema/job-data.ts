@@ -1,4 +1,4 @@
-export type JobState = 'pending' | 'claimed' | 'running' | 'discarded' | 'completed' | 'cancelled';
+export type JobState = 'pending' | 'claimed' | 'running' | 'failed' | 'completed' | 'canceled';
 
 export type JobData = {
     id?: number;

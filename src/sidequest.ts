@@ -7,6 +7,8 @@ import { SqliteBackend } from './backends/sqlite/sqlite-backend';
 import logger, { configureLogger, LoggerOptions } from './core/logger';
 import { PostgresBackend } from './backends/postgres/postgres-backend';
 
+import { runWeb } from './web/app';
+
 const workerPath = path.resolve(__dirname, 'workers', 'main.js');
 
 let _backend: Backend;
@@ -19,7 +21,7 @@ const availableBackends = {
 }
 
 export type BackEndConfig = {
-  type: 'postgres' | 'sqlite' | 'redis';
+  type: 'postgres' | 'sqlite';
   config: any
 }
 
@@ -85,6 +87,8 @@ export  class Sidequest {
 
         runWorker();
       }
+
+      runWeb();
     });
   }
 

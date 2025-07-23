@@ -33,7 +33,7 @@ export class JobActions {
       if(jobData.attempt < max_attempts){
         jobData.state = 'pending';
       } else {
-        jobData.state = 'discarded';
+        jobData.state = 'failed';
       }
       await backend.updateJob(jobData);
   }

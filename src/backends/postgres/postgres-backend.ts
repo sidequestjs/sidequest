@@ -108,6 +108,46 @@ export class PostgresBackend implements Backend{
     throw Error('Cannot update job, not found.')
   }
 
+  async listJobs(params: {
+    queue?: string;
+    jobClass?: string;
+    state?: string;
+    sinceId?: number;
+    limit?: number;
+    timeRange?: {
+      from?: Date;
+      to?: Date;
+    };
+  }): Promise<JobData[]> {
+    const {
+      queue,
+      jobClass,
+      state,
+      sinceId,
+      limit = 50,
+      timeRange,
+    } = params;
+  
+    const query = this.knex('sidequest_jobs')
+      .select('*')
+      .orderBy('id', 'desc')
+      .limit(limit);
+  
+    if (queue) query.where('queue', queue);
+    if (state) query.where('state', state);
+    if (sinceId) query.where('id', '<', sinceId);
+    if (jobClass) query.where("class", jobClass);
+    if (timeRange?.from) query.where('attempted_at', '>=', timeRange.from);
+    if (timeRange?.to) query.where('attempted_at', '<=', timeRange.to);
+  
+    const result = await query;
+    return result;
+  }
+
+  async listQueues(): Promise<QueueConfig[]> {
+    return await this.knex("sidequest_queues").select("*").orderBy("priority", "desc");
+  }
+
   async setup(): Promise<void> {
     try {
       const [batchNo, log] = await this.knex.migrate.latest();

@@ -24,7 +24,7 @@ export async function execute(jobData: JobData, config: SidequestConfig): Promis
     jobData = await JobActions.setComplete(jobData, result);
     logger().info(`Job ${jobData.class} has completed with args: ${JSON.stringify(jobData.args)}`);
   } catch (error: any){
-    JobActions.setFailed(jobData, error);
+    await JobActions.setFailed(jobData, error);
     throw error;
   }
 }
