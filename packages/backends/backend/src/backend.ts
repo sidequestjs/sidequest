@@ -37,8 +37,8 @@ export interface Backend {
     queue?: string | string[];
     jobClass?: string | string[];
     state?: JobState | JobState[];
-    sinceId?: number;
     limit?: number;
+    offset?: number;
     args?: unknown[];
     timeRange?: {
       from?: Date;

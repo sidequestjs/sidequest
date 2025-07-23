@@ -50,7 +50,7 @@ export default function defineListJobsTestSuite() {
       listJobs = await backend.listJobs({ args: ["non_existing"] });
       expect(listJobs).toHaveLength(0);
 
-      listJobs = await backend.listJobs({ sinceId: 1000 });
+      listJobs = await backend.listJobs({ offset: 20 });
       expect(listJobs).toHaveLength(0);
 
       listJobs = await backend.listJobs({ timeRange: { from: new Date() } });
@@ -87,7 +87,7 @@ export default function defineListJobsTestSuite() {
       listJobs = await backend.listJobs({ args: ["test"], state: "canceled" });
       expect(listJobs).toHaveLength(0);
 
-      listJobs = await backend.listJobs({ sinceId: 0, state: "canceled" });
+      listJobs = await backend.listJobs({ offset: 0, state: "canceled" });
       expect(listJobs).toHaveLength(0);
 
       listJobs = await backend.listJobs({ timeRange: { to: new Date(), from: new Date() } });
@@ -138,7 +138,7 @@ export default function defineListJobsTestSuite() {
       expect(listJobs).toHaveLength(1);
       expect(listJobs[0]).toMatchObject(insertedJob);
 
-      listJobs = await backend.listJobs({ sinceId: 2 });
+      listJobs = await backend.listJobs({ offset: 0, limit: 1 });
       expect(listJobs).toHaveLength(1);
       expect(listJobs[0]).toMatchObject(insertedJob2);
     });
@@ -180,7 +180,7 @@ export default function defineListJobsTestSuite() {
       listJobs = await backend.listJobs({ state: ["waiting", "canceled"] });
       expect(listJobs).toHaveLength(2);
 
-      listJobs = await backend.listJobs({ sinceId: 1 });
+      listJobs = await backend.listJobs({ offset: 0 });
       expect(listJobs).toHaveLength(2);
     });
 

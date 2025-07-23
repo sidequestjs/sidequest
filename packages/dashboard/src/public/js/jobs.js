@@ -10,3 +10,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+document.addEventListener("htmx:configRequest", (evt) => {
+  const form = evt.target.closest("form");
+  if (!form) return;
+
+  const startInput = form.querySelector('input[name="start"]');
+  const endInput = form.querySelector('input[name="end"]');
+
+  if (startInput?.value) {
+    const startDate = new Date(startInput.value);
+    evt.detail.parameters.start = startDate.toISOString();
+  }
+
+  if (endInput?.value) {
+    const endDate = new Date(endInput.value);
+    evt.detail.parameters.end = endDate.toISOString();
+  }
+});
+
+document.addEventListener("htmx:afterRequest", (evt) => {
+  const form = document.getElementById("filter-form");
+  if (!form) return;
+
+  const params = new URLSearchParams(new FormData(form)).toString();
+
+  const url = `/jobs?${params}`;
+  window.history.pushState({}, "", url);
+});

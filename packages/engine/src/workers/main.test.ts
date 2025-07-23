@@ -63,14 +63,14 @@ describe("main.ts", () => {
 
   describe("startCron", () => {
     it("should schedule both cron jobs", () => {
-      startCron(config);
+      startCron();
 
       expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
       expect(cronMocks.schedule).toHaveBeenCalledWith("0 * * * *", expect.any(Function));
     });
 
     it("should call releaseStaleJobs when release cron executes", async () => {
-      startCron(config);
+      startCron();
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
@@ -80,7 +80,7 @@ describe("main.ts", () => {
     });
 
     it("should call cleanupFinishedJobs when cleanup cron executes", async () => {
-      startCron(config);
+      startCron();
 
       const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
 
@@ -93,7 +93,7 @@ describe("main.ts", () => {
       const error = new Error("fail");
       (releaseStaleJobs as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(error);
 
-      startCron(config);
+      startCron();
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
