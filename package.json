@@ -6,10 +6,11 @@
   "types": "./dist/sidequest.d.ts",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc && npm run copy:ejs && npm run build:web && npm run copy:js",
+    "build": "tsc && npm run copy:ejs && npm run build:web && npm run copy:js && npm run copy:img",
     "build:web": "tailwindcss -i ./src/web/public/css/styles.css -o ./dist/web/public/css/styles.css",
     "copy:ejs": "rm -rf dist/web/views && cp -r src/web/views dist/web/views",
     "copy:js": "rm -rf dist/web/public/js && cp -r src/web/public/js dist/web/public/js",
+    "copy:img": "rm -rf dist/web/public/img && cp -r src/web/public/img dist/web/public/img",
     "test": "mocha --recursive './src/**/*.test.ts'",
     "test:coverage": "nyc npm run test",
     "prepublish": "npm run build"
