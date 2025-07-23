@@ -1,13 +1,11 @@
 const path = require('path');
 const Worker = require('./worker');
-const Api = require('./api/http');
-
 
 module.exports = (() => {
     const defaultMaxWorkers = 10;
-    let sharedWorkers;
-    let exclusiveWorkers;
-    let config;
+    const sharedWorkers;
+    const exclusiveWorkers;
+    const config;
 
     /**
      * initialize the side-worker
