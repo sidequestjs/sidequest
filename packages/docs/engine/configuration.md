@@ -127,8 +127,6 @@ await Sidequest.start({
     },
   },
 });
-
-console.log("Sidequest started! Dashboard: http://localhost:8678");
 ```
 
 ```typescript [ESM]
@@ -154,8 +152,6 @@ await Sidequest.start({
     },
   },
 });
-
-console.log("Sidequest started! Dashboard: http://localhost:8678");
 ```
 
 ```javascript [CommonJS]
@@ -180,8 +176,6 @@ Sidequest.start({
       password: "secret",
     },
   },
-}).then(() => {
-  console.log("Sidequest started! Dashboard: http://localhost:8678");
 });
 ```
 
