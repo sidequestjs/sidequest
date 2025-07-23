@@ -27,10 +27,6 @@ function Scheduler(){
             case 'execution-request':
                 this.emit('execution-requested', message.data);
                 break;
-            case 'fail':
-                forkProcess.kill();
-                this.emit('died', this);
-                break;
         }
     });
     
