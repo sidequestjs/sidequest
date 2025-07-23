@@ -65,7 +65,8 @@ export abstract class SQLBackend implements Backend {
   }
 
   async getJob(id: number): Promise<JobData> {
-    return (await this.knex("sidequest_jobs").where({ id }).first()) as JobData;
+    const job = (await this.knex("sidequest_jobs").where({ id }).first()) as JobData;
+    return safeParseJobData(job);
   }
 
   async createNewJob(job: NewJobData): Promise<JobData> {

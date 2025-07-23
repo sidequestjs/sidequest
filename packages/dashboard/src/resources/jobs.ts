@@ -106,7 +106,7 @@ jobsRouter.post("/:id/run", async (req, res) => {
   const jobId = parseInt(req.params.id);
   const job = await backend?.getJob(jobId);
 
-  await backend.updateJob({ ...job, available_at: new Date() });
+  await backend.updateJob({ id: job.id, available_at: new Date() });
 
   res.header("HX-Trigger", "runJob").status(200).end();
 });
