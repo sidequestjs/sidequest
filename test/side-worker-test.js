@@ -18,17 +18,35 @@ describe('side-worker', ()=>{
         });
 
         it('should load a config file from current folder', () => {
-            assert.lengthOf(sideWorker.workers(), 3);
+            assert.lengthOf(sideWorker.sharedWorkers(), 3);
+        });
+
+        it('should load a exclusive worker for a task', () => {
+            assert.lengthOf(sideWorker.exclusiveWorkers(), 1);
+        });
+
+        it('should start a task', (done) => {   
+            sideWorker.sharedWorkers()[0].on('started', (task) => {
+                assert.isNotNull(task);
+                done();
+            });
+        });
+
+        it('should done a task', (done) => {   
+            sideWorker.sharedWorkers()[0].on('done', (task) => {
+                assert.isNotNull(task);
+                done();
+            });
         });
     });
 
     describe('passing a config file', () => {
         it('should receive a config file', () => {
-            sideWorker.initialize('../config-test.json');
+            sideWorker.initialize('../test/test_assets/config-test.json');
         });
 
         it('should create a singe worker', ()=>{
-            assert.lengthOf(sideWorker.workers(), 1);
+            assert.lengthOf(sideWorker.sharedWorkers(), 1);
         })
     });
 });
