@@ -30,7 +30,14 @@ describe('MasterWorker', () => {
     });
     
     it('should generate schedulers', () => {
-        assert.lengthOf(masterWorker.schedulers(), 2);
+        masterWorker.terminate();
+        masterWorker = new MasterWorker();
+        assert.lengthOf(masterWorker.schedulers(), cpus);
+    });
+
+    it('should respont to startedAt', () => {
+        assert.isNotNull(masterWorker.startedAt());
+        assert.instanceOf(masterWorker.startedAt(), Date);
     });
     
     it('should register tasks', (done) => {
@@ -102,7 +109,7 @@ describe('MasterWorker', () => {
         for(let i = 0; i < 4; i++){
             masterWorker.register( {
                 "name": "Write File",
-                "path": "./test/test_assets/write_file.js",
+                "path": "./test/test_assets/dummy_task.js",
                 "cron": "* * * * * *"
             });
         }
