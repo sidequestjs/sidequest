@@ -12,7 +12,7 @@ module.exports = (() => {
         masterWorker = new MasterWorker(config);
         loadTasks(config);
         plugins.forEach((plugin) => {
-            plugin.initialize();
+            plugin.initialize(masterWorker);
         });
     }
 

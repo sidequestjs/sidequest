@@ -1,3 +1,3 @@
-const sideWorker = require('./src/side-worker');
+const sideWorker = require('./src/sidequest');
 
 sideWorker.initialize();
