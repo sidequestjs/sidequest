@@ -1,4 +1,4 @@
-import { CompleteTransition, DuplicatedJobError, QueueConfig } from "@sidequest/core";
+import { CompleteTransition, DuplicatedJobError, JobData, QueueConfig } from "@sidequest/core";
 import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -77,7 +77,7 @@ describe("main.ts", () => {
 
     if (jobData.id) {
       await vi.waitUntil(async () => {
-        const job = await Engine.getBackend()!.getJob(jobData.id!);
+        const job = await Engine.getBackend()!.getJob(jobData.id);
         return job.state === "completed";
       });
     }
@@ -147,7 +147,7 @@ describe("main.ts", () => {
           script: "",
           attempt: 1,
           max_attempts: 5,
-        }),
+        } as unknown as JobData),
       );
       const mockTimeout = vi.fn().mockReturnValue({ enqueue: mockEnqueue });
       const mockUnique = vi.fn().mockReturnValue({ timeout: mockTimeout });

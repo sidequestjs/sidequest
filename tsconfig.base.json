@@ -14,9 +14,7 @@
     "noImplicitAny": false,
     "allowJs": true,
     "skipLibCheck": true,
-    "types": ["vitest/globals"],
-    "paths": {
-      "@sidequest/core": ["packages/core"]
-    }
-  }
+    "types": ["vitest/globals"]
+  },
+  "exclude": ["**/dist/**", "**/node_modules/**"]
 }

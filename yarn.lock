@@ -1134,6 +1134,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sidequest/backend-test@workspace:*, @sidequest/backend-test@workspace:packages/backends/backend-test":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/backend-test@workspace:packages/backends/backend-test"
+  dependencies:
+    "@sidequest/backend": "workspace:*"
+    vitest: "npm:^3.2.4"
+  languageName: unknown
+  linkType: soft
+
+"@sidequest/backend@workspace:*, @sidequest/backend@workspace:packages/backends/backend":
+  version: 0.0.0-use.local
+  resolution: "@sidequest/backend@workspace:packages/backends/backend"
+  dependencies:
+    "@sidequest/core": "workspace:*"
+    knex: "npm:^3.1.0"
+  languageName: unknown
+  linkType: soft
+
 "@sidequest/core@workspace:*, @sidequest/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sidequest/core@workspace:packages/core"
@@ -1160,6 +1178,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/engine@workspace:packages/engine"
   dependencies:
+    "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
     json-stable-stringify: "npm:^1.3.0"
     node-cron: "npm:^4.1.1"
@@ -1170,6 +1189,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/postgres-backend@workspace:packages/backends/postgres"
   dependencies:
+    "@sidequest/backend": "workspace:*"
+    "@sidequest/backend-test": "workspace:*"
     "@sidequest/core": "workspace:*"
     knex: "npm:^3.1.0"
     pg: "npm:^8.15.6"
@@ -1180,6 +1201,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/sqlite-backend@workspace:packages/backends/sqlite"
   dependencies:
+    "@sidequest/backend": "workspace:*"
+    "@sidequest/backend-test": "workspace:*"
     "@sidequest/core": "workspace:*"
     knex: "npm:^3.1.0"
     sqlite3: "npm:^5.1.7"
@@ -8208,7 +8231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^3.2.3":
+"vitest@npm:^3.2.3, vitest@npm:^3.2.4":
   version: 3.2.4
   resolution: "vitest@npm:3.2.4"
   dependencies:

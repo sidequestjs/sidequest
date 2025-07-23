@@ -1,0 +1,23 @@
+{
+  "name": "@sidequest/backend-test",
+  "version": "1.0.0-alpha.1",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "yarn@4.9.2"
+}

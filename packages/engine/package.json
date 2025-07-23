@@ -17,6 +17,7 @@
   "author": "Lucas Merencia <lucas@merencia.com>",
   "license": "ISC",
   "dependencies": {
+    "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "json-stable-stringify": "^1.3.0",
     "node-cron": "^4.1.1"

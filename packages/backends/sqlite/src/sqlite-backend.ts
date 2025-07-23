@@ -1,6 +1,6 @@
-import { Backend, DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
-import createKnex, { Knex } from "knex";
-import os from "os";
+import { SQLBackend, UpdateJobData } from "@sidequest/backend";
+import { JobData, JobState } from "@sidequest/core";
+import createKnex from "knex";
 import path from "path";
 
 function safeParse<T = unknown>(value: unknown): T | null {
@@ -11,11 +11,9 @@ function safeParse<T = unknown>(value: unknown): T | null {
   }
 }
 
-export default class SqliteBackend implements Backend {
-  knex: Knex;
-
+export default class SqliteBackend extends SQLBackend {
   constructor(filePath = "./sidequest.sqlite") {
-    this.knex = createKnex({
+    const knex = createKnex({
       client: "sqlite3",
       connection: {
         filename: filePath,
@@ -27,107 +25,16 @@ export default class SqliteBackend implements Backend {
         extension: "cjs",
       },
     });
+    super(knex);
   }
 
-  async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
-    return newConfig[0] as QueueConfig;
-  }
-
-  async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return this.knex("sidequest_queues").where({ queue }).first() as Promise<QueueConfig>;
-  }
-
-  async getQueuesFromJobs(): Promise<string[]> {
-    const queues: QueueConfig[] = await this.knex("sidequest_jobs").select("queue").distinct();
-    return queues.map((q) => q.queue);
-  }
-
-  getJob(id: number): JobData | Promise<JobData> {
-    return this.knex("sidequest_jobs").where({ id }).first();
-  }
-
-  async insertJob(job: JobData): Promise<JobData> {
+  async updateJob(job: UpdateJobData): Promise<JobData> {
     const data = {
       ...job,
-      args: JSON.stringify(job.args),
-      constructor_args: JSON.stringify(job.constructor_args),
-      result: job.result ? JSON.stringify(job.result) : null,
-      errors: job.errors ? JSON.stringify(job.errors) : null,
-      state: job.state ?? "waiting",
-      available_at: job.available_at ?? new Date().toISOString(),
-      inserted_at: job.inserted_at ?? new Date().toISOString(),
-    };
-
-    try {
-      const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
-
-      return {
-        ...inserted[0],
-        args: safeParse(job.args),
-        constructor_args: safeParse(job.constructor_args),
-        result: safeParse(job.result),
-        errors: safeParse(job.errors),
-        uniqueness_config: safeParse(job.uniqueness_config),
-      } as JobData;
-    } catch (error: unknown) {
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        error.code === "SQLITE_CONSTRAINT" &&
-        "message" in error &&
-        typeof error.message === "string" &&
-        error.message.includes("sidequest_jobs.unique_digest")
-      ) {
-        throw new DuplicatedJobError(job);
-      }
-
-      throw error;
-    }
-  }
-
-  async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
-    const workerName = `sidequest@${os.hostname()}-${process.pid}`;
-
-    return this.knex.transaction(async (trx) => {
-      const jobs = (await trx("sidequest_jobs")
-        .where("state", "waiting")
-        .andWhere("queue", queue)
-        .andWhere("available_at", "<=", new Date().toISOString())
-        .orderBy("inserted_at")
-        .limit(quantity)
-        .forUpdate()) as JobData[];
-
-      const ids = jobs.map((j) => j.id!);
-      if (ids.length === 0) return [];
-
-      await trx("sidequest_jobs")
-        .update({
-          claimed_by: workerName,
-          claimed_at: new Date().toISOString(),
-          state: "claimed",
-        })
-        .whereIn("id", ids);
-
-      const claimedJobs = (await trx("sidequest_jobs").whereIn("id", ids)) as JobData[];
-      return claimedJobs.map((job) => ({
-        ...job,
-        args: safeParse(job.args),
-        result: safeParse(job.result),
-        errors: safeParse(job.errors),
-        uniqueness_config: safeParse(job.uniqueness_config),
-      })) as JobData[];
-    });
-  }
-
-  async updateJob(job: JobData): Promise<JobData> {
-    const data = {
-      ...job,
-      args: job.args ? JSON.stringify(job.args) : null,
-      constructor_args: job.args ? JSON.stringify(job.constructor_args) : null,
-      result: job.result ? JSON.stringify(job.result) : null,
-      errors: job.errors ? JSON.stringify(job.errors) : null,
+      args: job.args ? JSON.stringify(job.args) : job.args,
+      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
+      result: job.result ? JSON.stringify(job.result) : job.result,
+      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
     };
 
     const [updated] = (await this.knex("sidequest_jobs")
@@ -194,10 +101,6 @@ export default class SqliteBackend implements Backend {
     })) as JobData[];
   }
 
-  async listQueues(): Promise<QueueConfig[]> {
-    return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
-  }
-
   async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
     const jobs = (await this.knex("sidequest_jobs")
       .select("*")
@@ -234,31 +137,5 @@ export default class SqliteBackend implements Backend {
       errors: safeParse(job.errors),
       uniqueness_config: safeParse(job.uniqueness_config),
     })) as JobData[];
-  }
-
-  async deleteFinishedJobs(cutoffDate: Date): Promise<void> {
-    await this.knex("sidequest_jobs")
-      .where((qb) => {
-        qb.where("completed_at", "<", cutoffDate)
-          .orWhere("failed_at", "<", cutoffDate)
-          .orWhere("cancelled_at", "<", cutoffDate);
-      })
-      .del();
-  }
-
-  async setup(): Promise<void> {
-    try {
-      const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];
-      if (log.length > 0) {
-        logger().info(`Migrated batch ${batchNo}:`);
-        log.forEach((file) => logger().info(`  - ${file}`));
-      }
-    } catch (err) {
-      logger().error("Migration failed:", err);
-    }
-  }
-
-  async close(): Promise<void> {
-    await this.knex.destroy();
   }
 }

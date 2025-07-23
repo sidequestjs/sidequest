@@ -41,7 +41,7 @@ describe("release-stale-jobs.ts", () => {
     });
 
     it("should release stale jobs by setting state to waiting", async () => {
-      const mockStaleJobs: JobData[] = [
+      const mockStaleJobs = [
         {
           id: 1,
           queue: "default",
@@ -66,11 +66,11 @@ describe("release-stale-jobs.ts", () => {
           max_attempts: 5,
           claimed_at: new Date(Date.now() - 120000), // 2 minutes ago
         },
-      ];
+      ] as unknown as JobData[];
 
       const backend = Engine.getBackend();
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);
-      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job));
+      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
       const job = new ReleaseStaleJob();
       await job.run();
@@ -88,7 +88,7 @@ describe("release-stale-jobs.ts", () => {
     });
 
     it("should handle single stale job", async () => {
-      const mockStaleJob: JobData = {
+      const mockStaleJob = {
         id: 42,
         queue: "test-queue",
         state: "claimed",
@@ -99,11 +99,11 @@ describe("release-stale-jobs.ts", () => {
         attempt: 1,
         max_attempts: 3,
         claimed_at: new Date(Date.now() - 30000), // 30 seconds ago
-      };
+      } as unknown as JobData;
 
       const backend = Engine.getBackend();
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue([mockStaleJob]);
-      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job));
+      const updateJobSpy = vi.spyOn(backend!, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
 
       const job = new ReleaseStaleJob();
       await job.run();
@@ -115,7 +115,7 @@ describe("release-stale-jobs.ts", () => {
     });
 
     it("should handle backend errors gracefully", async () => {
-      const mockStaleJobs: JobData[] = [
+      const mockStaleJobs = [
         {
           id: 1,
           queue: "default",
@@ -127,7 +127,7 @@ describe("release-stale-jobs.ts", () => {
           attempt: 1,
           max_attempts: 3,
         },
-      ];
+      ] as unknown as JobData[];
 
       const backend = Engine.getBackend();
       const staleJobsSpy = vi.spyOn(backend!, "staleJobs").mockResolvedValue(mockStaleJobs);

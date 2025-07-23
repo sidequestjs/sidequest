@@ -25,32 +25,8 @@ describe("cleanup-finished-job.ts", () => {
       oneMonthAgo.setDate(oneMonthAgo.getDate() - 32);
 
       const backend = Engine.getBackend()!;
-      await backend.insertJob({
-        state: "completed",
-        queue: "default",
-        script: "script.js",
-        class: "DummyJob",
-        args: [],
-        constructor_args: [],
-        attempt: 1,
-        max_attempts: 5,
-        completed_at: oneMonthAgo,
-      });
-
-      await backend.insertJob({
-        state: "failed",
-        queue: "default",
-        script: "script.js",
-        class: "DummyJob",
-        args: [],
-        constructor_args: [],
-        attempt: 5,
-        max_attempts: 5,
-        failed_at: oneMonthAgo,
-      });
-
-      await backend.insertJob({
-        state: "canceled",
+      let inserted = await backend.createNewJob({
+        state: "waiting",
         queue: "default",
         script: "script.js",
         class: "DummyJob",
@@ -58,6 +34,44 @@ describe("cleanup-finished-job.ts", () => {
         constructor_args: [],
         attempt: 0,
         max_attempts: 5,
+      });
+      await backend.updateJob({
+        id: inserted.id,
+        state: "completed",
+        attempt: 1,
+        completed_at: oneMonthAgo,
+      });
+
+      inserted = await backend.createNewJob({
+        state: "waiting",
+        queue: "default",
+        script: "script.js",
+        class: "DummyJob",
+        args: [],
+        constructor_args: [],
+        attempt: 0,
+        max_attempts: 5,
+      });
+      await backend.updateJob({
+        id: inserted.id,
+        state: "failed",
+        attempt: 5,
+        failed_at: oneMonthAgo,
+      });
+
+      inserted = await backend.createNewJob({
+        state: "waiting",
+        queue: "default",
+        script: "script.js",
+        class: "DummyJob",
+        args: [],
+        constructor_args: [],
+        attempt: 0,
+        max_attempts: 5,
+      });
+      await backend.updateJob({
+        id: inserted.id,
+        state: "canceled",
         cancelled_at: oneMonthAgo,
       });
 

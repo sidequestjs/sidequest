@@ -11,8 +11,24 @@ on:
       - "**/*.MD"
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,5 +52,14 @@ jobs:
       - name: Run linter
         run: yarn lint
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
       - name: Run tests
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: yarn test:ci

@@ -3,21 +3,21 @@ exports.up = async function(knex) {
     table.bigIncrements('id').primary();
     table.string('queue').notNullable().index();
 
-    table.string('state').notNullable().defaultTo('waiting');
+    table.string('state').notNullable();
     table.string('script').notNullable();
     table.string('class').notNullable();
     table.jsonb('args').notNullable();
     table.jsonb('constructor_args').notNullable();
 
     table.integer('timeout').nullable();
-    table.integer('attempt').notNullable().defaultTo(0);
-    table.integer('max_attempts').notNullable().defaultTo(5);
-    table.specificType('result', 'jsonb').notNullable().defaultTo('{}');
-    table.specificType('errors', 'jsonb[]').notNullable().defaultTo('{}');
+    table.integer('attempt').notNullable();
+    table.integer('max_attempts').notNullable();
+    table.specificType('result', 'jsonb').nullable();
+    table.specificType('errors', 'jsonb[]').nullable();
 
     table.timestamp('inserted_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('attempted_at').nullable();
-    table.timestamp('available_at').notNullable().defaultTo(knex.fn.now()); // for retry/delay
+    table.timestamp('available_at').notNullable(); // for retry/delay
     table.timestamp('completed_at').nullable();
     table.timestamp('failed_at').nullable();
     table.timestamp('cancelled_at').nullable();
@@ -37,5 +37,7 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-  await knex.schema.dropTable('sidequest_jobs');
+  await knex.schema
+    .dropTableIfExists('sidequest_jobs')
+    .dropTableIfExists('sidequest_queues');
 };

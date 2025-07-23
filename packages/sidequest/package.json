@@ -1,9 +1,15 @@
 {
   "name": "sidequest",
   "version": "1.0.0-alpha.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "type": "module",
+  "main": "./dist/engine.cjs",
+  "module": "./dist/engine.js",
+  "types": "./dist/engine.d.ts",
+  "exports": {
+    "import": "./dist/engine.js",
+    "require": "./dist/engine.cjs",
+    "types": "./dist/engine.d.ts"
+  },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w"

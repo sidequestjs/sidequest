@@ -1,4 +1,5 @@
-import { Backend, configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
+import { SQLBackend } from "@sidequest/backend";
+import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import path from "path";
 import { JobClassType } from "./job/job";
@@ -8,7 +9,7 @@ import { gracefulShutdown } from "./utils/shutdown";
 
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
-let _backend: Backend | undefined;
+let _backend: SQLBackend | undefined;
 let _config: SidequestConfig | undefined;
 let _mainWorker: ChildProcess | undefined;
 let shuttingDown = false;
@@ -26,7 +27,7 @@ export interface SidequestConfig {
 }
 
 interface BackendModule {
-  default: new (...args: unknown[]) => Backend;
+  default: new (...args: unknown[]) => SQLBackend;
 }
 
 export class Engine {

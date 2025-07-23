@@ -47,7 +47,7 @@ describe("executror.ts", () => {
         available_at: new Date(),
         claimed_at: new Date(),
         claimed_by: "dummy-worker",
-      };
+      } as unknown as JobData;
     });
 
     it("executes a job", async () => {

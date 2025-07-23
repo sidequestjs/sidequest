@@ -1,3 +1,4 @@
+import { NewJobData } from "@sidequest/backend";
 import {
   AliveJobConfig,
   FixedWindowConfig,
@@ -82,25 +83,25 @@ export class JobBuilder<T extends JobClassType> {
     }
 
     const backend = Engine.getBackend()!;
-    const jobData: JobData = {
+    const jobData: NewJobData = {
       queue: this.queueName,
       script: job.script,
       class: job.className,
       state: "waiting",
-      args: args,
+      args,
       constructor_args: this.constructorArgs,
       attempt: 0,
       max_attempts: this.jobMaxAttempts ?? 5,
       available_at: this.jobAvailableAt ?? new Date(),
-      timeout: this.jobTimeout,
-      uniqueness_config: this.uniquenessConfig,
+      timeout: this.jobTimeout ?? null,
+      uniqueness_config: this.uniquenessConfig ?? null,
     };
 
     if (this.uniquenessConfig) {
       const uniqueness = UniquenessFactory.create(this.uniquenessConfig);
-      jobData.unique_digest = uniqueness.digest(jobData);
+      jobData.unique_digest = uniqueness.digest(jobData as JobData);
     }
 
-    return backend.insertJob(jobData);
+    return backend.createNewJob(jobData);
   }
 }

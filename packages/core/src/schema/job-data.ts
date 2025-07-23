@@ -10,26 +10,26 @@ export type JobState =
   | "canceled"; // Manually canceled
 
 export interface JobData {
-  id?: number;
+  id: number;
   queue: string;
   state: JobState;
   script: string;
   class: string;
   args: unknown[];
   constructor_args: unknown[];
-  timeout?: number;
   attempt: number;
   max_attempts: number;
-  result?: unknown;
-  errors?: ErrorData[];
-  inserted_at?: Date;
-  attempted_at?: Date;
-  available_at?: Date;
-  completed_at?: Date;
-  failed_at?: Date;
-  cancelled_at?: Date;
-  claimed_at?: Date;
-  claimed_by?: string;
-  unique_digest?: string | null;
-  uniqueness_config?: UniquenessConfig | null;
+  inserted_at: Date;
+  available_at: Date;
+  timeout: number | null;
+  result: Omit<unknown, "undefined"> | null;
+  errors: ErrorData[] | null;
+  attempted_at: Date | null;
+  completed_at: Date | null;
+  failed_at: Date | null;
+  cancelled_at: Date | null;
+  claimed_at: Date | null;
+  claimed_by: string | null;
+  unique_digest: string | null;
+  uniqueness_config: UniquenessConfig | null;
 }

@@ -14,14 +14,14 @@ describe("JobTransitioner", () => {
   });
 
   beforeEach(async () => {
-    jobData = await Engine.getBackend()!.insertJob({
+    jobData = await Engine.getBackend()!.createNewJob({
       queue: "default",
       script: "./dummy-script.js",
       class: "DummyClass",
       state: "waiting",
       args: [],
       constructor_args: [],
-      attempt: 1,
+      attempt: 1 as unknown as 0,
       max_attempts: 10,
     });
   });
