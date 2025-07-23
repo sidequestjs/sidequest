@@ -1,8 +1,19 @@
 import { logger } from "@sidequest/core";
-import { Engine, Job } from "../engine";
+import { Engine, Job, SidequestConfig } from "../engine";
 
 export class ReleaseStaleJob extends Job {
+  config: SidequestConfig;
+
+  constructor(config: SidequestConfig) {
+    super();
+    this.config = config;
+  }
+
   async run(): Promise<void> {
+    if (!Engine.getConfig()) {
+      await Engine.configure(this.config);
+    }
+
     const backend = Engine.getBackend();
     const staleJobs = await backend!.staleJobs();
 

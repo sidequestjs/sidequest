@@ -21,7 +21,7 @@ export interface BackendConfig {
 
 export interface SidequestConfig {
   backend?: BackendConfig;
-  queues?: Record<string, QueueConfig>;
+  queues?: QueueConfig[];
   logger?: LoggerOptions;
   maxConcurrentJobs?: number;
 }
@@ -36,7 +36,7 @@ export class Engine {
       logger().warn("Sidequest already configured");
       return _config;
     }
-    _config = config ?? { queues: {} };
+    _config = config ?? { queues: [] };
     const driver = config?.backend?.driver ?? "@sidequest/sqlite-backend";
     const mod = (await import(driver)) as BackendModule;
     const BackendClass = mod.default;
@@ -45,10 +45,11 @@ export class Engine {
     if (config?.logger) {
       configureLogger(config.logger);
     }
+
     await _backend.setup();
     if (_config.queues) {
-      for (const queue of Object.keys(_config.queues)) {
-        await grantQueueConfig(queue, _config.queues[queue]);
+      for (const queue of _config.queues) {
+        await grantQueueConfig(queue.queue, queue);
       }
     }
 
@@ -63,6 +64,8 @@ export class Engine {
 
   static async start(config?: SidequestConfig): Promise<void> {
     config = await Engine.configure(config);
+
+    logger().info(`Starting Sidequest using backend ${config.backend?.driver}`);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -104,6 +107,10 @@ export class Engine {
     });
   }
 
+  static getConfig() {
+    return _config;
+  }
+
   static getBackend() {
     return _backend;
   }
@@ -121,8 +128,7 @@ export class Engine {
   static build<T extends JobClassType>(JobClass: T) {
     if (!_config) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
     if (shuttingDown) {
-      logger().error("Engine is shutting down, cannot build job.");
-      return;
+      throw new Error("Engine is shutting down, cannot build job.");
     }
     return new JobBuilder(JobClass);
   }

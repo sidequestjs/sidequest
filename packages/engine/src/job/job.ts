@@ -2,15 +2,18 @@ import { access } from "fs/promises";
 import { pathToFileURL } from "url";
 
 import {
-  CompleteTransition,
-  FailTransition,
-  JobTransition,
+  CompletedResult,
+  FailedResult,
+  isJobResult,
+  JobResult,
   logger,
-  RetryTransition,
-  SnoozeTransition,
+  RetryResult,
+  SnoozeResult,
+  toErrorData,
 } from "@sidequest/core";
 
-export type JobClassType = (new (...args: unknown[]) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
 
 export abstract class Job {
   private _script?: string;
@@ -38,32 +41,35 @@ export abstract class Job {
     return this.scriptResolver;
   }
 
-  snooze(delay: number) {
-    return new SnoozeTransition(delay);
+  snooze(delay: number): SnoozeResult {
+    return { __is_job_transition__: true, type: "snooze", delay: delay };
   }
 
-  retry(reason: string | Error, delay?: number) {
-    return new RetryTransition(reason, delay);
+  retry(reason: string | Error, delay?: number): RetryResult {
+    const error = toErrorData(reason);
+    return { __is_job_transition__: true, type: "retry", error, delay };
   }
 
-  fail(reason: string | Error) {
-    return new FailTransition(reason);
+  fail(reason: string | Error): FailedResult {
+    const error = toErrorData(reason);
+    return { __is_job_transition__: true, type: "failed", error };
   }
 
-  complete(result: unknown) {
-    return new CompleteTransition(result);
+  complete(result: unknown): CompletedResult {
+    return { __is_job_transition__: true, type: "completed", result };
   }
 
-  async perform<T extends JobClassType>(...args: Parameters<T["prototype"]["run"]>): Promise<JobTransition> {
+  async perform<T extends JobClassType>(...args: Parameters<T["prototype"]["run"]>): Promise<JobResult> {
     try {
       const result = await this.run(...args);
-      if (result instanceof JobTransition) {
+      if (isJobResult(result)) {
         return result;
       }
-      return new CompleteTransition(result);
+      return { __is_job_transition__: true, type: "completed", result };
     } catch (error) {
       logger().debug(error);
-      return new RetryTransition(error as Error);
+      const errorData = toErrorData(error as Error);
+      return { __is_job_transition__: true, type: "retry", error: errorData };
     }
   }
 

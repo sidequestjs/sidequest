@@ -1,9 +1,8 @@
-import { unlink } from "fs";
 import { Engine, SidequestConfig } from "../engine";
 import { CleanupFinishedJobs } from "./cleanup-finished-job";
 
 describe("cleanup-finished-job.ts", () => {
-  const dbLocation = "./sidequest-test-cleanup.sqlite";
+  const dbLocation = ":memory:";
   const config: SidequestConfig = {
     backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
   };
@@ -14,9 +13,6 @@ describe("cleanup-finished-job.ts", () => {
 
   afterEach(async () => {
     await Engine.close();
-    unlink(dbLocation, () => {
-      // noop
-    });
   });
 
   describe("CleanupFinishedJobs", () => {
@@ -75,7 +71,7 @@ describe("cleanup-finished-job.ts", () => {
         cancelled_at: oneMonthAgo,
       });
 
-      const job = new CleanupFinishedJobs();
+      const job = new CleanupFinishedJobs(config);
       await job.run();
 
       const jobs = await backend.listJobs({ state: ["canceled", "failed", "completed"] });
