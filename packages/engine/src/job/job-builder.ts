@@ -15,6 +15,8 @@ export class JobBuilder<T extends JobClassType> {
   private queueName: string;
   private jobTimeout?: number;
   private uniquenessConfig?: UniquenessConfig;
+  private jobMaxAttempts?: number;
+  private jobAvailableAt?: Date;
 
   constructor(JobClass: T) {
     this.JobClass = JobClass;
@@ -60,6 +62,16 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
+  maxAttempts(value: number): this {
+    this.jobMaxAttempts = value;
+    return this;
+  }
+
+  availableAt(value: Date): this {
+    this.jobAvailableAt = value;
+    return this;
+  }
+
   async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
     const job = new this.JobClass(...this.constructorArgs);
 
@@ -78,7 +90,8 @@ export class JobBuilder<T extends JobClassType> {
       args: args,
       constructor_args: this.constructorArgs,
       attempt: 0,
-      max_attempts: 5,
+      max_attempts: this.jobMaxAttempts ?? 5,
+      available_at: this.jobAvailableAt ?? new Date(),
       timeout: this.jobTimeout,
       uniqueness_config: this.uniquenessConfig,
     };

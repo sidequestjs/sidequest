@@ -21,7 +21,7 @@ describe("JobBuilder", () => {
         args: [],
         constructor_args: [],
         state: "waiting",
-        available_at: expect.any(String) as string,
+        available_at: expect.any(Number) as number,
         inserted_at: expect.any(String) as string,
         attempted_at: null,
         completed_at: null,
@@ -54,5 +54,16 @@ describe("JobBuilder", () => {
   test("enqueues a job setting constructor args", async () => {
     const jobData = await new JobBuilder(DummyJob).with("foo", "bar").enqueue();
     expect(jobData.constructor_args).toEqual(["foo", "bar"]);
+  });
+
+  test("enqueues a job setting maxAttempts", async () => {
+    const jobData = await new JobBuilder(DummyJob).maxAttempts(7).enqueue();
+    expect(jobData.max_attempts).toEqual(7);
+  });
+
+  test("enqueues a job setting availableAt", async () => {
+    const futureDate = new Date(Date.now() + 60_000);
+    const jobData = await new JobBuilder(DummyJob).availableAt(futureDate).enqueue();
+    expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(futureDate.getTime(), -2);
   });
 });

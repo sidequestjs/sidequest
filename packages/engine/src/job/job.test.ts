@@ -19,10 +19,12 @@ describe("job.ts", () => {
 
   beforeEach(async () => {
     await Engine.configure(config);
+    vi.useFakeTimers()
   });
 
   afterEach(async () => {
     await Engine.close();
+    vi.restoreAllMocks();
     unlink(dbLocation, () => {
       // noop
     });
@@ -88,9 +90,7 @@ describe("job.ts", () => {
   it("should not be able to enqueue duplicated jobs in the same period", async () => {
     await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
     await expect(new JobBuilder(DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
-    await new Promise((r) => {
-      setTimeout(r, 1100);
-    });
+    vi.advanceTimersByTime(1100)
     await new JobBuilder(DummyJob).unique({ period: "second" }).enqueue();
 
     const jobData = await Engine.getBackend()!.listJobs({
