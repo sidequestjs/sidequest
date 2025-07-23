@@ -1,9 +1,12 @@
-import { JobData, logger, QueueConfig, RetryTransition } from "@sidequest/core";
+import { DuplicatedJobError, JobData, logger, QueueConfig, RetryTransition } from "@sidequest/core";
 import { fork } from "child_process";
 import path from "path";
 import { Engine, SidequestConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
+
+import cron from "node-cron";
+import { ReleaseStaleJob } from "../internal-jobs/release-stale-jobs";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
 
@@ -125,14 +128,30 @@ export class Worker {
   }
 }
 
-async function runWorker(sidequestConfig: SidequestConfig) {
+export async function runWorker(sidequestConfig: SidequestConfig) {
   try {
     const worker = new Worker();
     await worker.run(sidequestConfig);
+
+    startCron();
   } catch (error) {
     logger().error(error);
     process.exit(1);
   }
+}
+
+export function startCron() {
+  cron.schedule("*/5 * * * *", async () => {
+    try {
+      await Engine.build(ReleaseStaleJob).queue("sidequest_internal").unique(true).timeout(10_000).enqueue();
+    } catch (error: unknown) {
+      if (error instanceof DuplicatedJobError) {
+        logger().debug("ReleaseStaleJob already scheduled by another worker");
+      } else {
+        logger().error("Error on enqueuing ReleaseStaleJob!", error);
+      }
+    }
+  });
 }
 
 const isChildProcess = !!process.send;

@@ -165,6 +165,37 @@ export default class PostgresBackend implements Backend {
     return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
   }
 
+  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+    const jobs = await this.knex("sidequest_jobs")
+      .select("*")
+      .whereRaw(
+        `
+        (
+          state = 'claimed'
+          AND claimed_at IS NOT NULL
+          AND (EXTRACT(EPOCH FROM (NOW() - claimed_at)) * 1000) > ?
+        )
+        OR
+        (
+          state = 'running'
+          AND attempted_at IS NOT NULL
+          AND timeout IS NOT NULL
+          AND (EXTRACT(EPOCH FROM (NOW() - attempted_at)) * 1000) > timeout
+        )
+        OR
+        (
+          state = 'running'
+          AND attempted_at IS NOT NULL
+          AND timeout IS NULL
+          AND (EXTRACT(EPOCH FROM (NOW() - attempted_at)) * 1000) > ?
+        )
+      `,
+        [maxClaimedMs, maxStaleMs],
+      );
+
+    return jobs as JobData[];
+  }
+
   async setup(): Promise<void> {
     try {
       const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];

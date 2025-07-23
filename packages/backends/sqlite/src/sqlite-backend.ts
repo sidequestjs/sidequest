@@ -194,6 +194,43 @@ export default class SqliteBackend implements Backend {
     return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
   }
 
+  async staleJobs(maxStaleMs = 600_000, maxClaimedMs = 60_000): Promise<JobData[]> {
+    const jobs = (await this.knex("sidequest_jobs")
+      .select("*")
+      .whereRaw(
+        `
+        (
+          state = 'claimed'
+          AND claimed_at IS NOT NULL
+          AND ((julianday('now') - julianday(claimed_at)) * 24 * 60 * 60 * 1000) > ?
+        )
+        OR
+        (
+          state = 'running'
+          AND attempted_at IS NOT NULL
+          AND timeout IS NOT NULL
+          AND ((julianday('now') - julianday(attempted_at)) * 24 * 60 * 60 * 1000) > timeout
+        )
+        OR
+        (
+          state = 'running'
+          AND attempted_at IS NOT NULL
+          AND timeout IS NULL
+          AND ((julianday('now') - julianday(attempted_at)) * 24 * 60 * 60 * 1000) > ?
+        )
+      `,
+        [maxClaimedMs, maxStaleMs],
+      )) as JobData[];
+
+    return jobs.map((job) => ({
+      ...job,
+      args: safeParse(job.args),
+      constructor_args: safeParse(job.constructor_args),
+      result: safeParse(job.result),
+      errors: safeParse(job.errors),
+    })) as JobData[];
+  }
+
   async setup(): Promise<void> {
     try {
       const [batchNo, log] = (await this.knex.migrate.latest()) as [number, string[]];

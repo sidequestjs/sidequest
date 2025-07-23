@@ -30,4 +30,6 @@ export interface Backend {
   }): Promise<JobData[]>;
 
   listQueues(): Promise<QueueConfig[]>;
+
+  staleJobs(maxStaleMs?: number, maxClaimedMs?: number): Promise<JobData[]>;
 }
