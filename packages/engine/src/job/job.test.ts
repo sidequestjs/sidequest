@@ -22,8 +22,9 @@ describe("job.ts", () => {
     });
   });
 
-  it("should expose script and className correctly", () => {
+  it("should expose script and className correctly", async () => {
     const job = new DummyJob();
+    await job.ready();
     expect(typeof job.script).toBe("string");
     expect(job.className).toBe("DummyJob");
   });

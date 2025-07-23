@@ -21,8 +21,9 @@ describe("release-stale-jobs.ts", () => {
   });
 
   describe("ReleaseStaleJob", () => {
-    it("should extend Job class", () => {
+    it("should extend Job class", async () => {
       const job = new ReleaseStaleJob();
+      await job.ready();
       expect(job.className).toBe("ReleaseStaleJob");
       expect(typeof job.script).toBe("string");
     });

@@ -46,6 +46,12 @@ export class JobBuilder<T extends JobClassType> {
   async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
     const job = new this.JobClass(...this.constructorArgs);
 
+    await job.ready();
+
+    if (!job.script) {
+      throw new Error(`Error on starting job ${job.className} could not detect source file.`);
+    }
+
     const backend = Engine.getBackend();
     const jobData: JobData = {
       queue: this.queueName,
