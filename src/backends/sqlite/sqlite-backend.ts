@@ -1,9 +1,9 @@
-import { Knex, knex as createKnex } from "knex";
-import { Backend } from "../backend";
-import path from "path";
+import createKnex, { Knex } from "knex";
 import os from "os";
+import path from "path";
 import { JobData } from "../../core/schema/job-data";
 import { QueueConfig } from "../../core/schema/queue-config";
+import { Backend } from "../backend";
 
 function safeParse<T = any>(value: any): T | null {
   try {
@@ -24,17 +24,15 @@ export class SqliteBackend implements Backend {
       },
       useNullAsDefault: true,
       migrations: {
-        directory: path.join(__dirname, "..", "..", "..", "migrations", "sqlite"),
+        directory: path.join(import.meta.dirname, "..", "..", "..", "migrations", "sqlite"),
         tableName: "sidequest_migrations",
-        extension: "js",
+        extension: "cjs",
       },
     });
   }
 
   async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const [newConfig] = await this.knex("sidequest_queues")
-      .insert(queueConfig)
-      .returning("*");
+    const [newConfig] = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
     return newConfig;
   }
 
@@ -48,7 +46,7 @@ export class SqliteBackend implements Backend {
   }
 
   getJob(id: number): JobData | Promise<JobData> {
-    return this.knex('sidequest_jobs').where({id}).first();
+    return this.knex("sidequest_jobs").where({ id }).first();
   }
 
   async insertJob(job: JobData): Promise<JobData> {
@@ -72,7 +70,7 @@ export class SqliteBackend implements Backend {
       max_attempts: job.max_attempts,
     };
 
-    const inserted = await this.knex('sidequest_jobs').insert(data).returning('*');
+    const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
 
     return inserted[0];
   }
@@ -132,10 +130,7 @@ export class SqliteBackend implements Backend {
       errors: job.errors ? JSON.stringify(job.errors) : null,
     };
 
-    const [updated] = await this.knex("sidequest_jobs")
-      .where({ id: job.id })
-      .update(data)
-      .returning("*");
+    const [updated] = await this.knex("sidequest_jobs").where({ id: job.id }).update(data).returning("*");
 
     if (!updated) throw new Error("Cannot update job, not found.");
 
@@ -158,29 +153,19 @@ export class SqliteBackend implements Backend {
       to?: Date;
     };
   }): Promise<JobData[]> {
-    const {
-      queue,
-      jobClass,
-      state,
-      sinceId,
-      limit = 50,
-      timeRange,
-    } = params;
-  
-    const query = this.knex("sidequest_jobs")
-      .select("*")
-      .orderBy("id", "desc")
-      .limit(limit);
-  
+    const { queue, jobClass, state, sinceId, limit = 50, timeRange } = params;
+
+    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit);
+
     if (queue) query.where("queue", queue);
     if (state) query.where("state", state);
     if (sinceId) query.where("id", "<", sinceId);
     if (jobClass) query.where("class", jobClass);
     if (timeRange?.from) query.where("attempted_at", ">=", timeRange.from.toISOString());
     if (timeRange?.to) query.where("attempted_at", "<=", timeRange.to.toISOString());
-  
+
     const rawJobs = await query;
-  
+
     return rawJobs.map((job) => ({
       ...job,
       args: safeParse(job.args),
@@ -188,7 +173,7 @@ export class SqliteBackend implements Backend {
       errors: safeParse(job.errors),
     }));
   }
-  
+
   async listQueues(): Promise<QueueConfig[]> {
     return await this.knex("sidequest_queues").select("*").orderBy("priority", "desc");
   }

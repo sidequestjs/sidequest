@@ -1,6 +1,8 @@
 {
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -12,8 +14,13 @@
     "sourceMap": true,
     "baseUrl": ".",
     "noImplicitAny": false,
-    "allowJs": true
+    "allowJs": true,
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "!src/backends/postgres/migrations/**/*.ts", "src/backends/postgres/migrations/1_create_queue_table.js"],
+  "include": [
+    "src/**/*.ts",
+    "!src/backends/postgres/migrations/**/*.ts",
+    "src/backends/postgres/migrations/1_create_queue_table.js"
+  ],
   "exclude": ["node_modules", "dist"]
 }

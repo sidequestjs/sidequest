@@ -1,8 +1,8 @@
-export type QueueState = 'active' | 'paused';
+export type QueueState = "active" | "paused";
 
 export type QueueConfig = {
-  queue: string,
-  concurrency?: number,
-  state?: QueueState,
-  priority?: number,
-}
+  queue: string;
+  concurrency?: number;
+  state?: QueueState;
+  priority?: number;
+};

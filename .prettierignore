@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+.yarn/
+.gitignore
+
+# Build output
+dist/
+coverage/
+migrations/
+
+# Lock and cache files
+.pnp.*
+.yarnrc.yml
+.yarn.lock
+
+# OS and editor junk
+.DS_Store
+*.log
+*.tmp

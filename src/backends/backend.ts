@@ -1,9 +1,9 @@
-import { QueueConfig } from "src/core/schema/queue-config";
-import { JobData } from "src/core/schema/job-data";
+import { JobData } from "../core/schema/job-data";
+import { QueueConfig } from "../core/schema/queue-config";
 
 export interface Backend {
   setup(): Promise<void> | void;
-  close():  Promise<void> | void;
+  close(): Promise<void> | void;
 
   insertJob(job: JobData): JobData | Promise<JobData>;
   getJob(id: number): JobData | Promise<JobData>;
@@ -13,9 +13,9 @@ export interface Backend {
 
   getQueueConfig(queue: string): QueueConfig | Promise<QueueConfig>;
   insertQueueConfig(queueConfig: QueueConfig): QueueConfig | Promise<QueueConfig>;
-  
+
   updateJob(job: JobData): Promise<JobData>;
-  
+
   listJobs(params: {
     queue?: string;
     jobClass?: string;

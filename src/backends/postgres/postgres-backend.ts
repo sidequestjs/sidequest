@@ -1,41 +1,41 @@
-import { Knex, knex as createKnex } from "knex";
-import { Backend } from "../backend";
+import createKnex, { Knex } from "knex";
+import os from "os";
 import path from "path";
-import os from 'os';
 import { JobData } from "../../core/schema/job-data";
 import { QueueConfig } from "../../core/schema/queue-config";
+import { Backend } from "../backend";
 
-export class PostgresBackend implements Backend{
+export class PostgresBackend implements Backend {
   knex: Knex<any, unknown[]>;
 
-  constructor(dbConfig: { connection: string | Knex.ConnectionConfig }){
+  constructor(dbConfig: { connection: string | Knex.ConnectionConfig }) {
     this.knex = createKnex({
-      client: 'pg',
+      client: "pg",
       connection: dbConfig.connection,
       migrations: {
-        directory: path.join(__dirname, '..', '..', '..', 'migrations', 'postgres'),
-        tableName: 'sidequest_migrations',
-        extension: 'js'
+        directory: path.join(import.meta.dirname, "..", "..", "..", "migrations", "postgres"),
+        tableName: "sidequest_migrations",
+        extension: "cjs",
       },
     });
   }
-  
+
   async insertQueueConfig(queueConfig: QueueConfig): Promise<QueueConfig> {
-    const newConfig = await this.knex('sidequest_queues').insert(queueConfig).returning('*');
+    const newConfig = await this.knex("sidequest_queues").insert(queueConfig).returning("*");
     return newConfig[0];
   }
 
   async getQueueConfig(queue: string): Promise<QueueConfig> {
-    return  this.knex('sidequest_queues').where({queue: queue}).first();
+    return this.knex("sidequest_queues").where({ queue: queue }).first();
   }
 
   async getQueuesFromJobs(): Promise<string[]> {
-    const queues = await this.knex('sidequest_jobs').select('queue').distinct();
-    return queues.map(q => q.queue);
+    const queues = await this.knex("sidequest_jobs").select("queue").distinct();
+    return queues.map((q) => q.queue);
   }
 
   getJob(id: number): JobData | Promise<JobData> {
-    return this.knex('sidequest_jobs').where({id}).first();
+    return this.knex("sidequest_jobs").where({ id }).first();
   }
 
   async insertJob(job: JobData): Promise<JobData> {
@@ -43,11 +43,11 @@ export class PostgresBackend implements Backend{
       queue: job.queue,
       class: job.class,
       script: job.script,
-      args: this.knex.raw('?', [JSON.stringify(job.args)]),
+      args: this.knex.raw("?", [JSON.stringify(job.args)]),
       timeout: job.timeout,
-    }
+    };
 
-    const inserted = await this.knex('sidequest_jobs').insert(data).returning('*');
+    const inserted = await this.knex("sidequest_jobs").insert(data).returning("*");
     return inserted[0];
   }
 
@@ -55,24 +55,24 @@ export class PostgresBackend implements Backend{
     const workerName = `sidequest@${os.hostname()}-${process.pid}`;
 
     const result = await this.knex.transaction(async (trx) => {
-      return await trx('sidequest_jobs')
+      return await trx("sidequest_jobs")
         .update({
           claimed_by: workerName,
           claimed_at: this.knex.fn.now(),
-          state: 'claimed',
+          state: "claimed",
         })
-        .whereIn('id', function() {
-          this.select('id')
-            .from('sidequest_jobs')
-            .where('state', 'pending')
-            .where('queue', queue)
-            .andWhere('available_at', '<=', trx.fn.now() )
-            .orderBy('inserted_at')
+        .whereIn("id", function () {
+          this.select("id")
+            .from("sidequest_jobs")
+            .where("state", "pending")
+            .where("queue", queue)
+            .andWhere("available_at", "<=", trx.fn.now())
+            .orderBy("inserted_at")
             .forUpdate()
             .skipLocked()
             .limit(quatity);
         })
-        .returning('*');
+        .returning("*");
     });
 
     return result;
@@ -96,18 +96,18 @@ export class PostgresBackend implements Backend{
       discarded_at: job.discarded_at,
       cancelled_at: job.cancelled_at,
       claimed_at: job.claimed_at,
-      claimed_by: job.claimed_by
-    }
+      claimed_by: job.claimed_by,
+    };
 
-    if(job.args) data.args = this.knex.raw('?', [JSON.stringify(job.args)]);
-    if(job.result) data.result = this.knex.raw('?', JSON.stringify(job.result));
-    if(job.errors && job.errors.length > 0) data.errors = job.errors;
+    if (job.args) data.args = this.knex.raw("?", [JSON.stringify(job.args)]);
+    if (job.result) data.result = this.knex.raw("?", JSON.stringify(job.result));
+    if (job.errors && job.errors.length > 0) data.errors = job.errors;
 
-    const updated = await this.knex('sidequest_jobs').update(data).where({ id: job.id }).returning('*');
+    const updated = await this.knex("sidequest_jobs").update(data).where({ id: job.id }).returning("*");
 
-    if(updated.length > 0) return updated[0];
+    if (updated.length > 0) return updated[0];
 
-    throw Error('Cannot update job, not found.')
+    throw Error("Cannot update job, not found.");
   }
 
   async listJobs(params: {
@@ -121,27 +121,17 @@ export class PostgresBackend implements Backend{
       to?: Date;
     };
   }): Promise<JobData[]> {
-    const {
-      queue,
-      jobClass,
-      state,
-      sinceId,
-      limit = 50,
-      timeRange,
-    } = params;
-  
-    const query = this.knex('sidequest_jobs')
-      .select('*')
-      .orderBy('id', 'desc')
-      .limit(limit);
-  
-    if (queue) query.where('queue', queue);
-    if (state) query.where('state', state);
-    if (sinceId) query.where('id', '<', sinceId);
+    const { queue, jobClass, state, sinceId, limit = 50, timeRange } = params;
+
+    const query = this.knex("sidequest_jobs").select("*").orderBy("id", "desc").limit(limit);
+
+    if (queue) query.where("queue", queue);
+    if (state) query.where("state", state);
+    if (sinceId) query.where("id", "<", sinceId);
     if (jobClass) query.where("class", jobClass);
-    if (timeRange?.from) query.where('attempted_at', '>=', timeRange.from);
-    if (timeRange?.to) query.where('attempted_at', '<=', timeRange.to);
-  
+    if (timeRange?.from) query.where("attempted_at", ">=", timeRange.from);
+    if (timeRange?.to) query.where("attempted_at", "<=", timeRange.to);
+
     const result = await query;
     return result;
   }
@@ -153,16 +143,16 @@ export class PostgresBackend implements Backend{
   async setup(): Promise<void> {
     try {
       const [batchNo, log] = await this.knex.migrate.latest();
-      if(log.length > 0){
+      if (log.length > 0) {
         console.log(`Migrated batch ${batchNo}:`);
-        log.forEach((file:any) => console.log(`  - ${file}`));
+        log.forEach((file: any) => console.log(`  - ${file}`));
       }
     } catch (err) {
-      console.error('Migration failed:', err);
+      console.error("Migration failed:", err);
     }
   }
 
-  async close(): Promise<void>{
+  async close(): Promise<void> {
     await this.knex.destroy();
   }
 }
