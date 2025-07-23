@@ -19,16 +19,16 @@ export default function defineDeleteFinishedJobsTestSuite() {
       let insertedJob = await backend.createNewJob(job);
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(0) });
+      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(2000, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "claimed" });
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(0) });
+      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(2000, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(0) });
+      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(2000, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "running" });
@@ -54,16 +54,16 @@ export default function defineDeleteFinishedJobsTestSuite() {
       let insertedJob = await backend.createNewJob(job);
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(1) });
+      await backend.updateJob({ ...insertedJob, state: "canceled", cancelled_at: new Date(2024, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "claimed" });
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(1) });
+      await backend.updateJob({ ...insertedJob, state: "completed", completed_at: new Date(2024, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
-      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(1) });
+      await backend.updateJob({ ...insertedJob, state: "failed", failed_at: new Date(2024, 0, 1) });
 
       insertedJob = await backend.createNewJob(job);
       await backend.updateJob({ ...insertedJob, state: "running" });

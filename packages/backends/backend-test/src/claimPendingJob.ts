@@ -160,7 +160,7 @@ export default function defineClaimPendingJobTestSuite() {
       };
 
       await backend.createNewJob(job);
-      await backend.createNewJob({ ...job, available_at: new Date(9999999999999) });
+      await backend.createNewJob({ ...job, available_at: new Date(2150, 0, 1) });
 
       const claimedJobs = await backend.claimPendingJob("default", 10);
       expect(claimedJobs).toHaveLength(1);

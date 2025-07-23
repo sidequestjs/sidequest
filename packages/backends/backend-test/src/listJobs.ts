@@ -56,7 +56,7 @@ export default function defineListJobsTestSuite() {
       listJobs = await backend.listJobs({ timeRange: { from: new Date() } });
       expect(listJobs).toHaveLength(0);
 
-      listJobs = await backend.listJobs({ timeRange: { to: new Date(0) } });
+      listJobs = await backend.listJobs({ timeRange: { to: new Date(2000, 0, 1) } });
       expect(listJobs).toHaveLength(0);
     });
 
@@ -120,7 +120,11 @@ export default function defineListJobsTestSuite() {
       let insertedJob2 = await backend.createNewJob(job2);
 
       insertedJob = await backend.updateJob({ ...insertedJob, attempted_at: new Date() });
-      insertedJob2 = await backend.updateJob({ ...insertedJob2, attempted_at: new Date(0), state: "canceled" });
+      insertedJob2 = await backend.updateJob({
+        ...insertedJob2,
+        attempted_at: new Date(2000, 0, 1),
+        state: "canceled",
+      });
 
       let listJobs = await backend.listJobs({ queue: "default" });
       expect(listJobs).toHaveLength(1);
@@ -169,7 +173,7 @@ export default function defineListJobsTestSuite() {
       const insertedJob2 = await backend.createNewJob(job2);
 
       await backend.updateJob({ ...insertedJob, attempted_at: new Date() });
-      await backend.updateJob({ ...insertedJob2, attempted_at: new Date(0), state: "canceled" });
+      await backend.updateJob({ ...insertedJob2, attempted_at: new Date(2000, 0, 1), state: "canceled" });
 
       let listJobs = await backend.listJobs({ queue: ["default", "default2"] });
       expect(listJobs).toHaveLength(2);

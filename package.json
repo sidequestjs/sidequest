@@ -18,7 +18,12 @@
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "dev": "yarn workspaces foreach -j unlimited -Api run dev",
     "clean:dist": "rimraf packages/**/dist",
-    "test:pg": "docker run --name pg-default -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres"
+    "db:pg": "docker run --name pg-default -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres",
+    "db:mysql": "docker run --name mysql-default -e MYSQL_ROOT_PASSWORD=mysql -e MYSQL_DATABASE=testdb -p 3306:3306 -d mysql:8",
+    "db:pg:stop": "docker stop pg-default && docker rm pg-default",
+    "db:mysql:stop": "docker stop mysql-default && docker rm mysql-default",
+    "db:all": "yarn db:pg && yarn db:mysql",
+    "db:all:stop": "yarn db:pg:stop && yarn db:mysql:stop"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
