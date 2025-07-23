@@ -8,9 +8,10 @@ const daemonPath = `${__dirname}/daemon.js`;
  * Worker is responsable to execute the `task.run` method especified
  * at task file in a child process
  */
-function Worker() {
+function Worker(task) {
     const forkProcess = fork(daemonPath);
     const workerId = id.generate();
+    const workerTask = task;
     
     events.EventEmitter.call(this);
     
@@ -29,15 +30,22 @@ function Worker() {
     /**
      * execute will request to the worker child process
      * to execute the task.run method
-     * @param {*} task 
      */
-    this.execute = (task) => {
+    this.execute = () => {
         forkProcess.send({
             type: 'execute',
-            data: task
+            data: workerTask
         });
     }
     
+    /**
+     * task return the executed task
+     * @returns {object} task
+     */
+    this.task = () => {
+        return workerTask;
+    }
+
     /**
      * id returns the worker id
      * @returns {string} worker id

@@ -3,6 +3,7 @@ const Scheduler = require('./scheduler');
 const Worker = require('./worker');
 const os = require('os');
 const events = require('events');
+const id = require('./id');
 
 const defaultMaxSchedulers = os.cpus().length;
 
@@ -16,6 +17,7 @@ function MasterWorker (config) {
     let maxSchedulers = (config && config.totalSchedulers) || defaultMaxSchedulers;
     let currentWorkers = [];
     let startedAt = new Date();
+    let workerId = id.generate();
 
     // events setup 
     events.EventEmitter.call(this);
@@ -24,12 +26,15 @@ function MasterWorker (config) {
         let scheduler = new Scheduler();
         scheduler.on('execution-requested', (task) => {
             console.log(`task ${task.name} requested execution!`)
-            let worker = new Worker();
+            let worker = new Worker(task);
             currentWorkers.push(worker);
-            worker.execute(task);
+            worker.execute();
+            worker.on('started', () => {
+                this.emit('worker-started', worker);
+            });
             worker.on('done', () => {
                 currentWorkers = currentWorkers.filter(w => w.id() != worker.id() );
-                this.emit('task-done', task);
+                this.emit('worker-done', task);
             });
         });
 
@@ -62,6 +67,15 @@ function MasterWorker (config) {
             usedSchedulers = [];
         }
     }
+
+    /**
+     * id returns the master worker id
+     * @returns {string} id
+     */
+    this.id = () => {
+        return workerId;
+    }
+
 
     /**
      * schedulers returns all the created schedulers
