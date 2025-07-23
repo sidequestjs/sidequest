@@ -1,7 +1,7 @@
 import createConfig from "../../rollup.config.base.js";
 import pkg from "./package.json" with { type: "json" };
 
-import copy from 'rollup-plugin-copy-watch'
+import copy from "rollup-plugin-copy-watch";
 import del from "rollup-plugin-delete";
 import postcss from "rollup-plugin-postcss";
 

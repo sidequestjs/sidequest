@@ -1,4 +1,4 @@
-import { DuplicatedJobError, logger } from "@sidequest/core";
+import { logger } from "@sidequest/core";
 import cron from "node-cron";
 import { Engine, SidequestConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
@@ -23,7 +23,7 @@ export async function runWorker(sidequestConfig: SidequestConfig) {
     );
     dispatcher.start();
 
-    startCron(sidequestConfig);
+    startCron();
   } catch (error) {
     logger().error(error);
     process.exit(1);
@@ -38,10 +38,10 @@ async function shutdown() {
   shuttingDown = true;
 }
 
-export function startCron(config: SidequestConfig) {
+export function startCron() {
   const releaseTask = cron.schedule("0 * * * *", async () => {
     try {
-      await releaseStaleJobs(Engine.getBackend()!)
+      await releaseStaleJobs(Engine.getBackend()!);
     } catch (error: unknown) {
       logger().error("Error on enqueuing ReleaseStaleJob!", error);
     }
@@ -49,7 +49,7 @@ export function startCron(config: SidequestConfig) {
 
   const cleanupTask = cron.schedule("0 * * * *", async () => {
     try {
-      await cleanupFinishedJobs(Engine.getBackend()!)
+      await cleanupFinishedJobs(Engine.getBackend()!);
     } catch (error: unknown) {
       logger().error("Error on enqueuing CleanupJob!", error);
     }
