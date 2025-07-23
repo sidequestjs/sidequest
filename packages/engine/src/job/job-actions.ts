@@ -1,9 +1,9 @@
 import { JobData } from "@sidequest/core";
-import { Sidequest } from "../sidequest";
+import { Engine } from "../sidequest";
 
 export class JobActions {
   static async setRunning(jobData: JobData): Promise<JobData> {
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
     jobData.state = "running";
     jobData.attempted_at = new Date();
     jobData.attempt = jobData.attempt + 1;
@@ -11,7 +11,7 @@ export class JobActions {
   }
 
   static async setComplete(jobData: JobData, result: any): Promise<JobData> {
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
     jobData.completed_at = new Date();
     jobData.state = "completed";
     jobData.result = result;
@@ -19,7 +19,7 @@ export class JobActions {
   }
 
   static async setFailed(jobData: JobData, error: Error) {
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
     if (!jobData.errors) {
       jobData.errors = [];
     }

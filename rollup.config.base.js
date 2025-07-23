@@ -4,7 +4,7 @@ import replace from "@rollup/plugin-replace";
 import typescript from "@rollup/plugin-typescript";
 import dts from "rollup-plugin-dts";
 
-export default function createConfig(pkg, input = "src/index.ts") {
+export default function createConfig(pkg, input = "src/index.ts", plugins = []) {
   const external = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})];
 
   // Shared base plugins (without replace)
@@ -50,7 +50,9 @@ export default function createConfig(pkg, input = "src/index.ts") {
         sourcemap: true,
       },
       external,
-      plugins: withReplace(false),
+      plugins: [
+        withReplace(false)
+      ],
     },
     // CJS build
     {
@@ -65,7 +67,10 @@ export default function createConfig(pkg, input = "src/index.ts") {
         exports: "named",
       },
       external,
-      plugins: withReplace(true),
+      plugins: [
+        withReplace(true),
+        ...plugins
+      ]
     },
     // Typescript declaration files
     {

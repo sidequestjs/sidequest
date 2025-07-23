@@ -1,10 +1,10 @@
 import { JobData, logger } from "@sidequest/core";
 import { Job, JobOptions } from "../job/job";
 import { JobActions } from "../job/job-actions";
-import { Sidequest, SidequestConfig } from "../sidequest";
+import { Engine, SidequestConfig } from "../sidequest";
 
 export async function execute(jobData: JobData, config: SidequestConfig): Promise<void> {
-  await Sidequest.configure(config);
+  await Engine.configure(config);
 
   const script = (await import(jobData.script)) as Record<string, new (jobOptions?: JobOptions) => Job>;
   const JobClass = script[jobData.class];

@@ -2,7 +2,7 @@ import { JobData, logger, QueueConfig } from "@sidequest/core";
 import { fork } from "child_process";
 import path from "path";
 import { grantQueueConfig } from "../queue/grant-queue-config";
-import { Sidequest, SidequestConfig } from "../sidequest";
+import { Engine, SidequestConfig } from "../sidequest";
 
 const executorPath = path.resolve(import.meta.dirname, "executor.js");
 
@@ -14,14 +14,14 @@ export class Worker {
   activeJobsPerQueue: Record<string, Set<ReturnType<typeof fork>>> = {};
 
   async run(sidequestConfig: SidequestConfig) {
-    await Sidequest.configure(sidequestConfig);
+    await Engine.configure(sidequestConfig);
     this.isRunning = true;
 
     const maxConcurrentJobs = sidequestConfig.maxConcurrentJobs ?? 10;
 
     const heartBeat = async () => {
       try {
-        const backend = Sidequest.getBackend();
+        const backend = Engine.getBackend();
         const queueNames = await backend.getQueuesFromJobs();
         const queues: QueueConfig[] = [];
         for (const queue of queueNames) {

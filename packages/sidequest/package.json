@@ -8,6 +8,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
+    "@sidequest/dashboard": "workspace:*",
     "@sidequest/engine": "workspace:*"
   }
 }

@@ -1,8 +1,8 @@
 import { logger, QueueConfig } from "@sidequest/core";
-import { Sidequest } from "../sidequest";
+import { Engine } from "../sidequest";
 
 export async function grantQueueConfig(queue: string, fallback?: QueueConfig) {
-  const backend = Sidequest.getBackend();
+  const backend = Engine.getBackend();
   const queueConfig = await backend.getQueueConfig(queue);
   if (queueConfig) return queueConfig;
 

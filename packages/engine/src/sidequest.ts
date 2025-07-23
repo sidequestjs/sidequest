@@ -3,27 +3,25 @@ import { ChildProcess, fork } from "child_process";
 import path from "path";
 import { grantQueueConfig } from "./queue/grant-queue-config";
 
-import { runWeb } from "./web/app";
-
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
 
 let _backend: Backend;
 let _config: SidequestConfig;
 let _mainWorker: ChildProcess | undefined;
 
-export type BackEndConfig = {
+export type BackendConfig = {
   driver: "@sidequest/postgres-backend" | "@sidequest/sqlite-backend";
   config: any;
 };
 
 export type SidequestConfig = {
-  backend?: BackEndConfig;
+  backend?: BackendConfig;
   queues?: Map<string, QueueConfig>;
   logger?: LoggerOptions;
   maxConcurrentJobs?: number;
 };
 
-export class Sidequest {
+export class Engine {
   static async configure(config?: SidequestConfig) {
     if (_config) {
       logger().warn("Sidequest already configured");
@@ -47,7 +45,7 @@ export class Sidequest {
   }
 
   static async start(config: SidequestConfig): Promise<void> {
-    await Sidequest.configure(config);
+    await Engine.configure(config);
 
     return new Promise(async (resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -73,8 +71,6 @@ export class Sidequest {
 
         runWorker();
       }
-
-      runWeb();
     });
   }
 
@@ -87,5 +83,4 @@ export class Sidequest {
   }
 }
 
-export { Backend, JobData, LoggerOptions, QueueConfig } from "@sidequest/core";
 export { Job } from "./job/job";

@@ -1,7 +1,7 @@
 import express from "express";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
-import { Sidequest } from "../sidequest";
+import { Engine } from "@sidequest/engine";
 
 export function runWeb(port: number = 8678) {
   const app = express();
@@ -19,7 +19,7 @@ export function runWeb(port: number = 8678) {
 
   app.get("/jobs", async (req, res) => {
     const { status, time, start, end, sinceId, queue, class: klass } = req.query;
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
 
     const filters: {
       queue?: string;
@@ -67,7 +67,7 @@ export function runWeb(port: number = 8678) {
   });
 
   app.get("/queues", async (req, res) => {
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
     const queues = await backend.listQueues();
 
     res.render("pages/queues", {

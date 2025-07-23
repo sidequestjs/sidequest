@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { randomUUID } from "node:crypto";
 import sinon from "sinon";
 import { JobActions } from "../job/job-actions";
-import { Sidequest, SidequestConfig } from "../sidequest";
+import { Engine, SidequestConfig } from "../sidequest";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { DynamicDummyJob } from "../test-jobs/dynamic-dummy-job";
 import { Worker } from "./main";
@@ -33,12 +33,12 @@ describe("main.ts", () => {
   };
 
   before(async () => {
-    await Sidequest.configure(config);
-    await Sidequest.getBackend().setup();
+    await Engine.configure(config);
+    await Engine.getBackend().setup();
   });
 
   after(() => {
-    Sidequest.getBackend().close();
+    Engine.getBackend().close();
   });
 
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe("main.ts", () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (jobData.id) {
-      const job = await Sidequest.getBackend().getJob(jobData.id);
+      const job = await Engine.getBackend().getJob(jobData.id);
       assert.equal(job.state, "completed");
     }
 

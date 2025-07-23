@@ -1,5 +1,5 @@
 import { JobData } from "@sidequest/core";
-import { Sidequest } from "../sidequest";
+import { Engine } from "../sidequest";
 
 export interface JobOptions {
   queue?: string;
@@ -71,7 +71,7 @@ class JobBuilder {
       this.job = new this.JobClass({ queue: "default" });
     }
 
-    const backend = Sidequest.getBackend();
+    const backend = Engine.getBackend();
     const jobData: JobData = {
       queue: this.job.queue,
       script: this.job.script,

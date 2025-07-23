@@ -3,12 +3,12 @@ import { assert } from "chai";
 import path from "path";
 import sinon from "sinon";
 import { JobActions } from "../job/job-actions";
-import { Sidequest } from "../sidequest";
+import { Engine } from "../sidequest";
 import { execute, executeTask } from "./executor";
 
 describe("executror.ts", () => {
   after(() => {
-    Sidequest.getBackend()?.close();
+    Engine.getBackend()?.close();
   });
 
   describe("executeTask", () => {
@@ -64,7 +64,7 @@ describe("executror.ts", () => {
     let setFailedStub: sinon.SinonStub;
 
     beforeEach(() => {
-      configureStub = sandbox.stub(Sidequest, "configure");
+      configureStub = sandbox.stub(Engine, "configure");
       setRunningStub = sandbox.stub(JobActions, "setRunning").callsFake(async (j) => j);
       setCompleteStub = sandbox.stub(JobActions, "setComplete").callsFake(async (j) => j);
       setFailedStub = sandbox.stub(JobActions, "setFailed");
