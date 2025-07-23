@@ -2,6 +2,8 @@ import { CompletedResult, JobData } from "@sidequest/core";
 import { Engine, SidequestConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Dispatcher } from "./dispatcher";
+import { ExecutorManager } from "./executor-manager";
+import { QueueManager } from "./queue-manager";
 
 const runMock = vi.fn();
 
@@ -55,7 +57,7 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(1);
 
-      const dispatcher = new Dispatcher(config);
+      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
       dispatcher.start();
 
       runMock.mockImplementation(() => {
@@ -77,7 +79,7 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
-      const dispatcher = new Dispatcher(config);
+      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
       dispatcher.start();
 
       runMock.mockImplementation(() => {
@@ -105,7 +107,7 @@ describe("Dispatcher", () => {
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
-      const dispatcher = new Dispatcher(config);
+      const dispatcher = new Dispatcher(backend, new QueueManager(config, backend), new ExecutorManager(config));
       dispatcher.start();
 
       runMock.mockImplementation(() => {

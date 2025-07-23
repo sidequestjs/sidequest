@@ -1,5 +1,5 @@
+import { SQLBackend } from "@sidequest/backend";
 import { JobData, logger } from "@sidequest/core";
-import { Engine, SidequestConfig } from "../engine";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
@@ -9,39 +9,37 @@ export class Dispatcher {
   private isRunning: boolean;
   private queueManager: QueueManager;
   private executorManager: ExecutorManager;
-  private config: SidequestConfig;
+  backend: SQLBackend;
 
-  constructor(config: SidequestConfig) {
+  constructor(backend: SQLBackend, queueManager: QueueManager, executorManager: ExecutorManager) {
     this.isRunning = false;
-    this.queueManager = new QueueManager();
-    this.config = config;
-    this.executorManager = new ExecutorManager(config);
+    this.queueManager = queueManager;
+    this.executorManager = executorManager;
+    this.backend = backend;
   }
 
   private async listen() {
-    const backend = Engine.getBackend()!;
-
     while (this.isRunning) {
-      const queues = await this.queueManager.getQueuesWithRunnableJobs(this.config);
+      const queues = await this.queueManager.getQueuesWithRunnableJobs();
 
       let shouldSleep = true;
 
       for (const queue of queues) {
         const availableSlots = this.executorManager.availableSlotsByQueue(queue);
         if (availableSlots <= 0) {
-          logger().info(`queue ${queue.queue} limit reached!`);
+          logger().debug(`queue ${queue.queue} limit reached!`);
           await this.sleep(sleepDelay);
           continue;
         }
 
         const globalSlots = this.executorManager.availableSlotsGlobal();
         if (globalSlots <= 0) {
-          logger().info(`Concurrency limit reached (${this.config.maxConcurrentJobs ?? 10} jobs).`);
+          logger().debug(`Global concurrency limit reached!`);
           await this.sleep(sleepDelay);
           continue;
         }
 
-        const jobs: JobData[] = await backend.claimPendingJob(queue.queue, availableSlots);
+        const jobs: JobData[] = await this.backend.claimPendingJob(queue.queue, availableSlots);
 
         if (jobs.length > 0) {
           // if a job was found on any queue do not sleep
