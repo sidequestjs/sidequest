@@ -42,3 +42,8 @@ export function gracefulShutdown(fn: () => void | Promise<void>, tag: string, en
     });
   }
 }
+
+export function clearGracefulShutdown() {
+  process.removeAllListeners("SIGINT");
+  process.removeAllListeners("SIGTERM");
+}

@@ -15,8 +15,8 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
       tsconfig: "./tsconfig.json",
       sourceMap: true,
       declaration: false,
-      exclude: "**/devserver.ts",
-      noEmitOnError: true,
+      exclude: "**/*.test.ts",
+      noEmitOnError: process.env.NODE_ENV !== "development",
     }),
   ];
 

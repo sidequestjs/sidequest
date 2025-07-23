@@ -1,17 +1,19 @@
+import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { NewQueueData } from "@sidequest/backend";
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { Engine, EngineConfig } from "../engine";
+import { beforeEach, describe, expect, vi } from "vitest";
 import { Dispatcher } from "../execution/dispatcher";
+import { grantQueueConfig } from "../queue";
 import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
 import { releaseStaleJobs } from "../routines/release-stale-jobs";
-import { runWorker, startCron } from "./main";
+import { MainWorker } from "./main";
 
 const runMock = vi.fn();
 
 vi.mock("../shared-runner", () => ({
-  RunnerPool: vi.fn().mockImplementation(() => ({
+  RunnerPool: vi.fn(() => ({
     run: runMock,
+    destroy: vi.fn(),
   })),
 }));
 
@@ -26,11 +28,11 @@ vi.mock("node-cron", () => ({
 }));
 
 vi.mock("../routines/cleanup-finished-job", () => ({
-  cleanupFinishedJobs: vi.fn().mockResolvedValue(undefined),
+  cleanupFinishedJobs: vi.fn(() => undefined),
 }));
 
 vi.mock("../routines/release-stale-jobs", () => ({
-  releaseStaleJobs: vi.fn().mockResolvedValue(undefined),
+  releaseStaleJobs: vi.fn(() => undefined),
 }));
 
 describe("main.ts", () => {
@@ -46,54 +48,54 @@ describe("main.ts", () => {
     { name: singleQueueName, concurrency: 1 },
   ];
 
-  const dbLocation = ":memory:";
-  const config: EngineConfig = { queues, backend: { driver: "@sidequest/sqlite-backend", config: dbLocation } };
+  let worker: MainWorker;
 
-  beforeAll(async () => {
-    await Engine.configure(config);
+  beforeEach<SidequestTestFixture>(async ({ backend, config }) => {
+    worker = new MainWorker();
+    for (const queue of queues) {
+      await grantQueueConfig(backend, queue);
+    }
+    await worker.runWorker(config);
+    vi.resetAllMocks();
   });
 
-  afterAll(async () => {
-    await Engine.close();
-  });
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+  afterEach(async () => {
+    await worker.shutdown();
   });
 
   describe("startCron", () => {
-    it("should schedule both cron jobs", async () => {
-      await startCron(60, 600_000, 60_000, 60, 0);
+    sidequestTest("should schedule both cron jobs", async () => {
+      await worker.startCron(60, 600_000, 60_000, 60, 0);
 
       expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
       expect(cronMocks.schedule).toHaveBeenCalledWith("*/60 * * * *", expect.any(Function));
     });
 
-    it("should call releaseStaleJobs when release cron executes", async () => {
-      await startCron(60, 600_000, 60_000, 60, 0);
+    sidequestTest("should call releaseStaleJobs when release cron executes", async () => {
+      await worker.startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
       await cronCallback();
 
-      expect(releaseStaleJobs).toHaveBeenCalledWith(Engine.getBackend(), 600_000, 60_000);
+      expect(releaseStaleJobs).toHaveBeenCalledWith(expect.any(Object), 600_000, 60_000);
     });
 
-    it("should call cleanupFinishedJobs when cleanup cron executes", async () => {
-      await startCron(60, 600_000, 60_000, 60, 0);
+    sidequestTest("should call cleanupFinishedJobs when cleanup cron executes", async () => {
+      await worker.startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[1][1] as () => unknown;
 
       await cronCallback();
 
-      expect(cleanupFinishedJobs).toHaveBeenCalledWith(Engine.getBackend(), 0);
+      expect(cleanupFinishedJobs).toHaveBeenCalledWith(expect.any(Object), 0);
     });
 
-    it("should handle errors and log them when releaseStaleJobs fails", async () => {
+    sidequestTest("should handle errors and log them when releaseStaleJobs fails", async () => {
       const error = new Error("fail");
       (releaseStaleJobs as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(error);
 
-      await startCron(60, 600_000, 60_000, 60, 0);
+      await worker.startCron(60, 600_000, 60_000, 60, 0);
 
       const cronCallback = cronMocks.schedule.mock.calls[0][1] as () => unknown;
 
@@ -103,19 +105,19 @@ describe("main.ts", () => {
   });
 
   describe("runWorker", () => {
-    it("should call startCron after starting the worker", async () => {
-      const mockWorkerRun = vi.fn().mockResolvedValue(undefined);
+    sidequestTest("should call startCron after starting the worker", async ({ config }) => {
+      const mockWorkerRun = vi.fn().mockResolvedValueOnce(undefined);
 
-      const WorkerSpy = vi.spyOn(Dispatcher.prototype, "start").mockImplementation(mockWorkerRun);
+      const WorkerSpy = vi.spyOn(Dispatcher.prototype, "start").mockImplementationOnce(mockWorkerRun);
 
-      await runWorker(config);
+      await worker.runWorker(config);
 
       expect(WorkerSpy).toHaveBeenCalled();
       expect(cronMocks.schedule).toHaveBeenCalledTimes(2);
     });
 
-    it("should handle errors and exit process", async () => {
-      const mockExit = vi.spyOn(process, "exit").mockImplementation(() => {
+    sidequestTest("should handle errors and exit process", async ({ config }) => {
+      const mockExit = vi.spyOn(process, "exit").mockImplementationOnce(() => {
         throw new Error("process.exit called");
       });
 
@@ -124,10 +126,10 @@ describe("main.ts", () => {
       const mockWorkerRun = () => {
         throw testError;
       };
-      vi.spyOn(Dispatcher.prototype, "start").mockImplementation(mockWorkerRun);
+      vi.spyOn(Dispatcher.prototype, "start").mockImplementationOnce(mockWorkerRun);
 
       try {
-        await runWorker(config);
+        await worker.runWorker(config);
       } catch (error) {
         expect((error as Error).message).toBe("process.exit called");
       }

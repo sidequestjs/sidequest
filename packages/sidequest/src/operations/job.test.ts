@@ -1,10 +1,11 @@
-import { Backend, NewJobData, UpdateJobData } from "@sidequest/backend";
+import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
+import { NewJobData, UpdateJobData } from "@sidequest/backend";
 import { CancelTransition, JobData, JobState, RerunTransition, SnoozeTransition } from "@sidequest/core";
-import { Engine, EngineConfig, Job } from "@sidequest/engine";
+import { Job } from "@sidequest/engine";
 import { JobOperations } from "./job";
 
 // Mock JobTransitioner to control its behavior
-const jobTransitionerApplyMock = vi.hoisted(() => vi.fn((jobData) => Promise.resolve(jobData)));
+const jobTransitionerApplyMock = vi.hoisted(() => vi.fn((backend, jobData) => Promise.resolve(jobData)));
 vi.mock("@sidequest/engine", async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import("@sidequest/engine")>()),
@@ -27,19 +28,12 @@ export class DummyJob extends Job {
 }
 
 describe("JobOperations", () => {
-  const dbLocation = ":memory:";
-  const config: EngineConfig = {
-    backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
-  };
-
-  let backend: Backend;
   let jobData: JobData;
   let operations: JobOperations;
 
-  beforeEach(async () => {
-    await Engine.configure(config);
-    backend = Engine.getBackend()!;
+  beforeEach<SidequestTestFixture>(async ({ backend }) => {
     operations = JobOperations.instance;
+    operations.setBackend(backend);
 
     const job = new DummyJob();
     await job.ready();
@@ -54,23 +48,17 @@ describe("JobOperations", () => {
       attempt: 0,
       max_attempts: 3,
     });
+  });
 
+  afterEach(() => {
+    vi.resetAllMocks();
     // Reset mock and set default implementation
     jobTransitionerApplyMock.mockReset();
     jobTransitionerApplyMock.mockImplementation((job: JobData) => Promise.resolve(job));
   });
 
-  afterEach(async () => {
-    try {
-      await backend.truncate();
-    } catch {
-      // noop
-    }
-    await Engine.close();
-  });
-
   describe("singleton pattern", () => {
-    it("should return the same instance", () => {
+    sidequestTest("should return the same instance", () => {
       const instance1 = JobOperations.instance;
       const instance2 = JobOperations.instance;
       expect(instance1).toBe(instance2);
@@ -78,15 +66,16 @@ describe("JobOperations", () => {
   });
 
   describe("getBackend error handling", () => {
-    it("should throw error when engine is not configured", async () => {
-      await Engine.close();
+    sidequestTest("should throw error when engine is not configured", async ({ engine, backend }) => {
+      await backend.truncate();
+      await engine.close();
 
       await expect(operations.get(1)).rejects.toThrow();
     });
   });
 
   describe("get", () => {
-    it("should return job data when job exists", async () => {
+    sidequestTest("should return job data when job exists", async () => {
       const result = await operations.get(jobData.id);
 
       expect(result).toEqual(jobData);
@@ -94,7 +83,7 @@ describe("JobOperations", () => {
       expect(result!.class).toBe(jobData.class);
     });
 
-    it("should return undefined when job does not exist", async () => {
+    sidequestTest("should return undefined when job does not exist", async () => {
       const result = await operations.get(99999);
 
       expect(result).toBeUndefined();
@@ -102,14 +91,14 @@ describe("JobOperations", () => {
   });
 
   describe("list", () => {
-    it("should return all jobs when no filters provided", async () => {
+    sidequestTest("should return all jobs when no filters provided", async () => {
       const result = await operations.list();
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(jobData);
     });
 
-    it("should filter jobs by state", async () => {
+    sidequestTest("should filter jobs by state", async ({ backend }) => {
       // Create jobs with different states
       const completedJob = await backend.createNewJob({
         queue: "default",
@@ -129,7 +118,7 @@ describe("JobOperations", () => {
       expect(result[0].state).toBe("completed");
     });
 
-    it("should filter jobs by queue", async () => {
+    sidequestTest("should filter jobs by queue", async ({ backend }) => {
       // Create job in different queue
       await backend.createNewJob({
         queue: "other-queue",
@@ -148,7 +137,7 @@ describe("JobOperations", () => {
       expect(result[0].queue).toBe("other-queue");
     });
 
-    it("should apply pagination", async () => {
+    sidequestTest("should apply pagination", async ({ backend }) => {
       // Create additional jobs
       for (let i = 0; i < 5; i++) {
         await backend.createNewJob({
@@ -170,7 +159,7 @@ describe("JobOperations", () => {
   });
 
   describe("count", () => {
-    it("should return job counts", async () => {
+    sidequestTest("should return job counts", async ({ backend }) => {
       // Create jobs with different states
       await backend.createNewJob({
         queue: "default",
@@ -200,7 +189,7 @@ describe("JobOperations", () => {
       expect(result.completed).toBe(1);
     });
 
-    it("should apply time range filter", async () => {
+    sidequestTest("should apply time range filter", async () => {
       const timeRange = {
         from: new Date(Date.now() - 24 * 60 * 60 * 1000), // 24 hours ago
         to: new Date(),
@@ -214,7 +203,7 @@ describe("JobOperations", () => {
   });
 
   describe("countOverTime", () => {
-    it("should return job counts over time", async () => {
+    sidequestTest("should return job counts over time", async () => {
       const result = await operations.countOverTime("12h");
 
       expect(Array.isArray(result)).toBe(true);
@@ -226,13 +215,13 @@ describe("JobOperations", () => {
   });
 
   describe("findStale", () => {
-    it("should find stale jobs", async () => {
+    sidequestTest("should find stale jobs", async () => {
       const result = await operations.findStale();
 
       expect(Array.isArray(result)).toBe(true);
     });
 
-    it("should use custom thresholds", async () => {
+    sidequestTest("should use custom thresholds", async () => {
       const result = await operations.findStale(60000, 30000);
 
       expect(Array.isArray(result)).toBe(true);
@@ -240,7 +229,7 @@ describe("JobOperations", () => {
   });
 
   describe("deleteFinished", () => {
-    it("should delete finished jobs before cutoff date", async () => {
+    sidequestTest("should delete finished jobs before cutoff date", async () => {
       const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
 
       await expect(operations.deleteFinished(cutoffDate)).resolves.not.toThrow();
@@ -248,87 +237,87 @@ describe("JobOperations", () => {
   });
 
   describe("cancel", () => {
-    it("should cancel an existing job using CancelTransition", async () => {
+    sidequestTest("should cancel an existing job using CancelTransition", async ({ backend }) => {
       const canceledJob = { ...jobData, state: "canceled" as JobState };
       jobTransitionerApplyMock.mockResolvedValue(canceledJob);
 
       const result = await operations.cancel(jobData.id);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.any(CancelTransition));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.any(CancelTransition));
       expect(result.state).toBe("canceled");
     });
 
-    it("should throw error when job not found", async () => {
+    sidequestTest("should throw error when job not found", async () => {
       await expect(operations.cancel(99999)).rejects.toThrow("Job with ID 99999 not found");
     });
   });
 
   describe("run", () => {
-    it("should run job with SnoozeTransition(0) when force is false", async () => {
+    sidequestTest("should run job with SnoozeTransition(0) when force is false", async ({ backend }) => {
       const snoozedJob = { ...jobData, available_at: new Date() };
       jobTransitionerApplyMock.mockResolvedValue(snoozedJob);
 
       await operations.run(jobData.id, false);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.objectContaining({ delay: 0 }));
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.any(SnoozeTransition));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.objectContaining({ delay: 0 }));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.any(SnoozeTransition));
     });
 
-    it("should run job with RerunTransition when force is true", async () => {
+    sidequestTest("should run job with RerunTransition when force is true", async ({ backend }) => {
       const rerunJob = { ...jobData, state: "waiting" as JobState };
       jobTransitionerApplyMock.mockResolvedValue(rerunJob);
 
       await operations.run(jobData.id, true);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.any(RerunTransition));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.any(RerunTransition));
     });
 
-    it("should use force=false by default", async () => {
+    sidequestTest("should use force=false by default", async ({ backend }) => {
       const snoozedJob = { ...jobData, available_at: new Date() };
       jobTransitionerApplyMock.mockResolvedValue(snoozedJob);
 
       await operations.run(jobData.id);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.any(SnoozeTransition));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.any(SnoozeTransition));
     });
 
-    it("should throw error when job not found", async () => {
+    sidequestTest("should throw error when job not found", async () => {
       await expect(operations.run(99999)).rejects.toThrow("Job with ID 99999 not found");
     });
   });
 
   describe("snooze", () => {
-    it("should snooze job with specified delay", async () => {
+    sidequestTest("should snooze job with specified delay", async ({ backend }) => {
       const delay = 5000;
       const snoozedJob = { ...jobData, available_at: new Date(Date.now() + delay) };
       jobTransitionerApplyMock.mockResolvedValue(snoozedJob);
 
       await operations.snooze(jobData.id, delay);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.objectContaining({ delay }));
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.any(SnoozeTransition));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.objectContaining({ delay }));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.any(SnoozeTransition));
     });
 
-    it("should throw error for negative delay", async () => {
+    sidequestTest("should throw error for negative delay", async () => {
       await expect(operations.snooze(jobData.id, -1000)).rejects.toThrow("Delay must be a non-negative number");
     });
 
-    it("should allow zero delay", async () => {
+    sidequestTest("should allow zero delay", async ({ backend }) => {
       const snoozedJob = { ...jobData, available_at: new Date() };
       jobTransitionerApplyMock.mockResolvedValue(snoozedJob);
 
       await operations.snooze(jobData.id, 0);
 
-      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(jobData, expect.objectContaining({ delay: 0 }));
+      expect(jobTransitionerApplyMock).toHaveBeenCalledWith(backend, jobData, expect.objectContaining({ delay: 0 }));
     });
 
-    it("should throw error when job not found", async () => {
+    sidequestTest("should throw error when job not found", async () => {
       await expect(operations.snooze(99999, 1000)).rejects.toThrow("Job with ID 99999 not found");
     });
   });
 
   describe("create", () => {
-    it("should create a new job", async () => {
+    sidequestTest("should create a new job", async () => {
       const newJobData: NewJobData = {
         queue: "test-queue",
         state: "waiting",
@@ -351,7 +340,7 @@ describe("JobOperations", () => {
   });
 
   describe("update", () => {
-    it("should update an existing job", async () => {
+    sidequestTest("should update an existing job", async () => {
       const updateData: UpdateJobData = {
         id: jobData.id,
         max_attempts: 10,
@@ -364,7 +353,7 @@ describe("JobOperations", () => {
       expect(result.args).toEqual(["updated-arg"]);
     });
 
-    it("should throw error when job not found", async () => {
+    sidequestTest("should throw error when job not found", async () => {
       const updateData: UpdateJobData = {
         id: 99999,
         max_attempts: 10,
@@ -375,7 +364,7 @@ describe("JobOperations", () => {
   });
 
   describe("integration tests", () => {
-    it("should work with real transitions", async () => {
+    sidequestTest("should work with real transitions", async ({ backend }) => {
       // Remove mock to test with real JobTransitioner
       vi.resetAllMocks();
 

@@ -1,6 +1,5 @@
 import { Backend, NewQueueData } from "@sidequest/backend";
 import { QueueConfig, QueueState } from "@sidequest/core";
-import { Engine } from "@sidequest/engine";
 
 /**
  * Entry point for managing queues in Sidequest.
@@ -9,6 +8,13 @@ import { Engine } from "@sidequest/engine";
  * state changes, concurrency updates, priority adjustments, and listing.
  */
 export class QueueOperations {
+  /**
+   * Backend instance from the Sidequest engine.
+   * @returns The backend instance.
+   * @throws Error if the engine is not configured.
+   */
+  private backend: Backend | undefined;
+
   /**
    * Singleton instance of QueueOperations.
    * This allows for easy access to queue management methods without needing to instantiate the class.
@@ -24,16 +30,25 @@ export class QueueOperations {
   }
 
   /**
+   * Sets the backend instance for the JobOperations.
+   * This is typically called by the Sidequest engine during configuration.
+   *
+   * @param backend - The backend instance to set
+   */
+  public setBackend(backend: Backend) {
+    this.backend = backend;
+  }
+
+  /**
    * Gets the backend instance from the engine.
    * @returns The backend instance.
    * @throws Error if the engine is not configured.
    */
   private getBackend(): Backend {
-    const backend = Engine.getBackend();
-    if (!backend) {
+    if (!this.backend) {
       throw new Error("Engine not configured. Call Sidequest.configure() or Sidequest.start() first.");
     }
-    return backend;
+    return this.backend;
   }
 
   /**

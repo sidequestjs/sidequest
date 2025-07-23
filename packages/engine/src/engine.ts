@@ -6,7 +6,7 @@ import {
   NewQueueData,
   QUEUE_FALLBACK,
 } from "@sidequest/backend";
-import { configureLogger, logger, LoggerOptions, QueueConfig } from "@sidequest/core";
+import { configureLogger, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
 import path from "path";
@@ -14,14 +14,9 @@ import { JOB_BUILDER_FALLBACK } from "./job/constants";
 import { JobClassType } from "./job/job";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
-import { gracefulShutdown } from "./utils/shutdown";
+import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
 
 const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
-
-let _backend: Backend | undefined;
-let _config: NonNullableEngineConfig | undefined;
-let _mainWorker: ChildProcess | undefined;
-let shuttingDown = false;
 
 /**
  * Configuration options for the Sidequest engine.
@@ -88,16 +83,41 @@ export type NonNullableEngineConfig = {
  */
 export class Engine {
   /**
+   * Backend instance used by the engine.
+   * This is initialized when the engine is configured or started.
+   */
+  private backend?: Backend;
+
+  /**
+   * Current configuration of the engine.
+   * This is set when the engine is configured or started.
+   * It contains all the necessary settings for the engine to operate, such as backend, queues, logger options, and job defaults.
+   */
+  private config?: NonNullableEngineConfig;
+
+  /**
+   * Main worker process that runs the Sidequest engine.
+   * This is created when the engine is started and handles job processing.
+   */
+  private mainWorker?: ChildProcess;
+
+  /**
+   * Flag indicating whether the engine is currently shutting down.
+   * This is used to prevent multiple shutdown attempts and ensure graceful shutdown behavior.
+   */
+  private shuttingDown = false;
+
+  /**
    * Configures the Sidequest engine with the provided configuration.
    * @param config Optional configuration object.
    * @returns The resolved configuration.
    */
-  static async configure(config?: EngineConfig): Promise<NonNullableEngineConfig> {
-    if (_config) {
+  async configure(config?: EngineConfig): Promise<NonNullableEngineConfig> {
+    if (this.config) {
       logger("Engine").debug("Sidequest already configured");
-      return _config;
+      return this.config;
     }
-    _config = {
+    this.config = {
       queues: config?.queues ?? [],
       backend: {
         driver: config?.backend?.driver ?? "@sidequest/sqlite-backend",
@@ -131,56 +151,56 @@ export class Engine {
       },
     };
 
-    if (_config.logger) {
-      configureLogger(_config.logger);
+    if (this.config.logger) {
+      configureLogger(this.config.logger);
     }
 
-    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(_config)}`);
-    _backend = await createBackendFromDriver(_config.backend);
+    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
+    this.backend = await createBackendFromDriver(this.config.backend);
 
-    if (!_config.skipMigration) {
-      await _backend.migrate();
+    if (!this.config.skipMigration) {
+      await this.backend.migrate();
     }
 
-    if (_config.queues) {
-      for (const queue of _config.queues) {
-        await grantQueueConfig(_backend, queue, _config.queueDefaults);
+    if (this.config.queues) {
+      for (const queue of this.config.queues) {
+        await grantQueueConfig(this.backend, queue, this.config.queueDefaults);
       }
     }
 
-    return _config;
+    return this.config;
   }
 
   /**
    * Starts the Sidequest engine and worker process.
    * @param config Optional configuration object.
    */
-  static async start(config: EngineConfig): Promise<void> {
-    config = await Engine.configure(config);
+  async start(config: EngineConfig): Promise<void> {
+    await this.configure(config);
 
-    logger("Engine").info(`Starting Sidequest using backend ${config.backend?.driver}`);
+    logger("Engine").info(`Starting Sidequest using backend ${this.config!.backend.driver}`);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Timeout on starting sidequest fork!"));
       }, 5000);
 
-      if (!_mainWorker) {
+      if (!this.mainWorker) {
         const runWorker = () => {
           logger("Engine").debug("Starting main worker...");
-          _mainWorker = fork(workerPath);
-          logger("Engine").debug(`Worker PID: ${_mainWorker.pid}`);
-          _mainWorker.on("message", (msg) => {
+          this.mainWorker = fork(workerPath);
+          logger("Engine").debug(`Worker PID: ${this.mainWorker.pid}`);
+          this.mainWorker.on("message", (msg) => {
             if (msg === "ready") {
               logger("Engine").debug("Main worker is ready");
-              _mainWorker?.send({ type: "start", sidequestConfig: config });
+              this.mainWorker?.send({ type: "start", sidequestConfig: this.config! });
               clearTimeout(timeout);
               resolve();
             }
           });
 
-          _mainWorker.on("exit", () => {
-            if (!shuttingDown) {
+          this.mainWorker.on("exit", () => {
+            if (!this.shuttingDown) {
               logger("Engine").error("Sidequest main exited, creating new...");
               runWorker();
             }
@@ -188,21 +208,7 @@ export class Engine {
         };
 
         runWorker();
-
-        gracefulShutdown(
-          async () => {
-            shuttingDown = true;
-            if (_mainWorker) {
-              _mainWorker.send({ type: "shutdown" });
-              await new Promise((resolve) => {
-                _mainWorker?.on("exit", resolve);
-              });
-            }
-            await Engine.close();
-          },
-          "Engine",
-          config.gracefulShutdown!,
-        );
+        gracefulShutdown(this.close.bind(this), "Engine", this.config!.gracefulShutdown);
       }
     });
   }
@@ -211,36 +217,41 @@ export class Engine {
    * Gets the current engine configuration.
    * @returns The current configuration, if set.
    */
-  static getConfig() {
-    return _config;
+  getConfig() {
+    return this.config;
   }
 
   /**
    * Gets the backend instance in use by the engine.
    * @returns The backend instance, if set.
    */
-  static getBackend() {
-    return _backend;
-  }
-
-  /**
-   * Gets the configuration for a specific queue.
-   * @param queue The queue name.
-   * @returns The queue configuration, if found.
-   */
-  static async getQueue(queue: string): Promise<QueueConfig | undefined> {
-    if (!_backend) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
-    return _backend.getQueue(queue);
+  getBackend() {
+    return this.backend;
   }
 
   /**
    * Closes the engine and releases resources.
    */
-  static async close() {
-    logger("Engine").debug("Closing Sidequest engine...");
-    _config = undefined;
-    await _backend?.close();
-    _backend = undefined;
+  async close() {
+    if (!this.shuttingDown) {
+      this.shuttingDown = true;
+      logger("Engine").debug("Closing Sidequest engine...");
+      if (this.mainWorker) {
+        this.mainWorker.send({ type: "shutdown" });
+        await new Promise((resolve) => {
+          this.mainWorker!.on("exit", resolve);
+        });
+      }
+      await this.backend?.close();
+      this.config = undefined;
+      this.backend = undefined;
+      this.mainWorker = undefined;
+      // Reset the shutting down flag after closing
+      // This allows the engine to be reconfigured or restarted later
+      clearGracefulShutdown();
+      logger("Engine").debug("Sidequest engine closed.");
+      this.shuttingDown = false;
+    }
   }
 
   /**
@@ -248,12 +259,14 @@ export class Engine {
    * @param JobClass The job class constructor.
    * @returns A new JobBuilder instance for the job class.
    */
-  static build<T extends JobClassType>(JobClass: T) {
-    if (!_config) throw new Error("Engine not configured. Call Engine.configure() or Engine.start() first.");
-    if (shuttingDown) {
+  build<T extends JobClassType>(JobClass: T) {
+    if (!this.config || !this.backend) {
+      throw new Error("Engine not configured. Call engine.configure() or engine.start() first.");
+    }
+    if (this.shuttingDown) {
       throw new Error("Engine is shutting down, cannot build job.");
     }
     logger("Engine").debug(`Building job for class: ${JobClass.name}`);
-    return new JobBuilder(JobClass, _config.jobDefaults);
+    return new JobBuilder(this.backend, JobClass, this.config.jobDefaults);
   }
 }

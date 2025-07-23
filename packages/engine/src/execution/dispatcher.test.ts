@@ -1,22 +1,25 @@
+import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
+import { Backend } from "@sidequest/backend";
 import { CompletedResult, JobData } from "@sidequest/core";
-import { Engine, EngineConfig } from "../engine";
+import { EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Dispatcher } from "./dispatcher";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
-const runMock = vi.fn();
+const runMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
-  RunnerPool: vi.fn().mockImplementation(() => ({
+  RunnerPool: vi.fn(() => ({
     run: runMock,
+    destroy: vi.fn(),
   })),
 }));
 
-async function createJob(queue = "default") {
+async function createJob(backend: Backend, queue = "default") {
   const job = new DummyJob();
   await job.ready();
-  await Engine.getBackend()!.createNewJob({
+  await backend.createNewJob({
     queue: queue,
     state: "waiting",
     script: job.script,
@@ -29,9 +32,8 @@ async function createJob(queue = "default") {
 }
 
 describe("Dispatcher", () => {
-  const dbLocation = ":memory:";
   const config: EngineConfig = {
-    backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
+    backend: { driver: "@sidequest/sqlite-backend" },
     queues: [
       { name: "default", concurrency: 1 },
       { name: "noop", concurrency: 0 },
@@ -39,22 +41,18 @@ describe("Dispatcher", () => {
     maxConcurrentJobs: 5,
   };
 
-  beforeEach(async () => {
-    await Engine.configure(config);
-    await createJob();
-
+  beforeEach<SidequestTestFixture>(async ({ backend }) => {
+    await createJob(backend);
+    vi.resetAllMocks();
     vi.useFakeTimers();
   });
 
-  afterEach(async () => {
-    await Engine.close();
+  afterEach(() => {
     vi.useRealTimers();
   });
 
   describe("start", () => {
-    it("consumes waiting jobs", async () => {
-      const backend = Engine.getBackend()!;
-
+    sidequestTest("consumes waiting jobs", async ({ backend }) => {
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(1);
 
       const dispatcher = new Dispatcher(
@@ -64,7 +62,7 @@ describe("Dispatcher", () => {
       );
       dispatcher.start();
 
-      runMock.mockImplementation(() => {
+      runMock.mockImplementationOnce(() => {
         return { type: "completed", result: "foo", __is_job_transition__: true } as CompletedResult;
       });
 
@@ -76,10 +74,8 @@ describe("Dispatcher", () => {
       await dispatcher.stop();
     });
 
-    it("does not claim job when there is no available slot for the queue", async () => {
-      const backend = Engine.getBackend()!;
-
-      await createJob("noop");
+    sidequestTest("does not claim job when there is no available slot for the queue", async ({ backend }) => {
+      await createJob(backend, "noop");
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
@@ -90,7 +86,7 @@ describe("Dispatcher", () => {
       );
       dispatcher.start();
 
-      runMock.mockImplementation(() => {
+      runMock.mockImplementationOnce(() => {
         return { type: "completed", result: "foo", __is_job_transition__: true } as CompletedResult;
       });
 
@@ -107,11 +103,9 @@ describe("Dispatcher", () => {
       await dispatcher.stop();
     });
 
-    it("does not claim job when there is no available global slot", async () => {
+    sidequestTest("does not claim job when there is no available global slot", async ({ backend }) => {
       config.maxConcurrentJobs = 1;
-      const backend = Engine.getBackend()!;
-
-      await createJob("other");
+      await createJob(backend, "other");
 
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
@@ -122,7 +116,7 @@ describe("Dispatcher", () => {
       );
       dispatcher.start();
 
-      runMock.mockImplementation(() => {
+      runMock.mockImplementationOnce(() => {
         return { type: "completed", result: "foo", __is_job_transition__: true } as CompletedResult;
       });
 

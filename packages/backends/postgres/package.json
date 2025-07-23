@@ -7,9 +7,9 @@
   "module": "./dist/postgres-backend.js",
   "types": "./dist/postgres-backend.d.ts",
   "exports": {
+    "types": "./dist/postgres-backend.d.ts",
     "import": "./dist/postgres-backend.js",
-    "require": "./dist/postgres-backend.cjs",
-    "types": "./dist/postgres-backend.d.ts"
+    "require": "./dist/postgres-backend.cjs"
   },
   "scripts": {
     "build": "npx rollup -c",

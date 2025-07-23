@@ -1,25 +1,7 @@
+import path from "path";
 import { defineConfig } from "vitest/config";
+import { createVitestConfig } from "./vitest.base.config";
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: "node",
-    isolate: true,
-    pool: "threads",
-    fileParallelism: false,
-    coverage: {
-      provider: "v8", // or 'v8'
-      exclude: [
-        "**/*.d.ts",
-        "**/*.test.ts",
-        "**/*.spec.ts",
-        "**/dist/**",
-        "**/node_modules/**",
-        "**/migrations/**",
-        "**/*.js",
-        "**/*.cjs",
-        "**/*.mjs",
-      ],
-    },
-  },
-});
+export default defineConfig(
+  createVitestConfig(["./tests/vitest.setup.ts"], path.resolve(import.meta.dirname, "./tests")),
+);

@@ -7,9 +7,9 @@
   "module": "./dist/sqlite-backend.js",
   "types": "./dist/sqlite-backend.d.ts",
   "exports": {
+    "types": "./dist/sqlite-backend.d.ts",
     "import": "./dist/sqlite-backend.js",
-    "require": "./dist/sqlite-backend.cjs",
-    "types": "./dist/sqlite-backend.d.ts"
+    "require": "./dist/sqlite-backend.cjs"
   },
   "scripts": {
     "build": "npx rollup -c",

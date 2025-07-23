@@ -23,7 +23,7 @@ Jobs progress through the following states:
 
 The lifecycle of a job can be visualized as follows:
 
-![Job State Diagram](/public/state-diagram.png)
+![Job State Diagram](/state-diagram.png)
 
 ### Normal Execution Flow
 

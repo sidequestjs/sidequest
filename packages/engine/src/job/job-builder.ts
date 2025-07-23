@@ -1,4 +1,4 @@
-import { NewJobData } from "@sidequest/backend";
+import { Backend, NewJobData } from "@sidequest/backend";
 import {
   AliveJobConfig,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -12,7 +12,6 @@ import {
   UniquenessConfig,
   UniquenessFactory,
 } from "@sidequest/core";
-import { Engine } from "../engine";
 import { JOB_BUILDER_FALLBACK } from "./constants";
 import { JobClassType } from "./job";
 
@@ -73,6 +72,7 @@ export class JobBuilder<T extends JobClassType> {
    * @param JobClass The job class constructor.
    */
   constructor(
+    private backend: Backend,
     private JobClass: T,
     private defaults?: JobBuilderDefaults,
   ) {
@@ -183,7 +183,6 @@ export class JobBuilder<T extends JobClassType> {
       throw new Error(`Error on starting job ${job.className} could not detect source file.`);
     }
 
-    const backend = Engine.getBackend()!;
     const jobData: NewJobData = {
       queue: this.queueName!,
       script: job.script,
@@ -208,6 +207,6 @@ export class JobBuilder<T extends JobClassType> {
       logger("JobBuilder").debug(`Job ${job.className} uniqueness digest: ${jobData.unique_digest}`);
     }
 
-    return backend.createNewJob(jobData);
+    return this.backend.createNewJob(jobData);
   }
 }

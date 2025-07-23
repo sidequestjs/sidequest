@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -11,8 +12,7 @@
       "cache": false
     },
     "test:ci": {
-      "env": ["POSTGRES_URL", "MYSQL_URL"],
-      "dependsOn": ["^build"]
+      "env": ["POSTGRES_URL", "MYSQL_URL", "MONGODB_URL"]
     }
   }
 }

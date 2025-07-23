@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Backend, NewQueueData } from "@sidequest/backend";
 import { QueueConfig } from "@sidequest/core";
-import { Engine } from "@sidequest/engine";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueueOperations } from "./queue";
 
@@ -17,8 +16,7 @@ describe("QueueOperations", () => {
       createNewQueue: vi.fn(),
     } as Partial<Backend> as Backend;
 
-    // Mock Engine.getBackend to return our mock
-    vi.spyOn(Engine, "getBackend").mockReturnValue(mockBackend);
+    QueueOperations.instance.setBackend(mockBackend);
   });
 
   afterEach(() => {

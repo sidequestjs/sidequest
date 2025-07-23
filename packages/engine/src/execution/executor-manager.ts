@@ -22,12 +22,12 @@ export class ExecutorManager {
   constructor(
     private backend: Backend,
     private maxConcurrentJobs: number,
-    minThreads: number,
-    maxThreads: number,
+    private minThreads: number,
+    private maxThreads: number,
   ) {
     this.activeByQueue = {};
     this.activeJobs = new Set();
-    this.runnerPool = new RunnerPool(minThreads, maxThreads);
+    this.runnerPool = new RunnerPool(this.minThreads, this.maxThreads);
   }
 
   /**
@@ -83,14 +83,14 @@ export class ExecutorManager {
 
     if (this.availableSlotsByQueue(queueConfig) <= 0 || this.availableSlotsGlobal() <= 0) {
       logger("Executor Manager").debug(`No available slots for job ${job.id} in queue ${queueConfig.name}`);
-      await JobTransitioner.apply(job, new SnoozeTransition(0));
+      await JobTransitioner.apply(this.backend, job, new SnoozeTransition(0));
       return;
     }
 
     this.activeByQueue[queueConfig.name].add(job.id);
     this.activeJobs.add(job.id);
 
-    job = await JobTransitioner.apply(job, new RunTransition());
+    job = await JobTransitioner.apply(this.backend, job, new RunTransition());
 
     const signal = new EventEmitter();
 
@@ -113,14 +113,10 @@ export class ExecutorManager {
     try {
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
       const result = await this.runnerPool.run(job, signal);
-      logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
       isRunning = false;
+      logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
       const transition = JobTransitionFactory.create(result);
-
-      await JobTransitioner.apply(job, transition);
-
-      this.activeByQueue[queueConfig.name].delete(job.id);
-      this.activeJobs.delete(job.id);
+      await JobTransitioner.apply(this.backend, job, transition);
     } catch (error: unknown) {
       isRunning = false;
       const err = error as Error;
@@ -130,6 +126,30 @@ export class ExecutorManager {
         logger("Executor Manager").error(`Error executing job ${job.id}: ${err.message}`);
         throw error;
       }
+    } finally {
+      isRunning = false;
+      this.activeByQueue[queueConfig.name].delete(job.id);
+      this.activeJobs.delete(job.id);
     }
+  }
+
+  /**
+   * Destroys the runner pool and releases resources.
+   */
+  async destroy(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      const checkJobs = async () => {
+        if (this.totalActiveWorkers() === 0) {
+          logger("ExecutorManager").info("All active jobs finished. Destroying runner pool.");
+          await this.runnerPool.destroy();
+          resolve();
+        } else {
+          logger("ExecutorManager").info(`Waiting for ${this.totalActiveWorkers()} active jobs to finish...`);
+          setTimeout(() => void checkJobs(), 1000);
+        }
+      };
+
+      void checkJobs();
+    });
   }
 }

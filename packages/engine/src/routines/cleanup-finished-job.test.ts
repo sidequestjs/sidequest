@@ -1,25 +1,10 @@
-import { Engine, EngineConfig } from "../engine";
+import { sidequestTest } from "@/tests/fixture";
 import { cleanupFinishedJobs } from "./cleanup-finished-job";
 
 describe("cleanup-finished-job.ts", () => {
-  const dbLocation = ":memory:";
-  const config: EngineConfig = {
-    backend: { driver: "@sidequest/sqlite-backend", config: dbLocation },
-  };
-
-  beforeEach(async () => {
-    await Engine.configure(config);
-  });
-
-  afterEach(async () => {
-    await Engine.close();
-  });
-
-  it("deletes old finished jobs", async () => {
+  sidequestTest("deletes old finished jobs", async ({ backend }) => {
     const oneMonthAgo = new Date();
     oneMonthAgo.setDate(oneMonthAgo.getDate() - 32);
-
-    const backend = Engine.getBackend()!;
 
     let inserted = await backend.createNewJob({
       state: "waiting",
