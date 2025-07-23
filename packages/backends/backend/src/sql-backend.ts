@@ -58,22 +58,10 @@ export abstract class SQLBackend implements Backend {
       priority: queueConfig.priority ?? 0,
       state: queueConfig.state ?? "active",
     };
-  
-    const result = await this.knex.transaction(async (trx) => {
-      const [insertedId] = await trx("sidequest_queues").insert(data);
-  
-      const inserted = await trx<QueueConfig>("sidequest_queues")
-        .where({ id: insertedId })
-        .first();
-  
-      if (!inserted) throw new Error("Failed to insert queue config.");
-  
-      return inserted;
-    });
-  
-    return result;
+
+    const newConfig = await this.knex("sidequest_queues").insert(data).returning("*");
+    return newConfig[0] as QueueConfig;
   }
-  
 
   async getQueueConfig(queue: string): Promise<QueueConfig | undefined> {
     return this.knex("sidequest_queues").where({ name: queue }).first() as Promise<QueueConfig | undefined>;
@@ -90,27 +78,19 @@ export abstract class SQLBackend implements Backend {
       .orderBy(orderBy?.column ?? "priority", orderBy?.order ?? "desc")) as QueueConfig[];
   }
 
-  async updateQueue(queueData: UpdateQueueData): Promise<QueueConfig> {
+  async updateQueue(queueData: UpdateQueueData) {
     const { id, ...updates } = queueData;
     if (!id) throw new Error("Queue id is required for update.");
-  
-    const result = await this.knex.transaction(async (trx) => {
-      await trx("sidequest_queues")
-        .where({ id })
-        .update(updates);
-  
-      const updated = await trx<QueueConfig>("sidequest_queues")
-        .where({ id })
-        .first();
-  
-      if (!updated) throw new Error("Cannot update queue, not found.");
-  
-      return updated;
-    });
-  
-    return result;
+
+    const [updated] = (await this.knex("sidequest_queues")
+      .where({ id })
+      .update(updates)
+      .returning("*")) as QueueConfig[];
+
+    if (!updated) throw new Error("Cannot update queue, not found.");
+
+    return updated;
   }
-  
 
   async getJob(id: number): Promise<JobData | undefined> {
     const job = (await this.knex("sidequest_jobs").where({ id }).first()) as JobData | undefined;
@@ -135,21 +115,11 @@ export abstract class SQLBackend implements Backend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : null,
       inserted_at: new Date(),
     };
-  
+
     try {
-      const insertedJob = await this.knex.transaction(async (trx) => {
-        const [insertedId] = await trx("sidequest_jobs").insert(data);
-  
-        const inserted = await trx<JobData>("sidequest_jobs")
-          .where({ id: insertedId })
-          .first();
-  
-        if (!inserted) throw new Error("Failed to create job.");
-  
-        return safeParseJobData(inserted);
-      });
-  
-      return insertedJob;
+      const inserted = (await this.knex("sidequest_jobs").insert(data).returning("*")) as JobData[];
+
+      return safeParseJobData(inserted[0]);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -158,15 +128,14 @@ export abstract class SQLBackend implements Backend {
       ) {
         throw new DuplicatedJobError(job as JobData);
       }
-  
+
       throw error;
     }
   }
-  
 
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
     const workerName = `sidequest@${hostname()}-${process.pid}`;
-  
+
     const jobs = await this.knex.transaction(async (trx) => {
       const selected: JobData[] = await trx<JobData>("sidequest_jobs")
         .select("*")
@@ -177,28 +146,24 @@ export abstract class SQLBackend implements Backend {
         .limit(quantity)
         .forUpdate()
         .skipLocked();
-  
+
       if (selected.length === 0) {
         return [];
       }
-  
-      const ids = selected.map((job) => job.id);
-  
-      await trx<JobData>("sidequest_jobs")
-        .whereIn("id", ids)
-        .update({
-          claimed_by: workerName,
-          claimed_at: new Date(),
-          state: "claimed",
-        });
 
-      const updated = await trx<JobData>("sidequest_jobs")
-        .whereIn("id", ids)
-        .select("*");
-  
+      const ids = selected.map((job) => job.id);
+
+      await trx<JobData>("sidequest_jobs").whereIn("id", ids).update({
+        claimed_by: workerName,
+        claimed_at: new Date(),
+        state: "claimed",
+      });
+
+      const updated = await trx<JobData>("sidequest_jobs").whereIn("id", ids).select("*");
+
       return updated;
     });
-  
+
     return jobs.map(safeParseJobData);
   }
 
@@ -211,22 +176,15 @@ export abstract class SQLBackend implements Backend {
       errors: job.errors ? JSON.stringify(job.errors) : job.errors,
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
-  
-    const updatedJob = await this.knex.transaction(async (trx) => {
-      await trx("sidequest_jobs")
-        .where({ id: job.id })
-        .update(data);
-  
-      const updated = await trx<JobData>("sidequest_jobs")
-        .where({ id: job.id })
-        .first();
-  
-      if (!updated) throw new Error("Cannot update job, not found.");
-  
-      return safeParseJobData(updated);
-    });
-  
-    return updatedJob;
+
+    const [updated] = (await this.knex("sidequest_jobs")
+      .where({ id: job.id })
+      .update(data)
+      .returning("*")) as JobData[];
+
+    if (!updated) throw new Error("Cannot update job, not found.");
+
+    return safeParseJobData(updated);
   }
 
   async listJobs(params?: {
