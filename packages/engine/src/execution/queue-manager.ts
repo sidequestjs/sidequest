@@ -9,7 +9,7 @@ export class QueueManager {
     private backend: SQLBackend,
   ) {}
 
-  async getQueuesWithRunnableJobs() {
+  async getActiveQueuesWithRunnableJobs() {
     const queueNames = await this.backend.getQueuesFromJobs();
 
     const queues: QueueConfig[] = [];
@@ -21,8 +21,10 @@ export class QueueManager {
       }
     }
 
-    return queues.sort((a, b) => {
-      return (b.priority ?? 0) - (a.priority ?? 0);
-    });
+    return queues
+      .filter((queue) => queue.state === "active")
+      .sort((a, b) => {
+        return (b.priority ?? 0) - (a.priority ?? 0);
+      });
   }
 }

@@ -1312,6 +1312,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/dashboard@workspace:packages/dashboard"
   dependencies:
+    "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
     "@sidequest/engine": "workspace:*"
     daisyui: "npm:^5.0.43"
@@ -1319,7 +1320,7 @@ __metadata:
     express: "npm:^5.1.0"
     express-basic-auth: "npm:^1.2.1"
     express-ejs-layouts: "npm:^2.5.1"
-    htmx.org: "npm:^2.0.4"
+    tsx: "npm:^4.20.3"
   languageName: unknown
   linkType: soft
 
@@ -4264,13 +4265,6 @@ __metadata:
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
   checksum: 10c0/208e8a12de1a6569edbb14544f4567e6ce8ecc30b9394fcaa4e7bb1e60c12a7c9a1ed27e31290817157e8626f3a4f29e76c8747030822eb84a6abb15c255f0a0
-  languageName: node
-  linkType: hard
-
-"htmx.org@npm:^2.0.4":
-  version: 2.0.6
-  resolution: "htmx.org@npm:2.0.6"
-  checksum: 10c0/df344f4d23f265b56bcd8ffa07e6feeae89c7efe5d773ca17a857f54388f5b30b52d5b0fda6ff4c89a994b149e7a77c8bcbc88bf9bd0b4b977b4fa641ba3c89b
   languageName: node
   linkType: hard
 
@@ -8005,7 +7999,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.4":
+"tsx@npm:^4.19.4, tsx@npm:^4.20.3":
   version: 4.20.3
   resolution: "tsx@npm:4.20.3"
   dependencies:

@@ -76,6 +76,7 @@ export abstract class Job {
   abstract run(...args: unknown[]): unknown;
 }
 
+// TODO need to test this with unit tests
 async function buildPath(className: string) {
   const err = new Error();
   let stackLines = err.stack?.split("\n") ?? [];
@@ -83,9 +84,9 @@ async function buildPath(className: string) {
 
   const filePaths = stackLines
     .map((line) => {
-      const match = /(file:\/\/)?((\w:)?[/\\].+):\d+:\d+/.exec(line);
+      const match = /(file:\/\/)?(((\/?)(\w:))?([/\\].+)):\d+:\d+/.exec(line);
       if (match) {
-        return match[2].replaceAll("\\", "/");
+        return `${match[5] ?? ""}${match[6].replaceAll("\\", "/")}`;
       }
       return null;
     })

@@ -15,6 +15,7 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
       tsconfig: "./tsconfig.json",
       sourceMap: true,
       declaration: false,
+      exclude: "**/devserver.ts",
     }),
   ];
 

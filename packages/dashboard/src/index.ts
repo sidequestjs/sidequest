@@ -5,6 +5,7 @@ import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import path from "node:path";
 import { DashboardConfig } from "./config";
+import { renderQueuesTable } from "./utils/queue";
 
 export class SidequestDashboard {
   static start(config?: DashboardConfig) {
@@ -87,13 +88,17 @@ export class SidequestDashboard {
     });
 
     app.get("/queues", async (req, res) => {
-      const backend = Engine.getBackend();
-      const queues = await backend?.listQueues();
+      const backend = Engine.getBackend()!;
+      await renderQueuesTable(backend, req, res);
+    });
 
-      res.render("pages/queues", {
-        title: "Queues",
-        queues,
-      });
+    app.patch("/queues/:name/toggle", async (req, res) => {
+      const backend = Engine.getBackend()!;
+
+      const queue = await backend.getQueueConfig(req.params.name);
+      await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
+
+      await renderQueuesTable(backend, req, res);
     });
 
     const port = config?.port ?? 8678;

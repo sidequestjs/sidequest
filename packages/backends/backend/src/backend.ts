@@ -8,10 +8,10 @@ export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "
     state: "waiting";
     attempt: 0;
   };
-
 export type UpdateJobData = Pick<JobData, "id"> & Partial<Omit<JobData, "id">>;
 
 export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig, "queue" | "id">>;
+export type UpdateQueueData = Pick<QueueConfig, "id"> & Partial<Omit<QueueConfig, "id">>;
 
 export abstract class SQLBackend {
   constructor(public knex: Knex) {}
@@ -53,8 +53,24 @@ export abstract class SQLBackend {
     return queues.map((q) => q.queue);
   }
 
-  async listQueues(): Promise<QueueConfig[]> {
-    return (await this.knex("sidequest_queues").select("*").orderBy("priority", "desc")) as QueueConfig[];
+  async listQueues(orderBy?: { column: keyof QueueConfig; order?: "asc" | "desc" }): Promise<QueueConfig[]> {
+    return (await this.knex("sidequest_queues")
+      .select("*")
+      .orderBy(orderBy?.column ?? "priority", orderBy?.order ?? "desc")) as QueueConfig[];
+  }
+
+  async updateQueue(queueData: UpdateQueueData) {
+    const { id, ...updates } = queueData;
+    if (!id) throw new Error("Queue id is required for update.");
+
+    const [updated] = (await this.knex("sidequest_queues")
+      .where({ id })
+      .update(updates)
+      .returning("*")) as QueueConfig[];
+
+    if (!updated) throw new Error("Cannot update queue, not found.");
+
+    return updated;
   }
 
   async getJob(id: number): Promise<JobData> {

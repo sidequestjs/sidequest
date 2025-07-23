@@ -1,38 +1,5 @@
 <section class="space-y-6">
   <div class="overflow-x-auto">
-    <table class="table rounded-lg">
-      <thead class="bg-neutral text-neutral-content">
-        <tr>
-          <th>Queue</th>
-          <th>State</th>
-          <th>Concurrency</th>
-          <th>Priority</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% queues.forEach(queue => { %>
-          <tr class="hover:bg-base-300">
-            <td class="font-mono">
-              <%= queue.name %>
-            </td>
-            <td>
-              <span class="badge px-3 py-1 <%= {
-                active: 'badge-success',
-                paused: 'badge-warning',
-                disabled: 'badge-error'
-              }[queue.state] || 'badge-neutral' %>">
-                <%= queue.state %>
-              </span>
-            </td>
-            <td>
-              <%= queue.concurrency %>
-            </td>
-            <td>
-              <%= queue.priority %>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+    <%- include('../partials/queues-table', { queues }) %>
   </div>
 </section>
