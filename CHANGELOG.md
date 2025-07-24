@@ -1,3 +1,10 @@
+# [1.0.0-next.5](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.4...v1.0.0-next.5) (2025-07-24)
+
+
+### Bug Fixes
+
+* release next ([586ec83](https://github.com/sidequestjs/sidequest/commit/586ec832cd207af09e2da4ca61d1cf1a9013ea20))
+
 # [1.0.0-next.4](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.3...v1.0.0-next.4) (2025-07-24)
 
 
