@@ -1,3 +1,10 @@
+# [1.0.0-next.3](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.2...v1.0.0-next.3) (2025-07-24)
+
+
+### Bug Fixes
+
+* using exec ([80e47be](https://github.com/sidequestjs/sidequest/commit/80e47bebd37353311abff590afefdc38c0d64c75))
+
 # [1.0.0-next.2](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.1...v1.0.0-next.2) (2025-07-24)
 
 
