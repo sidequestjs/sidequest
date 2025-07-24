@@ -35,8 +35,19 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Configure npm authentication
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - name: Configure Yarn authentication and settings
+        run: |
+          cat <<EOF > .yarnrc.yml
+          nodeLinker: node-modules
+
+          npmRegistryServer: "https://registry.npmjs.org"
+          npmAuthToken: "${NPM_TOKEN}"
+
+          npmScopes:
+            sidequest:
+              npmRegistryServer: "https://registry.npmjs.org"
+              npmAuthToken: "${NPM_TOKEN}"
+          EOF
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
