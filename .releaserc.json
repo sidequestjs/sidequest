@@ -20,12 +20,6 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "node .scripts/replace-workspace-deps.js"
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
         "publishCmd": "yarn workspaces foreach -A --no-private npm publish --access public --tag $( [ \"${nextRelease.channel}\" = \"next\" ] && echo next || echo latest )"
       }
     ],
