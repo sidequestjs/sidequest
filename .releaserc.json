@@ -20,7 +20,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "yarn workspaces foreach -A --no-private --topological npm publish --access public"
+        "publishCmd": "yarn workspaces foreach -A --no-private --topological npm publish --access public --tag $( [ \"${nextRelease.channel}\" = \"next\" ] && echo next || echo latest )"
       }
     ],
     [
