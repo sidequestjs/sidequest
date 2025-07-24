@@ -15,7 +15,7 @@
     "dist"
   ],
   "dependencies": {
-    "@sidequest/backend": "1.0.0-next.6",
+    "@sidequest/backend": "workspace:*",
     "commander": "^14.0.0",
     "inquirer": "^12.7.0"
   },

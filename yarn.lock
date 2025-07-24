@@ -2586,16 +2586,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/backend@npm:1.0.0-next.6":
-  version: 1.0.0-next.6
-  resolution: "@sidequest/backend@npm:1.0.0-next.6"
-  dependencies:
-    "@sidequest/core": "npm:1.0.0-next.6"
-    knex: "npm:^3.1.0"
-  checksum: 10c0/a23a7c1968f347039995431e867186fced70c2cbff14e72aea2d1c35fe453ba1704f3b66342c3f6d1190b0d9187bfe338d4474dd34893f0a059f93b97eef3af7
-  languageName: node
-  linkType: hard
-
 "@sidequest/backend@workspace:*, @sidequest/backend@workspace:packages/backends/backend":
   version: 0.0.0-use.local
   resolution: "@sidequest/backend@workspace:packages/backends/backend"
@@ -2609,7 +2599,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/cli@workspace:packages/cli"
   dependencies:
-    "@sidequest/backend": "npm:1.0.0-next.6"
+    "@sidequest/backend": "workspace:*"
     commander: "npm:^14.0.0"
     inquirer: "npm:^12.7.0"
   bin:
@@ -2618,7 +2608,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/core@npm:1.0.0-next.6, @sidequest/core@workspace:*, @sidequest/core@workspace:packages/core":
+"@sidequest/core@workspace:*, @sidequest/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sidequest/core@workspace:packages/core"
   dependencies:
@@ -2627,13 +2617,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/dashboard@npm:1.0.0-next.6, @sidequest/dashboard@workspace:packages/dashboard":
+"@sidequest/dashboard@workspace:*, @sidequest/dashboard@workspace:packages/dashboard":
   version: 0.0.0-use.local
   resolution: "@sidequest/dashboard@workspace:packages/dashboard"
   dependencies:
     "@highlightjs/cdn-assets": "npm:^11.11.1"
-    "@sidequest/backend": "npm:1.0.0-next.6"
-    "@sidequest/core": "npm:1.0.0-next.6"
+    "@sidequest/backend": "workspace:*"
+    "@sidequest/core": "workspace:*"
     "@types/feather-icons": "npm:^4"
     "@types/morgan": "npm:^1"
     chart.js: "npm:^4.5.0"
@@ -2654,12 +2644,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/engine@npm:1.0.0-next.6, @sidequest/engine@workspace:packages/engine":
+"@sidequest/engine@workspace:*, @sidequest/engine@workspace:packages/engine":
   version: 0.0.0-use.local
   resolution: "@sidequest/engine@workspace:packages/engine"
   dependencies:
-    "@sidequest/backend": "npm:1.0.0-next.6"
-    "@sidequest/core": "npm:1.0.0-next.6"
+    "@sidequest/backend": "workspace:*"
+    "@sidequest/core": "workspace:*"
     node-cron: "npm:^4.1.1"
     piscina: "npm:^5.1.2"
   languageName: unknown
@@ -11268,9 +11258,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sidequest@workspace:packages/sidequest"
   dependencies:
-    "@sidequest/core": "npm:1.0.0-next.6"
-    "@sidequest/dashboard": "npm:1.0.0-next.6"
-    "@sidequest/engine": "npm:1.0.0-next.6"
+    "@sidequest/core": "workspace:*"
+    "@sidequest/dashboard": "workspace:*"
+    "@sidequest/engine": "workspace:*"
   languageName: unknown
   linkType: soft
 
