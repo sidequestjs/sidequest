@@ -1,3 +1,10 @@
+# [1.0.0-next.12](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.11...v1.0.0-next.12) (2025-07-24)
+
+
+### Bug Fixes
+
+* update jobDefaults handling and add engine tests ([#4](https://github.com/sidequestjs/sidequest/issues/4)) ([bbd8dde](https://github.com/sidequestjs/sidequest/commit/bbd8dde20315a2092e979cc48b58646136eeee73))
+
 # [1.0.0-next.11](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.10...v1.0.0-next.11) (2025-07-24)
 
 
