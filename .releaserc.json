@@ -14,7 +14,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "yarn workspaces foreach -A version ${nextRelease.version}"
+        "prepareCmd": "yarn workspaces foreach -A --no-private version ${nextRelease.version}"
       }
     ],
     [
