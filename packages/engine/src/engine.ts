@@ -140,7 +140,9 @@ export class Engine {
       jobDefaults: {
         queue: config?.jobDefaults?.queue ?? JOB_BUILDER_FALLBACK.queue!,
         maxAttempts: config?.jobDefaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!,
-        availableAt: config?.jobDefaults?.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
+        // This here does not use a fallback default because it is a getter.
+        // It needs to be set at job creation time.
+        availableAt: config?.jobDefaults?.availableAt,
         timeout: config?.jobDefaults?.timeout ?? JOB_BUILDER_FALLBACK.timeout!,
         uniqueness: config?.jobDefaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!,
       },
@@ -237,10 +239,11 @@ export class Engine {
       this.shuttingDown = true;
       logger("Engine").debug("Closing Sidequest engine...");
       if (this.mainWorker) {
-        this.mainWorker.send({ type: "shutdown" });
-        await new Promise((resolve) => {
+        const promise = new Promise((resolve) => {
           this.mainWorker!.on("exit", resolve);
         });
+        this.mainWorker.send({ type: "shutdown" });
+        await promise;
       }
       await this.backend?.close();
       this.config = undefined;
@@ -267,6 +270,11 @@ export class Engine {
       throw new Error("Engine is shutting down, cannot build job.");
     }
     logger("Engine").debug(`Building job for class: ${JobClass.name}`);
-    return new JobBuilder(this.backend, JobClass, this.config.jobDefaults);
+    return new JobBuilder(this.backend, JobClass, {
+      ...this.config.jobDefaults,
+      // We need to do this check again because available at is a getter. It needs to be set at job creation time.
+      // If not set, it will use the fallback value which is outdated from config.
+      availableAt: this.config.jobDefaults.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
+    });
   }
 }
