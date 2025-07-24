@@ -1,3 +1,10 @@
+# [1.0.0-next.2](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.1...v1.0.0-next.2) (2025-07-24)
+
+
+### Bug Fixes
+
+* publish to npm ([477e9a2](https://github.com/sidequestjs/sidequest/commit/477e9a254f86c82cf9ae52db60af8c07db4ef623))
+
 # 1.0.0-next.1 (2025-07-24)
 
 
