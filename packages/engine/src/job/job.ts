@@ -19,7 +19,7 @@ import { pathToFileURL } from "url";
  * Type for a job class constructor.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
+export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: any) => unknown } };
 
 /**
  * Abstract base class for Sidequest jobs.
