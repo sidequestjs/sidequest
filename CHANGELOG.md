@@ -1,3 +1,13 @@
+# [1.0.0-next.7](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.6...v1.0.0-next.7) (2025-07-24)
+
+
+### Bug Fixes
+
+* remove topological ([f25b881](https://github.com/sidequestjs/sidequest/commit/f25b881db0fca3e01db3a4c1ab7b4d0eeecb8e8d))
+* removing version script ([e7736a4](https://github.com/sidequestjs/sidequest/commit/e7736a4bff01785d82ad3d2098f7b7cf6fe7d6da))
+* versions ([abd5a80](https://github.com/sidequestjs/sidequest/commit/abd5a80c7eaed20c8257af9c3323db445c50a066))
+* yarn lock ([d9cdc68](https://github.com/sidequestjs/sidequest/commit/d9cdc68ad126934e0e6c041fcc3a59c5dd64715f))
+
 # [1.0.0-next.6](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.5...v1.0.0-next.6) (2025-07-24)
 
 
