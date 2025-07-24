@@ -1,6 +1,6 @@
 {
   "name": "sidequest",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -11,6 +11,9 @@
     "import": "./dist/index.js",
     "require": "./dist/index.cjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",
