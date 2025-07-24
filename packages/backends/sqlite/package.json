@@ -12,7 +12,8 @@
     "require": "./dist/sqlite-backend.cjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "migrations"
   ],
   "scripts": {
     "build": "npx rollup -c",

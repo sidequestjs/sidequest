@@ -12,7 +12,8 @@
     "require": "./dist/mysql-backend.cjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "migrations"
   ],
   "scripts": {
     "build": "npx rollup -c",
