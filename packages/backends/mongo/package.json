@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/mongo-backend",
-  "version": "1.0.0-next.6",
+  "version": "1.0.0-next.7",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/mongo-backend.cjs",
@@ -27,5 +27,6 @@
   },
   "devDependencies": {
     "@sidequest/backend-test": "workspace:*"
-  }
+  },
+  "stableVersion": "1.0.0-next.6"
 }
