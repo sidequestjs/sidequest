@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/core",
-  "version": "1.0.0-next.3",
+  "version": "1.0.0-next.4",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -23,5 +23,6 @@
     "safe-stable-stringify": "^2.5.0",
     "winston": "^3.17.0"
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "stableVersion": "1.0.0-next.3"
 }

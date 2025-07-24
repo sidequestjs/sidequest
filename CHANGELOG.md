@@ -1,3 +1,14 @@
+# [1.0.0-next.4](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.3...v1.0.0-next.4) (2025-07-24)
+
+
+### Bug Fixes
+
+* release ([d731dd2](https://github.com/sidequestjs/sidequest/commit/d731dd2ddc753581b427607edddf3927687f9023))
+* release ([b736f50](https://github.com/sidequestjs/sidequest/commit/b736f503147c316568aca8276506d25042f54f0f))
+* test ([1da410e](https://github.com/sidequestjs/sidequest/commit/1da410e8bef669d42663f3c5229a626132a7352b))
+* test ([8444aef](https://github.com/sidequestjs/sidequest/commit/8444aefcc850c1db76d27fb96fe5fbd150e2a87b))
+* version ([be0e7d4](https://github.com/sidequestjs/sidequest/commit/be0e7d47ffe5601ba52b088c98b5e4badaf8c08e))
+
 # [1.0.0-next.3](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.2...v1.0.0-next.3) (2025-07-24)
 
 
