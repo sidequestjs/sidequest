@@ -133,6 +133,36 @@ describe("Engine", () => {
 
       await engine.close();
     });
+
+    sidequestTest("should enforce queues configs during setup", async () => {
+      const engine = new Engine();
+      const queues = [{ name: "high-priority", concurrency: 10, priority: 10 }];
+
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        queues,
+      });
+
+      let backend = engine.getBackend()!;
+      let queueList = await backend.listQueues();
+
+      await backend.updateQueue({ ...queueList[0], priority: 20 });
+      queueList = await backend.listQueues();
+      expect(queueList[0].name).toBe("high-priority");
+      expect(queueList[0].priority).toBe(20);
+
+      await engine.close();
+
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        queues,
+      });
+      backend = engine.getBackend()!;
+
+      queueList = await backend.listQueues();
+      expect(queueList[0].name).toBe("high-priority");
+      expect(queueList[0].priority).toBe(10);
+    });
   });
 
   describe("getConfig", () => {
