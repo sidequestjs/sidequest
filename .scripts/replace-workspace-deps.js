@@ -1,14 +1,11 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fg from 'fast-glob';
+import fg from "fast-glob";
+import fs from "fs/promises";
+import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const ROOT_DIR = process.cwd();
 
-const rootPkgJsonPath = path.join(ROOT_DIR, 'package.json');
-const rootPkgJson = JSON.parse(await fs.readFile(rootPkgJsonPath, 'utf-8'));
+const rootPkgJsonPath = path.join(ROOT_DIR, "package.json");
+const rootPkgJson = JSON.parse(await fs.readFile(rootPkgJsonPath, "utf-8"));
 const workspaceGlobs = rootPkgJson.workspaces;
 const unifiedVersion = rootPkgJson.version;
 
@@ -19,10 +16,10 @@ const packageDirs = await fg(workspaceGlobs, {
 });
 
 for (const dir of packageDirs) {
-  const pkgPath = path.join(dir, 'package.json');
+  const pkgPath = path.join(dir, "package.json");
   let pkg;
   try {
-    pkg = JSON.parse(await fs.readFile(pkgPath, 'utf-8'));
+    pkg = JSON.parse(await fs.readFile(pkgPath, "utf-8"));
   } catch {
     continue;
   }
@@ -33,21 +30,23 @@ for (const dir of packageDirs) {
     if (!pkg[section]) return;
     for (const depName of Object.keys(pkg[section])) {
       const val = pkg[section][depName];
-      if (val.startsWith('workspace:')) {
+      if (val.startsWith("workspace:")) {
         pkg[section][depName] = unifiedVersion;
         changed = true;
+        // eslint-disable-next-line no-console
         console.log(`[${pkg.name}] ${section}: ${depName} (${val}) → ${unifiedVersion}`);
       }
     }
   };
 
-  updateSection('dependencies');
-  updateSection('devDependencies');
-  updateSection('peerDependencies');
+  updateSection("dependencies");
+  updateSection("devDependencies");
+  updateSection("peerDependencies");
 
   if (changed) {
-    await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+    await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
   }
 }
 
+// eslint-disable-next-line no-console
 console.log(`✅ Todos os workspace:* substituídos por "${unifiedVersion}"`);
