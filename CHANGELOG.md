@@ -1,3 +1,10 @@
+# [1.0.0-next.11](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.10...v1.0.0-next.11) (2025-07-24)
+
+
+### Bug Fixes
+
+* including migrations on backends ([a670e89](https://github.com/sidequestjs/sidequest/commit/a670e89263f20eff9ad5156b997ecb6f6a9069f2))
+
 # [1.0.0-next.10](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.9...v1.0.0-next.10) (2025-07-24)
 
 
