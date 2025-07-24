@@ -2,7 +2,7 @@ name: Deploy Website
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
 
 permissions:
   contents: read
