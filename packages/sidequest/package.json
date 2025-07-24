@@ -1,6 +1,6 @@
 {
   "name": "sidequest",
-  "version": "1.0.0-next.4",
+  "version": "1.0.0-next.6",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -20,9 +20,9 @@
     "test:ci": "npx vitest run"
   },
   "dependencies": {
-    "@sidequest/core": "workspace:*",
-    "@sidequest/dashboard": "workspace:*",
-    "@sidequest/engine": "workspace:*"
+    "@sidequest/core": "1.0.0-next.6",
+    "@sidequest/dashboard": "1.0.0-next.6",
+    "@sidequest/engine": "1.0.0-next.6"
   },
   "stableVersion": "1.0.0-next.3"
 }

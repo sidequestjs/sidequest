@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/dashboard",
-  "version": "1.0.0-next.4",
+  "version": "1.0.0-next.6",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,8 +19,8 @@
   },
   "license": "LGPL-3.0-or-later",
   "dependencies": {
-    "@sidequest/backend": "workspace:*",
-    "@sidequest/core": "workspace:*",
+    "@sidequest/backend": "1.0.0-next.6",
+    "@sidequest/core": "1.0.0-next.6",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
