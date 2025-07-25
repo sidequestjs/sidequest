@@ -1,3 +1,10 @@
+# [1.0.0-next.13](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.12...v1.0.0-next.13) (2025-07-25)
+
+
+### Features
+
+* enhance queue management with defaults and force update options ([#5](https://github.com/sidequestjs/sidequest/issues/5)) ([40acbec](https://github.com/sidequestjs/sidequest/commit/40acbec8386627f90b29de9dd4937610d4153dbe))
+
 # [1.0.0-next.12](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.11...v1.0.0-next.12) (2025-07-24)
 
 
