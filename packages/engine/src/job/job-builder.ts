@@ -12,6 +12,7 @@ import {
   UniquenessConfig,
   UniquenessFactory,
 } from "@sidequest/core";
+import nodeCron from "node-cron";
 import { JOB_BUILDER_FALLBACK } from "./constants";
 import { JobClassType } from "./job";
 
@@ -208,5 +209,19 @@ export class JobBuilder<T extends JobClassType> {
     }
 
     return this.backend.createNewJob(jobData);
+  }
+
+  schedule(cronExpression: string, ...args: Parameters<InstanceType<T>["run"]>) {
+    if (!nodeCron.validate(cronExpression)) {
+      throw new Error(`Invalid cron expression ${cronExpression}`);
+    }
+
+    nodeCron.schedule(
+      cronExpression,
+      async () => {
+        await this.enqueue(...args);
+      },
+      { noOverlap: true },
+    );
   }
 }
