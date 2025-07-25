@@ -67,4 +67,6 @@ Sidequest.build(MyJob).schedule("*/5 * * * * *", "foo"); // Every 5 seconds with
 ## Limitations and Recommendations
 
 - **Persistence:** If your application restarts, any scheduled jobs must be re-scheduled via code. (This is by design and similar to other popular job libraries.)
-- **Clustering:** In a multi-instance environment, each instance will create its own scheduled jobs unless you coordinate or restrict scheduling to a single node. To avoid duplicate executions, we recommend enabling job uniqueness with a period window (e.g. “unique per hour” or “unique per minute”), so that even if multiple nodes schedule the same job, only one will actually run for each interval.
+- **Clustering:** In a multi-instance environment, each instance will create its own scheduled jobs unless you coordinate or restrict scheduling to a single node. 
+  To avoid duplicate executions, we recommend enabling job uniqueness with a period window (e.g., “unique per hour” or “unique per minute”). 
+  This ensures that even if multiple nodes schedule the same job, only one will actually run for each interval.
