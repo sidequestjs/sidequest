@@ -166,7 +166,7 @@ export class Engine {
 
     if (this.config.queues) {
       for (const queue of this.config.queues) {
-        await grantQueueConfig(this.backend, queue, this.config.queueDefaults);
+        await grantQueueConfig(this.backend, queue, this.config.queueDefaults, true);
       }
     }
 

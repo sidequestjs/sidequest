@@ -32,12 +32,19 @@ export function differentQueueConfig(queue: NewQueueData, queueConfig: QueueConf
  * Ensures a queue configuration exists, creating it if necessary.
  * @param queue The name of the queue.
  * @param config Optional configuration for the new queue.
+ * @param defaults Optional default values for the queue.
+ * @param forceUpdate If true, updates the queue configuration even if it already exists.
  * @returns The queue configuration.
  */
-export async function grantQueueConfig(backend: Backend, queue: NewQueueData, defaults?: QueueDefaults) {
+export async function grantQueueConfig(
+  backend: Backend,
+  queue: NewQueueData,
+  defaults?: QueueDefaults,
+  forceUpdate = false,
+) {
   const queueConfig = await backend?.getQueue(queue.name);
   if (queueConfig) {
-    if (differentQueueConfig(queue, queueConfig)) {
+    if (forceUpdate && differentQueueConfig(queue, queueConfig)) {
       logger("Engine").warn(
         `Queue config for ${queue.name} exists but differs from the provided configuration. Updating...`,
       );

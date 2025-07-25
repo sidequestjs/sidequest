@@ -48,4 +48,36 @@ describe("QueueManager", () => {
     expect(queues[0].name).toEqual("high");
     expect(queues[0].priority).toEqual(10);
   });
+
+  sidequestTest("should not override queue state when it has been changed", async ({ engine, backend }) => {
+    // Enqueue a job to this queue
+    await engine.build(DummyJob).queue("test-queue").enqueue();
+
+    // Create a new QueueManager instance
+    const queueManager = new QueueManager(backend, [{ name: "test-queue", state: "active" }]);
+    // Get active queues with runnable jobs
+    // This will create the queue if it doesn't exist
+    let queues = await queueManager.getActiveQueuesWithRunnableJobs();
+    expect(queues).toHaveLength(1);
+
+    let queue = await backend.getQueue("test-queue");
+    // Manually change the queue state to paused
+    await backend.updateQueue({ id: queue!.id, state: "paused" });
+
+    // Verify the state was changed
+    queue = await backend.getQueue("test-queue");
+    expect(queue?.state).toBe("paused");
+
+    // Call it again to see if it overrides the state
+    queues = await queueManager.getActiveQueuesWithRunnableJobs();
+    expect(queues).toHaveLength(0);
+
+    // Verify that the state remains paused and was not overridden
+    queue = await backend.getQueue("test-queue");
+    expect(queue?.state).toBe("paused");
+
+    // Verify that the paused queue is not included in active queues with runnable jobs
+    queues = await queueManager.getActiveQueuesWithRunnableJobs();
+    expect(queues).toHaveLength(0);
+  });
 });
