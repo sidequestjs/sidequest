@@ -1,6 +1,19 @@
 import { sidequestTest } from "@/tests/fixture";
+import { Backend } from "@sidequest/backend";
+import { JobData } from "@sidequest/core";
+import nodeCron from "node-cron";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
+
+vi.mock("node-cron", () => ({
+  default: {
+    validate: vi.fn(() => true),
+    schedule: vi.fn(),
+  },
+}));
+
+const scheduleMock = vi.mocked(nodeCron.schedule);
+const validateMock = vi.mocked(nodeCron.validate);
 
 describe("JobBuilder", () => {
   sidequestTest("enqueues a job at default queue", async ({ backend }) => {
@@ -181,6 +194,45 @@ describe("JobBuilder", () => {
         .unique({ withArgs: true, period: "minute" })
         .enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
+    });
+  });
+
+  describe("schedule", () => {
+    let jobBuilder: JobBuilder<typeof DummyJob>;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      jobBuilder = new JobBuilder({} as Backend, DummyJob);
+    });
+
+    it("calls node-cron with correct cron expression and enqueues job with args", async () => {
+      const cronExpression = "* * * * *";
+
+      const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+      const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+      jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+      await jobBuilder.schedule(cronExpression, "foo", "bar");
+
+      expect(nodeCron.validate).toHaveBeenCalledWith(cronExpression);
+      expect(nodeCron.schedule).toHaveBeenCalled();
+
+      const [calledExpression, callback] = scheduleMock.mock.calls[0] as [
+        string,
+        (...args: unknown[]) => unknown,
+        unknown?,
+      ];
+      expect(calledExpression).toBe(cronExpression);
+
+      await callback();
+
+      expect(createNewJobMock).toHaveBeenCalled();
+    });
+
+    it("throws error if cron expression is invalid", async () => {
+      validateMock.mockReturnValueOnce(false);
+
+      await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
     });
   });
 });
