@@ -207,9 +207,12 @@ describe("JobBuilder", () => {
 
     it("calls node-cron with correct cron expression and enqueues job with args", async () => {
       const cronExpression = "* * * * *";
-      const enqueueSpy = vi.spyOn(jobBuilder, "enqueue").mockResolvedValue({} as JobData);
 
-      jobBuilder.schedule(cronExpression, "foo", "bar");
+      const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+      const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+      jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+      await jobBuilder.schedule(cronExpression, "foo", "bar");
 
       expect(nodeCron.validate).toHaveBeenCalledWith(cronExpression);
       expect(nodeCron.schedule).toHaveBeenCalled();
@@ -220,15 +223,16 @@ describe("JobBuilder", () => {
         unknown?,
       ];
       expect(calledExpression).toBe(cronExpression);
+
       await callback();
 
-      expect(enqueueSpy).toHaveBeenCalledWith("foo", "bar");
+      expect(createNewJobMock).toHaveBeenCalled();
     });
 
-    it("throws error if cron expression is invalid", () => {
+    it("throws error if cron expression is invalid", async () => {
       validateMock.mockReturnValueOnce(false);
 
-      expect(() => jobBuilder.schedule("invalid-cron")).toThrow("Invalid cron expression invalid-cron");
+      await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
     });
   });
 });
