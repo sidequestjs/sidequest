@@ -211,6 +211,22 @@ export class JobBuilder<T extends JobClassType> {
     return this.backend.createNewJob(jobData);
   }
 
+  /**
+   * Schedules the job to be enqueued automatically according to a cron expression.
+   *
+   * This sets up an in-memory recurring schedule that enqueues the job with the specified arguments
+   * every time the cron expression triggers.
+   *
+   * @remarks
+   * - The schedule is **not persisted** to the database. If the process is restarted, all scheduled jobs will be lost and must be re-registered.
+   * - You must call this method during your application initialization or startup to ensure the schedule is active.
+   * - Uses node-cron's `noOverlap: true` to prevent overlapping runs.
+   *
+   * @param cronExpression - A valid cron expression, compatible with node-cron, defining when the job should be enqueued.
+   * @param args - Arguments to pass to the job's `run` method each time it is enqueued.
+   *
+   * @throws {Error} If the provided cron expression is invalid.
+   */
   schedule(cronExpression: string, ...args: Parameters<InstanceType<T>["run"]>) {
     if (!nodeCron.validate(cronExpression)) {
       throw new Error(`Invalid cron expression ${cronExpression}`);

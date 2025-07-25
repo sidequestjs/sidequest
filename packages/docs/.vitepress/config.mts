@@ -53,6 +53,10 @@ export default defineConfig({
             link: "/convenience-methods",
           },
           {
+            text: "Recurring Jobs",
+            link: "/recurring",
+          },
+          {
             text: "Logging",
             link: "/logging",
           },
