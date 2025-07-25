@@ -1,3 +1,10 @@
+# [1.0.0-next.14](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.13...v1.0.0-next.14) (2025-07-25)
+
+
+### Features
+
+* recurring jobs ([#12](https://github.com/sidequestjs/sidequest/issues/12)) ([cd66663](https://github.com/sidequestjs/sidequest/commit/cd6666318fb1786e09354954c39cc76ed24c11b5))
+
 # [1.0.0-next.13](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.12...v1.0.0-next.13) (2025-07-25)
 
 
