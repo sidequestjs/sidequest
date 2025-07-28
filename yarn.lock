@@ -2652,6 +2652,8 @@ __metadata:
     "@sidequest/core": "workspace:*"
     node-cron: "npm:^4.1.1"
     piscina: "npm:^5.1.2"
+  peerDependencies:
+    sidequest: "workspace:*"
   languageName: unknown
   linkType: soft
 
