@@ -1,11 +1,4 @@
-import {
-  Backend,
-  BackendConfig,
-  createBackendFromDriver,
-  MISC_FALLBACK,
-  NewQueueData,
-  QUEUE_FALLBACK,
-} from "@sidequest/backend";
+import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
 import { configureLogger, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
@@ -153,21 +146,15 @@ export class Engine {
       },
     };
 
+    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
+
     if (this.config.logger) {
       configureLogger(this.config.logger);
     }
 
-    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
-    this.backend = await createBackendFromDriver(this.config.backend);
-
+    this.backend = new LazyBackend(this.config.backend);
     if (!this.config.skipMigration) {
       await this.backend.migrate();
-    }
-
-    if (this.config.queues) {
-      for (const queue of this.config.queues) {
-        await grantQueueConfig(this.backend, queue, this.config.queueDefaults, true);
-      }
     }
 
     return this.config;
@@ -181,6 +168,12 @@ export class Engine {
     await this.configure(config);
 
     logger("Engine").info(`Starting Sidequest using backend ${this.config!.backend.driver}`);
+
+    if (this.config!.queues) {
+      for (const queue of this.config!.queues) {
+        await grantQueueConfig(this.backend!, queue, this.config!.queueDefaults, true);
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
