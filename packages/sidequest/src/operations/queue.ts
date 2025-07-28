@@ -13,7 +13,7 @@ export class QueueOperations {
    * @returns The backend instance.
    * @throws Error if the engine is not configured.
    */
-  private backend: Backend | undefined;
+  private backend?: Backend;
 
   /**
    * Singleton instance of QueueOperations.
@@ -35,7 +35,7 @@ export class QueueOperations {
    *
    * @param backend - The backend instance to set
    */
-  public setBackend(backend: Backend) {
+  public setBackend(backend: Backend | undefined) {
     this.backend = backend;
   }
 

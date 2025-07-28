@@ -10,6 +10,10 @@ on:
       - "CONTRIBUTING.md"
       - "LICENSE.md"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

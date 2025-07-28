@@ -79,8 +79,8 @@ export class Sidequest {
    */
   static async configure(config?: EngineConfig) {
     const _config = await this.engine.configure(config);
-    this.job.setBackend(this.engine.getBackend()!);
-    this.queue.setBackend(this.engine.getBackend()!);
+    this.job.setBackend(this.engine.getBackend());
+    this.queue.setBackend(this.engine.getBackend());
     return _config;
   }
 
@@ -113,9 +113,22 @@ export class Sidequest {
     await dashboard;
   }
 
+  /**
+   * Stops the SideQuest instance by closing all active components.
+   *
+   * This method performs cleanup operations including:
+   * - Closing the engine
+   * - Clearing the job backend
+   * - Clearing the queue backend
+   * - Closing the dashboard
+   *
+   * @returns A promise that resolves when all cleanup operations are complete
+   */
   static async stop() {
     await this.engine.close();
-    this.dashboard.close();
+    this.job.setBackend(undefined);
+    this.queue.setBackend(undefined);
+    await this.dashboard.close();
   }
 
   /**

@@ -14,7 +14,7 @@ export class JobOperations {
    * @returns The backend instance.
    * @throws Error if the engine is not configured.
    */
-  private backend: Backend | undefined;
+  private backend?: Backend;
 
   /**
    * Singleton instance of JobOperations.
@@ -36,7 +36,7 @@ export class JobOperations {
    *
    * @param backend - The backend instance to set
    */
-  public setBackend(backend: Backend) {
+  public setBackend(backend: Backend | undefined) {
     this.backend = backend;
   }
 

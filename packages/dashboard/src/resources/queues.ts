@@ -1,6 +1,5 @@
 import { Backend } from "@sidequest/backend";
 import { Request, Response, Router } from "express";
-import { getBackend } from "../backend-driver";
 
 export async function renderQueuesTable(backend: Backend, req: Request, res: Response) {
   const queues = await backend.listQueues({ column: "name", order: "asc" });
@@ -18,22 +17,22 @@ export async function renderQueuesTable(backend: Backend, req: Request, res: Res
   }
 }
 
-const queuesRouter = Router();
+export function createQueuesRouter(backend: Backend) {
+  const queuesRouter = Router();
 
-queuesRouter.get("/", async (req, res) => {
-  const backend = getBackend();
-  await renderQueuesTable(backend, req, res);
-});
+  queuesRouter.get("/", async (req, res) => {
+    await renderQueuesTable(backend, req, res);
+  });
 
-queuesRouter.patch("/:name/toggle", async (req, res) => {
-  const backend = getBackend();
-  const queue = await backend.getQueue(req.params.name);
-  if (queue) {
-    await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
-    res.header("HX-Trigger", "toggleQueue").status(200).end();
-  } else {
-    res.status(404).end();
-  }
-});
+  queuesRouter.patch("/:name/toggle", async (req, res) => {
+    const queue = await backend.getQueue(req.params.name);
+    if (queue) {
+      await backend.updateQueue({ ...queue, state: queue.state === "active" ? "paused" : "active" });
+      res.header("HX-Trigger", "toggleQueue").status(200).end();
+    } else {
+      res.status(404).end();
+    }
+  });
 
-export default queuesRouter;
+  return ["/queues", queuesRouter] as const;
+}
