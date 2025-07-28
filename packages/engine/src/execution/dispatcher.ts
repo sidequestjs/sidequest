@@ -4,6 +4,7 @@ import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
 const sleepDelay = 100;
+const maxSafeClaim = 20;
 
 /**
  * Dispatcher for managing job execution and queue polling.
@@ -50,7 +51,8 @@ export class Dispatcher {
         }
 
         const availableSlots = Math.min(queueAvailableSlots, globalSlots);
-        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, availableSlots);
+        const safeAvailableSlots = Number.MAX_SAFE_INTEGER === availableSlots ? maxSafeClaim : availableSlots;
+        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, safeAvailableSlots);
 
         if (jobs.length > 0) {
           // if a job was found on any queue do not sleep
@@ -60,6 +62,10 @@ export class Dispatcher {
         for (const job of jobs) {
           // does not await for job execution.
           void this.executorManager.execute(queue, job);
+        }
+
+        if(availableSlots == Number.MAX_SAFE_INTEGER){
+          break;
         }
       }
 

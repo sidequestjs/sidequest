@@ -69,7 +69,7 @@ describe("ExecutorManager", () => {
     });
 
     sidequestTest("snoozes job when queue is full", async ({ backend, config }) => {
-      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 }); // No available slots
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 }); // Unlimited slots
       const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
 
       // Set up job in claimed state (as it would be when passed to execute)
@@ -77,29 +77,27 @@ describe("ExecutorManager", () => {
 
       await executorManager.execute(queryConfig, jobData);
 
-      // Verify the job runner was NOT called since the job was snoozed
-      expect(runMock).not.toHaveBeenCalled();
+      expect(runMock).toHaveBeenCalled();
 
       // Verify slots remain unchanged (no job was actually executed)
-      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(Number.MAX_SAFE_INTEGER);
       expect(executorManager.totalActiveWorkers()).toEqual(0);
       await executorManager.destroy();
     });
 
     sidequestTest("snoozes job when global slots are full", async ({ backend }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 5 }); // Queue has slots
-      const executorManager = new ExecutorManager(backend, 0, 2, 4); // But global max is 0
+      const executorManager = new ExecutorManager(backend, 0, 2, 4); // But global is unlimited
 
       // Set up job in claimed state
       jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 
       await executorManager.execute(queryConfig, jobData);
 
-      // Verify the job runner was NOT called
-      expect(runMock).not.toHaveBeenCalled();
+      expect(runMock).toHaveBeenCalled();
 
       // Verify global slots show as full
-      expect(executorManager.availableSlotsGlobal()).toEqual(0);
+      expect(executorManager.availableSlotsGlobal()).toEqual(Number.MAX_SAFE_INTEGER);
       expect(executorManager.totalActiveWorkers()).toEqual(0);
       await executorManager.destroy();
     });
@@ -113,12 +111,12 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
-    sidequestTest("returns zero as min value", async ({ backend, config }) => {
+    sidequestTest("Number.MAX_SAFE_INTEGER", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
       const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
 
       void executorManager.execute(queryConfig, jobData);
-      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(Number.MAX_SAFE_INTEGER);
       await executorManager.destroy();
     });
   });
@@ -130,12 +128,12 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
-    sidequestTest("returns zero as min value", async ({ backend }) => {
+    sidequestTest("Number.MAX_SAFE_INTEGER", async ({ backend }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
       const executorManager = new ExecutorManager(backend, 0, 2, 4);
 
       void executorManager.execute(queryConfig, jobData);
-      expect(executorManager.availableSlotsGlobal()).toEqual(0);
+      expect(executorManager.availableSlotsGlobal()).toEqual(Number.MAX_SAFE_INTEGER);
       await executorManager.destroy();
     });
   });
