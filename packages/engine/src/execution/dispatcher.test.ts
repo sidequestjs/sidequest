@@ -1,6 +1,7 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
 import { CompletedResult, JobData } from "@sidequest/core";
+import { NonNullableEngineConfig } from "packages/engine/dist";
 import { EngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Dispatcher } from "./dispatcher";
@@ -58,7 +59,7 @@ describe("Dispatcher", () => {
       const dispatcher = new Dispatcher(
         backend,
         new QueueManager(backend, config.queues!),
-        new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4),
+        new ExecutorManager(backend, config as NonNullableEngineConfig),
       );
       dispatcher.start();
 
@@ -82,7 +83,7 @@ describe("Dispatcher", () => {
       const dispatcher = new Dispatcher(
         backend,
         new QueueManager(backend, config.queues!),
-        new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4),
+        new ExecutorManager(backend, config as NonNullableEngineConfig),
       );
       dispatcher.start();
 
@@ -112,7 +113,7 @@ describe("Dispatcher", () => {
       const dispatcher = new Dispatcher(
         backend,
         new QueueManager(backend, config.queues!),
-        new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4),
+        new ExecutorManager(backend, config as NonNullableEngineConfig),
       );
       dispatcher.start();
 

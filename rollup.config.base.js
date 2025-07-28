@@ -5,7 +5,11 @@ import typescript from "@rollup/plugin-typescript";
 import dts from "rollup-plugin-dts";
 
 export default function createConfig(pkg, input = "src/index.ts", plugins = []) {
-  const external = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})];
+  const external = [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+    ...Object.keys(pkg.optionalDependencies || {}),
+  ];
 
   // Shared base plugins (without replace)
   const basePlugins = () => [

@@ -20,7 +20,7 @@ describe("RunnerPool", () => {
   let pool: RunnerPool;
   let jobData: JobData;
 
-  beforeEach<SidequestTestFixture>(async ({ backend }) => {
+  beforeEach<SidequestTestFixture>(async ({ backend, config }) => {
     const job = new DummyJob();
     await job.ready();
 
@@ -34,15 +34,15 @@ describe("RunnerPool", () => {
       state: "waiting",
     });
 
-    pool = new RunnerPool(2, 4);
+    pool = new RunnerPool(config);
   });
 
-  sidequestTest("should call pool.run with job data", async () => {
+  sidequestTest("should call pool.run with job data", async ({ config }) => {
     const emiter = new EventEmitter();
     const result = await pool.run(jobData, emiter);
 
     expect(result).toEqual({ type: "completed", result: "ok" });
-    expect(piscinaMockInstance.run).toHaveBeenCalledWith(jobData, { signal: emiter });
+    expect(piscinaMockInstance.run).toHaveBeenCalledWith({ jobData, config }, { signal: emiter });
   });
 
   sidequestTest("should call pool.destroy", async () => {
