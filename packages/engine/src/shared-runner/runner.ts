@@ -53,8 +53,8 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
 export async function injectSidequestConfig(config: EngineConfig) {
   try {
     logger("Runner").debug("Injecting Sidequest config into job script");
-    const sidequest = await importSidequest();
-    await sidequest.Sidequest.configure({ ...config, skipMigration: true });
+    const { Sidequest } = await importSidequest();
+    await Sidequest.configure({ ...config, skipMigration: true });
     logger("Runner").debug("Successfully injected Sidequest config");
     return true;
   } catch (error) {
