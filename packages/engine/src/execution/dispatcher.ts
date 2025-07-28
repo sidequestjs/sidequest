@@ -64,7 +64,7 @@ export class Dispatcher {
           void this.executorManager.execute(queue, job);
         }
 
-        if(availableSlots == Number.MAX_SAFE_INTEGER){
+        if (availableSlots == Number.MAX_SAFE_INTEGER) {
           break;
         }
       }

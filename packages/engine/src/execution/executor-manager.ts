@@ -42,7 +42,7 @@ export class ExecutorManager {
     const activeJobs = this.activeByQueue[queueConfig.name];
     const limit = queueConfig.concurrency ?? 10;
 
-    if(limit === 0){
+    if (limit === 0) {
       return Number.MAX_SAFE_INTEGER;
     }
 
@@ -59,10 +59,10 @@ export class ExecutorManager {
    */
   availableSlotsGlobal() {
     const limit = this.maxConcurrentJobs;
-    if(limit === 0){
+    if (limit === 0) {
       return Number.MAX_SAFE_INTEGER;
     }
-    
+
     const availableSlots = limit - this.activeJobs.size;
     if (availableSlots < 0) {
       return 0;
