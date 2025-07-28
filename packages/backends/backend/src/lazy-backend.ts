@@ -1,4 +1,4 @@
-import { JobData, JobState, QueueConfig } from "packages/core/dist";
+import { JobData, JobState, QueueConfig } from "@sidequest/core";
 import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
 import { BackendConfig } from "./config";
 import { createBackendFromDriver } from "./factory";

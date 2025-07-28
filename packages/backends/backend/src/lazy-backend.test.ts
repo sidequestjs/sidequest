@@ -43,11 +43,11 @@ describe("LazyBackend", () => {
   });
 
   it("should lazily initialize backend on first use", async () => {
-    // @ts-expect-error this exists
+    // @ts-expect-error Accessing private 'backend' property for testing lazy initialization behavior
     expect(lazyBackend.backend).toBeUndefined();
     await lazyBackend.migrate();
     expect(createBackendFromDriver).toHaveBeenCalledWith(config);
-    // @ts-expect-error this exists
+    // @ts-expect-error Accessing private 'backend' property for testing lazy initialization behavior
     expect(lazyBackend.backend).toBe(mockBackend);
   });
 

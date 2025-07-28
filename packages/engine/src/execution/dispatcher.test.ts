@@ -1,8 +1,7 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
 import { CompletedResult, JobData } from "@sidequest/core";
-import { NonNullableEngineConfig } from "packages/engine/dist";
-import { EngineConfig } from "../engine";
+import { EngineConfig, NonNullableEngineConfig } from "../engine";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { Dispatcher } from "./dispatcher";
 import { ExecutorManager } from "./executor-manager";

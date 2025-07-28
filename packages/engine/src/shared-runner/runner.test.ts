@@ -69,8 +69,9 @@ describe("injectSidequestConfig", () => {
 
   sidequestTest("injects config successfully", async ({ config }) => {
     const configureMock = vi.fn().mockResolvedValue(undefined);
-    // Set up the mock for importSidequest
-    // @ts-expect-error this is correct
+    // @ts-expect-error TypeScript does not recognize the mocked structure as valid,
+    // but this is correct because vi.mocked is used to mock the importSidequest function,
+    // and the runtime behavior has been verified to match the expected type.
     vi.mocked(importSidequest).mockResolvedValue({ Sidequest: { configure: configureMock } });
 
     const result = await injectSidequestConfig(config);
