@@ -19,7 +19,7 @@ vi.mock("../shared-runner", () => ({
 async function createJob(backend: Backend, queue = "default") {
   const job = new DummyJob();
   await job.ready();
-  await backend.createNewJob({
+  return await backend.createNewJob({
     queue: queue,
     state: "waiting",
     script: job.script,
@@ -129,6 +129,46 @@ describe("Dispatcher", () => {
 
       expect(jobs!).toHaveLength(1);
       expect(jobs![0].queue).toEqual("other");
+
+      await dispatcher.stop();
+    });
+
+    sidequestTest("does not claim more jobs than queue concurrency allows", async ({ backend }) => {
+      const claimSpy = vi.spyOn(backend, "claimPendingJob").mockResolvedValue([]);
+
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(backend, [{ name: "default", concurrency: 10 }]),
+        new ExecutorManager(backend, 20, 2, 4),
+      );
+
+      dispatcher.start();
+
+      await vi.waitUntil(() => {
+        return claimSpy.mock.calls.length > 0;
+      });
+
+      expect(claimSpy).toHaveBeenCalledWith("default", 10);
+
+      await dispatcher.stop();
+    });
+
+    sidequestTest("does not claim more jobs than global concurrency allows", async ({ backend }) => {
+      const claimSpy = vi.spyOn(backend, "claimPendingJob").mockResolvedValue([]);
+
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(backend, [{ name: "default", concurrency: 10 }]),
+        new ExecutorManager(backend, 1, 2, 4),
+      );
+
+      dispatcher.start();
+
+      await vi.waitUntil(() => {
+        return claimSpy.mock.calls.length > 0;
+      });
+
+      expect(claimSpy).toHaveBeenCalledWith("default", 1);
 
       await dispatcher.stop();
     });

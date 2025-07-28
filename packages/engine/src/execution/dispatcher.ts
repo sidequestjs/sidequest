@@ -35,8 +35,8 @@ export class Dispatcher {
       let shouldSleep = true;
 
       for (const queue of queues) {
-        const availableSlots = this.executorManager.availableSlotsByQueue(queue);
-        if (availableSlots <= 0) {
+        const queueAvailableSlots = this.executorManager.availableSlotsByQueue(queue);
+        if (queueAvailableSlots <= 0) {
           logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
           await this.sleep(sleepDelay);
           continue;
@@ -49,6 +49,7 @@ export class Dispatcher {
           continue;
         }
 
+        const availableSlots = Math.min(queueAvailableSlots, globalSlots);
         const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, availableSlots);
 
         if (jobs.length > 0) {
