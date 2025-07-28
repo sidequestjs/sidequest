@@ -85,7 +85,7 @@ program
           : backend === "@sidequest/mysql-backend"
             ? "mysql://root:mysql@localhost:3306/dbname"
             : backend === "@sidequest/mongo-backend"
-              ? "mongodb://127.0.0.1:27017/test"
+              ? "mongodb://127.0.0.1:27017/dbname"
               : "file:./mydb.sqlite";
 
       const { manualConn } = (await inquirer.prompt([
