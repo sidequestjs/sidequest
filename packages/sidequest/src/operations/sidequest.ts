@@ -128,7 +128,7 @@ export class Sidequest {
     await this.engine.close();
     this.job.setBackend(undefined);
     this.queue.setBackend(undefined);
-    this.dashboard.close();
+    await this.dashboard.close();
   }
 
   /**
