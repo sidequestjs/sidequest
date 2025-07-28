@@ -55,7 +55,12 @@ program
         type: "list",
         name: "backendChoice",
         message: "Choose a backend:",
-        choices: ["@sidequest/postgres-backend", "@sidequest/sqlite-backend", "@sidequest/mysql-backend"],
+        choices: [
+          "@sidequest/postgres-backend",
+          "@sidequest/sqlite-backend",
+          "@sidequest/mysql-backend",
+          "@sidequest/mongo-backend",
+        ],
       },
     ])) as { backendChoice: string };
 
@@ -79,7 +84,9 @@ program
           ? "postgres://user:password@localhost:5432/dbname"
           : backend === "@sidequest/mysql-backend"
             ? "mysql://root:mysql@localhost:3306/dbname"
-            : "file:./mydb.sqlite";
+            : backend === "@sidequest/mongo-backend"
+              ? "mongodb://127.0.0.1:27017/test"
+              : "file:./mydb.sqlite";
 
       const { manualConn } = (await inquirer.prompt([
         {
