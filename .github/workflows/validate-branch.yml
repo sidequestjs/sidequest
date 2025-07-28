@@ -13,7 +13,7 @@ jobs:
 
       - name: Validate branch name
         run: |
-          BRANCH_NAME="${{ github.head_ref }}"
+          BRANCH_NAME=$(printf "%s" "${{ github.head_ref }}")
           echo "Branch name: $BRANCH_NAME"
           if [[ ! "$BRANCH_NAME" =~ ^(feat|fix|chore|docs|refactor|style|test|tests|perf|build)/.+$ ]]; then
             echo "::error::Invalid branch name: '$BRANCH_NAME'."
@@ -24,7 +24,7 @@ jobs:
 
       - name: Validate PR title
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_TITLE=$(printf "%s" "${{ github.event.pull_request.title }}")
           echo "PR title: $PR_TITLE"
           if [[ ! "$PR_TITLE" =~ ^(feat|fix|chore|docs|refactor|style|test|tests|perf|build)(\(.+\))?:\ .+ ]]; then
             echo "::error::Invalid PR title: $PR_TITLE"
