@@ -52,4 +52,6 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          GIT_COMMITTER_NAME: merencia
+          GIT_COMMITTER_EMAIL: lucas@merencia.com
         run: npx semantic-release
