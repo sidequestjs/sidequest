@@ -23,7 +23,7 @@ export class JobTransitioner {
       return jobData;
     }
 
-    logger("JobTransitioner").info(`Applying transition ${transition.constructor.name} to job ${jobData.id}`);
+    logger("JobTransitioner").debug(`Applying transition ${transition.constructor.name} to job ${jobData.id}`);
     const newData = transition.apply(jobData);
     if (newData.uniqueness_config) {
       const uniqueness = UniquenessFactory.create(newData.uniqueness_config);

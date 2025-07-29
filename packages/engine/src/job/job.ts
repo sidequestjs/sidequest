@@ -318,7 +318,7 @@ async function hasClassExported(filePath: string, className: string): Promise<bo
 
     return false;
   } catch (e) {
-    logger().debug(e);
+    logger("Core").debug(e);
     return false;
   }
 }
