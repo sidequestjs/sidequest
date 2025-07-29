@@ -3,8 +3,6 @@ import { JobData, logger } from "@sidequest/core";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
-const sleepDelay = 100;
-
 /**
  * Dispatcher for managing job execution and queue polling.
  */
@@ -22,6 +20,8 @@ export class Dispatcher {
     private backend: Backend,
     private queueManager: QueueManager,
     private executorManager: ExecutorManager,
+    private idlePollingInterval: number,
+    private maxClaimedJobsPerCycle: number,
   ) {}
 
   /**
@@ -35,21 +35,24 @@ export class Dispatcher {
       let shouldSleep = true;
 
       for (const queue of queues) {
-        const availableSlots = this.executorManager.availableSlotsByQueue(queue);
-        if (availableSlots <= 0) {
+        const queueAvailableSlots = this.executorManager.availableSlotsByQueue(queue);
+        if (queueAvailableSlots <= 0) {
           logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.idlePollingInterval);
           continue;
         }
 
         const globalSlots = this.executorManager.availableSlotsGlobal();
         if (globalSlots <= 0) {
           logger("Dispatcher").debug(`Global concurrency limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.idlePollingInterval);
           continue;
         }
 
-        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, availableSlots);
+        const availableSlots = Math.min(queueAvailableSlots, globalSlots);
+        const safeAvailableSlots =
+          Number.MAX_SAFE_INTEGER === availableSlots ? this.maxClaimedJobsPerCycle : availableSlots;
+        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, safeAvailableSlots);
 
         if (jobs.length > 0) {
           // if a job was found on any queue do not sleep
@@ -60,10 +63,14 @@ export class Dispatcher {
           // does not await for job execution.
           void this.executorManager.execute(queue, job);
         }
+
+        if (availableSlots === Number.MAX_SAFE_INTEGER) {
+          break;
+        }
       }
 
       if (shouldSleep) {
-        await this.sleep(sleepDelay);
+        await this.sleep(this.idlePollingInterval);
       }
     }
   }

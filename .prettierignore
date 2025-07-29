@@ -19,3 +19,6 @@ migrations/
 *.tmp
 
 packages/docs/.vitepress/cache
+
+# generated file
+CHANGELOG.md
