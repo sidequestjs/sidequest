@@ -73,7 +73,7 @@ describe("ExecutorManager", () => {
       await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       let expectedPromise;
       runMock.mockImplementationOnce(async (job: JobData, signal: EventEmitter) => {
@@ -105,7 +105,7 @@ describe("ExecutorManager", () => {
       await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       runMock.mockImplementationOnce(() => {
         throw new Error("Unhandled error during job execution");
