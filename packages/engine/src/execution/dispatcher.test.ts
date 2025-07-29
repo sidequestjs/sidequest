@@ -77,7 +77,7 @@ describe("Dispatcher", () => {
     });
 
     sidequestTest(
-      "claim up to 20 jobs when the max concurency and job concurrency was unlimited",
+      "claim up to 20 jobs when the max concurrency and job concurrency was unlimited",
       async ({ backend }) => {
         const claimSpy = vi.spyOn(backend, "claimPendingJob").mockResolvedValue([]);
 
