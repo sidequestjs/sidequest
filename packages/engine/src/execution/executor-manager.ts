@@ -1,5 +1,13 @@
 import { Backend } from "@sidequest/backend";
-import { JobData, JobTransitionFactory, logger, QueueConfig, RunTransition, SnoozeTransition } from "@sidequest/core";
+import {
+  JobData,
+  JobTransitionFactory,
+  logger,
+  QueueConfig,
+  RetryTransition,
+  RunTransition,
+  SnoozeTransition,
+} from "@sidequest/core";
 import EventEmitter from "events";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
@@ -123,8 +131,8 @@ export class ExecutorManager {
       if (err.message === "The task has been aborted") {
         logger("Executor Manager").debug(`Job ${job.id} was canceled`);
       } else {
-        logger("Executor Manager").error(`Error executing job ${job.id}: ${err.message}`);
-        throw error;
+        logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
+        await JobTransitioner.apply(this.backend, job, new RetryTransition(err));
       }
     } finally {
       isRunning = false;

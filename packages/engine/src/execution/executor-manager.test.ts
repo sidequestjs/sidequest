@@ -1,12 +1,13 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
-import { CompletedResult, JobData } from "@sidequest/core";
+import { CompletedResult, JobData, RetryTransition, RunTransition } from "@sidequest/core";
 import EventEmitter from "events";
+import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { ExecutorManager } from "./executor-manager";
 
-const runMock = vi.fn();
+const runMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
   RunnerPool: vi.fn().mockImplementation(() => ({
@@ -65,6 +66,66 @@ describe("ExecutorManager", () => {
       expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
+      await executorManager.destroy();
+    });
+
+    sidequestTest("should abort job execution", async ({ backend, config }) => {
+      await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
+
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+
+      let expectedPromise;
+      runMock.mockImplementationOnce(async (job: JobData, signal: EventEmitter) => {
+        const promise = new Promise((_, reject) => {
+          signal.on("abort", () => {
+            reject(new Error("The task has been aborted"));
+          });
+        });
+        await backend.updateJob({ ...job, state: "canceled" });
+        expectedPromise = promise;
+        return promise;
+      });
+
+      const execPromise = executorManager.execute(queryConfig, jobData);
+
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.availableSlotsGlobal()).toEqual(9);
+
+      await execPromise;
+      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toHaveReturnedWith(expectedPromise);
+      await expect(expectedPromise).rejects.toThrow("The task has been aborted");
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
+      expect(executorManager.availableSlotsGlobal()).toEqual(10);
+      await executorManager.destroy();
+    });
+
+    sidequestTest("should retry when unhandled error", async ({ backend, config }) => {
+      await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
+
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+
+      runMock.mockImplementationOnce(() => {
+        throw new Error("Unhandled error during job execution");
+      });
+
+      const execPromise = executorManager.execute(queryConfig, jobData);
+
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.availableSlotsGlobal()).toEqual(9);
+
+      await execPromise;
+      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
+      expect(executorManager.availableSlotsGlobal()).toEqual(10);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(RunTransition));
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
+
       await executorManager.destroy();
     });
 

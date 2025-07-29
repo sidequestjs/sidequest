@@ -196,7 +196,7 @@ describe("job.ts", () => {
       expect(result.result).toBe("abc");
     });
 
-    sidequestTest("should return the JobResult retyurne by run", async () => {
+    sidequestTest("should return the JobResult return by run", async () => {
       class TransitionJob extends Job {
         run() {
           return { __is_job_transition__: true, type: "snooze" } as SnoozeResult;
@@ -217,6 +217,21 @@ describe("job.ts", () => {
       const result = (await job.perform()) as RetryResult;
       expect(result.type).toBe("retry");
       expect(result.error.message).toEqual("fail!");
+    });
+
+    sidequestTest("should return RetryResult if run unhandled promise", async () => {
+      class DummyUnhandled extends Job {
+        run() {
+          return new Promise(() => {
+            throw new Error("unhandled error");
+          });
+        }
+      }
+
+      const job = new DummyUnhandled();
+      const result = (await job.perform()) as RetryResult;
+      expect(result.type).toBe("retry");
+      expect(result.error.message).toEqual("unhandled error");
     });
   });
 });
