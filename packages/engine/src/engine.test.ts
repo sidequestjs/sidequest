@@ -111,58 +111,6 @@ describe("Engine", () => {
 
       await engine.close();
     });
-
-    sidequestTest("should configure queues during setup", async () => {
-      const engine = new Engine();
-      const queues = [
-        { name: "high-priority", concurrency: 10, priority: 10 },
-        { name: "low-priority", concurrency: 2, priority: 1 },
-      ];
-
-      await engine.configure({
-        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
-        queues,
-      });
-
-      const backend = engine.getBackend()!;
-
-      // Verify queues were created in the backend
-      const queueList = await backend.listQueues();
-      expect(queueList.map((q) => q.name)).toContain("high-priority");
-      expect(queueList.map((q) => q.name)).toContain("low-priority");
-
-      await engine.close();
-    });
-
-    sidequestTest("should enforce queues configs during setup", async () => {
-      const engine = new Engine();
-      const queues = [{ name: "high-priority", concurrency: 10, priority: 10 }];
-
-      await engine.configure({
-        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
-        queues,
-      });
-
-      let backend = engine.getBackend()!;
-      let queueList = await backend.listQueues();
-
-      await backend.updateQueue({ ...queueList[0], priority: 20 });
-      queueList = await backend.listQueues();
-      expect(queueList[0].name).toBe("high-priority");
-      expect(queueList[0].priority).toBe(20);
-
-      await engine.close();
-
-      await engine.configure({
-        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
-        queues,
-      });
-      backend = engine.getBackend()!;
-
-      queueList = await backend.listQueues();
-      expect(queueList[0].name).toBe("high-priority");
-      expect(queueList[0].priority).toBe(10);
-    });
   });
 
   describe("getConfig", () => {

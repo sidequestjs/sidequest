@@ -1,84 +1,73 @@
 # [1.0.0-next.14](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.13...v1.0.0-next.14) (2025-07-25)
 
-
 ### Features
 
-* recurring jobs ([#12](https://github.com/sidequestjs/sidequest/issues/12)) ([cd66663](https://github.com/sidequestjs/sidequest/commit/cd6666318fb1786e09354954c39cc76ed24c11b5))
+- recurring jobs ([#12](https://github.com/sidequestjs/sidequest/issues/12)) ([cd66663](https://github.com/sidequestjs/sidequest/commit/cd6666318fb1786e09354954c39cc76ed24c11b5))
 
 # [1.0.0-next.13](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.12...v1.0.0-next.13) (2025-07-25)
 
-
 ### Features
 
-* enhance queue management with defaults and force update options ([#5](https://github.com/sidequestjs/sidequest/issues/5)) ([40acbec](https://github.com/sidequestjs/sidequest/commit/40acbec8386627f90b29de9dd4937610d4153dbe))
+- enhance queue management with defaults and force update options ([#5](https://github.com/sidequestjs/sidequest/issues/5)) ([40acbec](https://github.com/sidequestjs/sidequest/commit/40acbec8386627f90b29de9dd4937610d4153dbe))
 
 # [1.0.0-next.12](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.11...v1.0.0-next.12) (2025-07-24)
 
-
 ### Bug Fixes
 
-* update jobDefaults handling and add engine tests ([#4](https://github.com/sidequestjs/sidequest/issues/4)) ([bbd8dde](https://github.com/sidequestjs/sidequest/commit/bbd8dde20315a2092e979cc48b58646136eeee73))
+- update jobDefaults handling and add engine tests ([#4](https://github.com/sidequestjs/sidequest/issues/4)) ([bbd8dde](https://github.com/sidequestjs/sidequest/commit/bbd8dde20315a2092e979cc48b58646136eeee73))
 
 # [1.0.0-next.11](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.10...v1.0.0-next.11) (2025-07-24)
 
-
 ### Bug Fixes
 
-* including migrations on backends ([a670e89](https://github.com/sidequestjs/sidequest/commit/a670e89263f20eff9ad5156b997ecb6f6a9069f2))
+- including migrations on backends ([a670e89](https://github.com/sidequestjs/sidequest/commit/a670e89263f20eff9ad5156b997ecb6f6a9069f2))
 
 # [1.0.0-next.10](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.9...v1.0.0-next.10) (2025-07-24)
 
-
 ### Bug Fixes
 
-* release next ([66b9329](https://github.com/sidequestjs/sidequest/commit/66b9329c59b17696a10d91f3854c327361bbf1b6))
+- release next ([66b9329](https://github.com/sidequestjs/sidequest/commit/66b9329c59b17696a10d91f3854c327361bbf1b6))
 
 # [1.0.0-next.9](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.8...v1.0.0-next.9) (2025-07-24)
 
-
 ### Bug Fixes
 
-* release next ([dd9f2af](https://github.com/sidequestjs/sidequest/commit/dd9f2afcc03de79fbb9f70ab83db5191b9dff903))
-* removing version from monorepo ([e4c5a76](https://github.com/sidequestjs/sidequest/commit/e4c5a76a300ddddf3c8f369bef5e1c24e15a46ee))
+- release next ([dd9f2af](https://github.com/sidequestjs/sidequest/commit/dd9f2afcc03de79fbb9f70ab83db5191b9dff903))
+- removing version from monorepo ([e4c5a76](https://github.com/sidequestjs/sidequest/commit/e4c5a76a300ddddf3c8f369bef5e1c24e15a46ee))
 
 # [1.0.0-next.9](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.8...v1.0.0-next.9) (2025-07-24)
 
-
 ### Bug Fixes
 
-* release next ([dd9f2af](https://github.com/sidequestjs/sidequest/commit/dd9f2afcc03de79fbb9f70ab83db5191b9dff903))
+- release next ([dd9f2af](https://github.com/sidequestjs/sidequest/commit/dd9f2afcc03de79fbb9f70ab83db5191b9dff903))
 
 # [1.0.0-next.8](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.7...v1.0.0-next.8) (2025-07-24)
 
-
 ### Bug Fixes
 
-* release next ([cc4b2bd](https://github.com/sidequestjs/sidequest/commit/cc4b2bdc5800212a9930456ccd9827c4d1488263))
-* versions ([903c601](https://github.com/sidequestjs/sidequest/commit/903c60132fd6d28ede4ef66e505cdbf1667bf24f))
+- release next ([cc4b2bd](https://github.com/sidequestjs/sidequest/commit/cc4b2bdc5800212a9930456ccd9827c4d1488263))
+- versions ([903c601](https://github.com/sidequestjs/sidequest/commit/903c60132fd6d28ede4ef66e505cdbf1667bf24f))
 
 # [1.0.0-next.7](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.6...v1.0.0-next.7) (2025-07-24)
 
-
 ### Bug Fixes
 
-* remove topological ([f25b881](https://github.com/sidequestjs/sidequest/commit/f25b881db0fca3e01db3a4c1ab7b4d0eeecb8e8d))
-* removing version script ([e7736a4](https://github.com/sidequestjs/sidequest/commit/e7736a4bff01785d82ad3d2098f7b7cf6fe7d6da))
-* versions ([abd5a80](https://github.com/sidequestjs/sidequest/commit/abd5a80c7eaed20c8257af9c3323db445c50a066))
-* yarn lock ([d9cdc68](https://github.com/sidequestjs/sidequest/commit/d9cdc68ad126934e0e6c041fcc3a59c5dd64715f))
+- remove topological ([f25b881](https://github.com/sidequestjs/sidequest/commit/f25b881db0fca3e01db3a4c1ab7b4d0eeecb8e8d))
+- removing version script ([e7736a4](https://github.com/sidequestjs/sidequest/commit/e7736a4bff01785d82ad3d2098f7b7cf6fe7d6da))
+- versions ([abd5a80](https://github.com/sidequestjs/sidequest/commit/abd5a80c7eaed20c8257af9c3323db445c50a066))
+- yarn lock ([d9cdc68](https://github.com/sidequestjs/sidequest/commit/d9cdc68ad126934e0e6c041fcc3a59c5dd64715f))
 
 # [1.0.0-next.6](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.5...v1.0.0-next.6) (2025-07-24)
 
-
 ### Bug Fixes
 
-* publish ([17d036b](https://github.com/sidequestjs/sidequest/commit/17d036b42daba62750d2eca02f149605f134089a))
+- publish ([17d036b](https://github.com/sidequestjs/sidequest/commit/17d036b42daba62750d2eca02f149605f134089a))
 
 # [1.0.0-next.5](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.4...v1.0.0-next.5) (2025-07-24)
 
-
 ### Bug Fixes
 
-* release next ([586ec83](https://github.com/sidequestjs/sidequest/commit/586ec832cd207af09e2da4ca61d1cf1a9013ea20))
+- release next ([586ec83](https://github.com/sidequestjs/sidequest/commit/586ec832cd207af09e2da4ca61d1cf1a9013ea20))
 
 # [1.0.0-next.4](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.3...v1.0.0-next.4) (2025-07-24)
 
