@@ -120,11 +120,10 @@ export class ExecutorManager {
 
       if (job.timeout) {
         void new Promise(() => {
-          const nodeTimeout = setTimeout(() => {
+          setTimeout(() => {
             logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
             signal.emit("abort");
             void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
-            clearTimeout(nodeTimeout);
           }, job.timeout!);
         });
       }
