@@ -34,8 +34,6 @@ export class MainWorker {
             nonNullConfig.minThreads,
             nonNullConfig.maxThreads,
           ),
-          nonNullConfig.idlePollingInterval,
-          nonNullConfig.maxClaimedJobsByQueue,
         );
         this.dispatcher.start();
 

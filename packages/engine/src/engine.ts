@@ -48,10 +48,6 @@ export interface EngineConfig {
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
   maxThreads?: number;
-  /** Time in milliseconds to wait between dispatcher cycles when no jobs are available. Defaults to 1000 ms */
-  idlePollingInterval?: number;
-  /** Maximum number of jobs to claim from a single queue when concurrency is unlimited. Defaults to 10 */
-  maxClaimedJobsByQueue?: number;
 
   /**
    * Default job builder configuration.
@@ -131,8 +127,6 @@ export class Engine {
       cleanupFinishedJobsOlderThan: config?.cleanupFinishedJobsOlderThan ?? 30 * 24 * 60 * 60 * 1000,
       releaseStaleJobsIntervalMin: config?.releaseStaleJobsIntervalMin ?? 60,
       maxConcurrentJobs: config?.maxConcurrentJobs ?? 10,
-      idlePollingInterval: config?.idlePollingInterval ?? 100,
-      maxClaimedJobsByQueue: config?.maxClaimedJobsByQueue ?? 20,
       skipMigration: config?.skipMigration ?? false,
       logger: {
         level: config?.logger?.level ?? "info",
