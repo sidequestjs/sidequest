@@ -3,9 +3,6 @@ import { JobData, logger } from "@sidequest/core";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
-const sleepDelay = 100;
-const maxSafeClaim = 20;
-
 /**
  * Dispatcher for managing job execution and queue polling.
  */
@@ -23,6 +20,8 @@ export class Dispatcher {
     private backend: Backend,
     private queueManager: QueueManager,
     private executorManager: ExecutorManager,
+    private idlePollingInterval: number,
+    private maxClaimedJobsPerCycle: number,
   ) {}
 
   /**
@@ -39,19 +38,20 @@ export class Dispatcher {
         const queueAvailableSlots = this.executorManager.availableSlotsByQueue(queue);
         if (queueAvailableSlots <= 0) {
           logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.idlePollingInterval);
           continue;
         }
 
         const globalSlots = this.executorManager.availableSlotsGlobal();
         if (globalSlots <= 0) {
           logger("Dispatcher").debug(`Global concurrency limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.idlePollingInterval);
           continue;
         }
 
         const availableSlots = Math.min(queueAvailableSlots, globalSlots);
-        const safeAvailableSlots = Number.MAX_SAFE_INTEGER === availableSlots ? maxSafeClaim : availableSlots;
+        const safeAvailableSlots =
+          Number.MAX_SAFE_INTEGER === availableSlots ? this.maxClaimedJobsPerCycle : availableSlots;
         const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, safeAvailableSlots);
 
         if (jobs.length > 0) {
@@ -70,7 +70,7 @@ export class Dispatcher {
       }
 
       if (shouldSleep) {
-        await this.sleep(sleepDelay);
+        await this.sleep(this.idlePollingInterval);
       }
     }
   }

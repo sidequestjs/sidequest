@@ -59,6 +59,8 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, config.queues!),
         new ExecutorManager(backend, config.maxConcurrentJobs!, 2, 4),
+        100,
+        20,
       );
       dispatcher.start();
 
@@ -83,6 +85,8 @@ describe("Dispatcher", () => {
           backend,
           new QueueManager(backend, [{ name: "default", concurrency: 0 }]),
           new ExecutorManager(backend, 0, 2, 4),
+          100,
+          20,
         );
 
         dispatcher.start();
@@ -104,7 +108,7 @@ describe("Dispatcher", () => {
       const queueManager = new QueueManager(backend, [queue1, queue2]);
       const executorManager = new ExecutorManager(backend, 0, 2, 4); // global also unlimited
 
-      const dispatcher = new Dispatcher(backend, queueManager, executorManager);
+      const dispatcher = new Dispatcher(backend, queueManager, executorManager, 100, 20);
 
       const claimSpy = vi.spyOn(backend, "claimPendingJob").mockResolvedValue([]);
       const executeSpy = vi.spyOn(executorManager, "execute");
@@ -143,6 +147,8 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, config.queues!),
         new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4),
+        100,
+        20,
       );
       dispatcher.start();
 
@@ -170,6 +176,8 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, [{ name: "default", concurrency: 10 }]),
         new ExecutorManager(backend, 20, 2, 4),
+        100,
+        20,
       );
 
       dispatcher.start();
@@ -190,6 +198,8 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, [{ name: "default", concurrency: 10 }]),
         new ExecutorManager(backend, 1, 2, 4),
+        100,
+        20,
       );
 
       dispatcher.start();
