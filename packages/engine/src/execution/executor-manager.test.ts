@@ -54,7 +54,7 @@ describe("ExecutorManager", () => {
   describe("execute", () => {
     sidequestTest("sends the job to the execution pool", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       const execPromise = executorManager.execute(queryConfig, jobData);
 
@@ -70,7 +70,7 @@ describe("ExecutorManager", () => {
 
     sidequestTest("snoozes job when queue is full", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 }); // No available slots
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       // Set up job in claimed state (as it would be when passed to execute)
       jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
@@ -86,9 +86,9 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
-    sidequestTest("snoozes job when global slots are full", async ({ backend }) => {
+    sidequestTest("snoozes job when global slots are full", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 5 }); // Queue has slots
-      const executorManager = new ExecutorManager(backend, 0, 2, 4); // But global max is 0
+      const executorManager = new ExecutorManager(backend, { ...config, maxConcurrentJobs: 0 }); // But global max is 0
 
       // Set up job in claimed state
       jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
@@ -108,14 +108,14 @@ describe("ExecutorManager", () => {
   describe("availableSlotsByQueue", () => {
     sidequestTest("returns the available slots by queue", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(7);
       await executorManager.destroy();
     });
 
     sidequestTest("returns zero as min value", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       void executorManager.execute(queryConfig, jobData);
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
@@ -125,14 +125,14 @@ describe("ExecutorManager", () => {
 
   describe("availableSlotsGlobal", () => {
     sidequestTest("returns the global available slots", async ({ backend, config }) => {
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
       await executorManager.destroy();
     });
 
-    sidequestTest("returns zero as min value", async ({ backend }) => {
+    sidequestTest("returns zero as min value", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 0 });
-      const executorManager = new ExecutorManager(backend, 0, 2, 4);
+      const executorManager = new ExecutorManager(backend, { ...config, maxConcurrentJobs: 0 });
 
       void executorManager.execute(queryConfig, jobData);
       expect(executorManager.availableSlotsGlobal()).toEqual(0);
@@ -143,7 +143,7 @@ describe("ExecutorManager", () => {
   describe("totalActiveWorkers", () => {
     sidequestTest("returns the available slots by queue", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 7 });
-      const executorManager = new ExecutorManager(backend, config.maxConcurrentJobs, 2, 4);
+      const executorManager = new ExecutorManager(backend, config);
 
       expect(executorManager.totalActiveWorkers()).toEqual(0);
 

@@ -2,6 +2,7 @@ import { JobData, JobResult, logger } from "@sidequest/core";
 import EventEmitter from "events";
 import path from "path";
 import Piscina from "piscina";
+import { NonNullableEngineConfig } from "../engine";
 
 const runnerPath = path.resolve(import.meta.dirname, "runner.js");
 
@@ -14,15 +15,17 @@ export class RunnerPool {
 
   /**
    * Creates a new RunnerPool.
-   * @param size The number of worker threads to use (defaults to number of CPUs).
+   * @param nonNullConfig The non-nullable engine configuration.
    */
-  constructor(minThreads: number, maxThreads: number) {
+  constructor(private nonNullConfig: NonNullableEngineConfig) {
     this.pool = new Piscina({
       filename: runnerPath,
-      minThreads,
-      maxThreads,
+      minThreads: this.nonNullConfig.minThreads,
+      maxThreads: this.nonNullConfig.maxThreads,
     });
-    logger("RunnerPool").debug(`Created worker pool with min ${minThreads} threads and max ${maxThreads} threads`);
+    logger("RunnerPool").debug(
+      `Created worker pool with min ${this.nonNullConfig.minThreads} threads and max ${this.nonNullConfig.maxThreads} threads`,
+    );
   }
 
   /**
@@ -33,7 +36,7 @@ export class RunnerPool {
    */
   run(job: JobData, signal?: EventEmitter): Promise<JobResult> {
     logger("RunnerPool").debug(`Running job ${job.id} in pool`);
-    return this.pool.run(job, { signal });
+    return this.pool.run({ jobData: job, config: this.nonNullConfig }, { signal });
   }
 
   /**
