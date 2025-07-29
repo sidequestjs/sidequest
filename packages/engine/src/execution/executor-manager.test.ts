@@ -69,7 +69,7 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
-    sidequestTest("should abort job execution", async ({ backend, config }) => {
+    sidequestTest("should abort job execution on job cancel", async ({ backend, config }) => {
       await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
@@ -98,6 +98,49 @@ describe("ExecutorManager", () => {
       await expect(expectedPromise).rejects.toThrow("The task has been aborted");
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(RunTransition));
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
+
+      await executorManager.destroy();
+    });
+
+    sidequestTest("should abort job execution on timeout", async ({ backend, config }) => {
+      jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date(), timeout: 100 });
+
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config);
+
+      let expectedPromise;
+      runMock.mockImplementationOnce(async (job: JobData, signal: EventEmitter) => {
+        const promise = new Promise((_, reject) => {
+          signal.on("abort", () => {
+            reject(new Error("The task has been aborted"));
+          });
+        });
+        expectedPromise = promise;
+        return promise;
+      });
+
+      const execPromise = executorManager.execute(queryConfig, jobData);
+
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
+      expect(executorManager.availableSlotsGlobal()).toEqual(9);
+
+      await execPromise;
+      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toHaveReturnedWith(expectedPromise);
+      await expect(expectedPromise).rejects.toThrow("The task has been aborted");
+      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
+      expect(executorManager.availableSlotsGlobal()).toEqual(10);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(RunTransition));
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
+
       await executorManager.destroy();
     });
 

@@ -98,13 +98,11 @@ export class ExecutorManager {
     job = await JobTransitioner.apply(this.backend, job, new RunTransition());
 
     const signal = new EventEmitter();
-
     let isRunning = true;
-
-    const jobChecker = async () => {
+    const cancellationCheck = async () => {
       while (isRunning) {
         const watchedJob = await this.backend.getJob(job.id);
-        if (watchedJob?.state === "canceled") {
+        if (watchedJob!.state === "canceled") {
           logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
           signal.emit("abort");
           isRunning = false;
@@ -113,11 +111,26 @@ export class ExecutorManager {
         await new Promise((r) => setTimeout(r, 1000));
       }
     };
-    void jobChecker();
+    void cancellationCheck();
 
     try {
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
-      const result = await this.runnerPool.run(job, signal);
+
+      const runPromise = this.runnerPool.run(job, signal);
+
+      if (job.timeout) {
+        void new Promise(() => {
+          const nodeTimeout = setTimeout(() => {
+            logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
+            signal.emit("abort");
+            void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
+            clearTimeout(nodeTimeout);
+          }, job.timeout!);
+        });
+      }
+
+      const result = await runPromise;
+
       isRunning = false;
       logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
       const transition = JobTransitionFactory.create(result);
@@ -126,7 +139,7 @@ export class ExecutorManager {
       isRunning = false;
       const err = error as Error;
       if (err.message === "The task has been aborted") {
-        logger("Executor Manager").debug(`Job ${job.id} was canceled`);
+        logger("Executor Manager").debug(`Job ${job.id} was aborted`);
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
         await JobTransitioner.apply(this.backend, job, new RetryTransition(err));

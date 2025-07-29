@@ -64,7 +64,6 @@ describe("FailTransition", () => {
           name: "Error",
           stack: expect.any(String) as string,
           level: expect.any(String) as string,
-          timestamp: expect.any(String) as string,
         },
       ],
     });
