@@ -42,6 +42,11 @@ export async function grantQueueConfig(
   defaults?: QueueDefaults,
   forceUpdate = false,
 ) {
+  
+  if(typeof queue.concurrency === "number" && queue.concurrency < 1){
+    throw new Error(`Invalid concurrency value for queue "${queue.name}": must be at least 1.`);
+  }
+
   const queueConfig = await backend?.getQueue(queue.name);
   if (queueConfig) {
     if (forceUpdate && differentQueueConfig(queue, queueConfig)) {

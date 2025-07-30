@@ -120,7 +120,7 @@ export class QueueOperations {
    */
   async setConcurrency(queueName: string, concurrency: number): Promise<QueueConfig> {
     if (concurrency < 0) {
-      throw new Error("Concurrency must be a positive number or 0 for unlimited");
+      throw new Error("Concurrency must be a positive number");
     }
 
     const backend = this.getBackend();
