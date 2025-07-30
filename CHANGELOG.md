@@ -1,3 +1,10 @@
+# [1.0.0-next.16](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.15...v1.0.0-next.16) (2025-07-30)
+
+
+### Bug Fixes
+
+* update default concurrency value in documentation ([dfc328d](https://github.com/sidequestjs/sidequest/commit/dfc328d680f9588534b0cbcafed16326d31c49a1))
+
 # [1.0.0-next.15](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.14...v1.0.0-next.15) (2025-07-30)
 
 
