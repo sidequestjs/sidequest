@@ -17,7 +17,7 @@ jobs:
         uses: tibdex/github-app-token@v1
         with:
           app_id: ${{ secrets.BOT_APP_ID }}
-          private_key: ${{ secrets.BOT_PRIVATE_KEY }
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
 
       - name: Checkout repository
         uses: actions/checkout@v4
