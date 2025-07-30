@@ -28,6 +28,11 @@ import defineUpdateJobTestSuite from "./updateJob";
  * @param backendFactory - A factory function that creates a backend instance.
  */
 export function testBackend(backendFactory: () => Backend) {
+  beforeAll(async () => {
+    setTestBackend(backendFactory());
+    await backend.truncate();
+  });
+
   beforeEach(async () => {
     setTestBackend(backendFactory());
     await backend.migrate();

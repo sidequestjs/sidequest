@@ -16,6 +16,10 @@ const scheduleMock = vi.mocked(nodeCron.schedule);
 const validateMock = vi.mocked(nodeCron.validate);
 
 describe("JobBuilder", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   sidequestTest("enqueues a job at default queue", async ({ backend }) => {
     const jobData = await new JobBuilder(backend, DummyJob).enqueue();
     expect(jobData).toEqual(
@@ -123,6 +127,7 @@ describe("JobBuilder", () => {
   });
 
   sidequestTest("should not be able to enqueue duplicated jobs in the same period", async ({ backend }) => {
+    vi.useFakeTimers();
     await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
     await expect(new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
     vi.advanceTimersByTime(1100);
