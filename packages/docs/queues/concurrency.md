@@ -16,7 +16,7 @@ The total number of jobs running across all queues is also limited by the global
 
 ## Default behavior
 
-If no concurrency is specified in a queue’s configuration, it defaults to `1`.
+If no concurrency is specified in a queue’s configuration, it defaults to `10`. The minimum concurrency is `1`.
 
 Example:
 
