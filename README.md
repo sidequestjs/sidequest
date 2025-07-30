@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/sidequest.svg)](https://www.npmjs.com/package/sidequest)
 [![License](https://img.shields.io/badge/license-LGPL--3.0--or--later-blue.svg)](LICENSE.md)
-![Build Status](https://github.com/sidequestjs/sidequest-private/actions/workflows/pull-request.yml/badge.svg?branch=master)
+![Build Status](https://github.com/sidequestjs/sidequest/actions/workflows/pull-request.yml/badge.svg?branch=master)
 [![TypeScript](https://img.shields.io/badge/language-typescript-blue.svg)](https://www.typescriptlang.org/)
 ![Node.js Version](https://img.shields.io/node/v/sidequest.svg)
 [![Docs](https://img.shields.io/badge/docs-available-blue.svg)](https://docs.sidequestjs.com)
