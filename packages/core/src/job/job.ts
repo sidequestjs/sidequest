@@ -1,19 +1,10 @@
-import {
-  CompletedResult,
-  ErrorData,
-  FailedResult,
-  isJobResult,
-  JobData,
-  JobResult,
-  JobState,
-  logger,
-  RetryResult,
-  SnoozeResult,
-  toErrorData,
-  UniquenessConfig,
-} from "@sidequest/core";
 import { access } from "fs/promises";
 import { pathToFileURL } from "url";
+import { logger } from "../logger";
+import { ErrorData, JobData, JobState } from "../schema";
+import { toErrorData } from "../tools";
+import { CompletedResult, FailedResult, isJobResult, JobResult, RetryResult, SnoozeResult } from "../transitions";
+import { UniquenessConfig } from "../uniquiness";
 
 /**
  * Type for a job class constructor.

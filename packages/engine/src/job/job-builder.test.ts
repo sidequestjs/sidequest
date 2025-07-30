@@ -1,6 +1,6 @@
 import { sidequestTest } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
-import { JobData } from "@sidequest/core";
+import { JobData, JobState, UniquenessFactory } from "@sidequest/core";
 import nodeCron from "node-cron";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
@@ -71,6 +71,137 @@ describe("JobBuilder", () => {
     const jobData = await new JobBuilder(backend, DummyJob).availableAt(futureDate).enqueue();
     expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(futureDate.getTime(), -2);
   });
+
+  sidequestTest("should enqueue job", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should enqueue job in different queue", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).queue("test-queue").enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+      queue: "test-queue",
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should enqueue job with timeout", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).timeout(100).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+    expect(jobData[0].timeout).toBe(100);
+  });
+
+  sidequestTest("should be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique(true).enqueue()).rejects.toThrow();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs in the same period", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
+    vi.advanceTimersByTime(1100);
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest(
+    "should not be able to enqueue duplicated jobs with different args withargs=false",
+    async ({ backend }) => {
+      await new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue();
+      await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue("arg1")).rejects.toThrow();
+
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobData.length).toBe(1);
+    },
+  );
+
+  sidequestTest("should be able to enqueue duplicated jobs with different args", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue();
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs with same args withargs=true", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
+    await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1")).rejects.toThrow();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest.for([
+    { expected: 1, state: "waiting" },
+    { expected: 1, state: "running" },
+    { expected: 1, state: "claimed" },
+    { expected: 2, state: "canceled" },
+    { expected: 2, state: "failed" },
+    { expected: 2, state: "completed" },
+  ] as { expected: number; state: JobState }[])(
+    "should have %i jobs if first job is %s",
+    async ({ expected, state }, { backend }) => {
+      const job1 = await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+
+      const newData = { ...job1, state };
+
+      const uniqueness = UniquenessFactory.create(newData.uniqueness_config!);
+      newData.unique_digest = uniqueness.digest(newData);
+      await backend.updateJob(newData);
+
+      try {
+        await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+      } catch {
+        // noop
+      }
+
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobData.length).toBe(expected);
+    },
+  );
 
   describe("constructor defaults", () => {
     sidequestTest("uses default queue when no defaults provided", async ({ backend }) => {

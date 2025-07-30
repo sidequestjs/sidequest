@@ -6,6 +6,7 @@ import {
   FixedWindowConfig,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type FixedWindowUniqueness,
+  JobClassType,
   JobData,
   logger,
   TimePeriod,
@@ -14,7 +15,6 @@ import {
 } from "@sidequest/core";
 import nodeCron, { ScheduledTask } from "node-cron";
 import { JOB_BUILDER_FALLBACK } from "./constants";
-import { JobClassType } from "./job";
 
 /**
  * Configuration for job uniqueness constraints.

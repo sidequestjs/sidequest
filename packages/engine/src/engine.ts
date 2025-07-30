@@ -1,10 +1,9 @@
 import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
-import { configureLogger, logger, LoggerOptions } from "@sidequest/core";
+import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
 import path from "path";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
-import { JobClassType } from "./job/job";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
