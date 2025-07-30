@@ -73,6 +73,10 @@ export default class MongoBackend implements Backend {
   }
 
   async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
+    if (queueConfig.concurrency !== undefined && queueConfig.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     await this.ensureConnected();
     const id = await this.nextId("queue");
     const doc: QueueConfig = {
@@ -104,6 +108,10 @@ export default class MongoBackend implements Backend {
   }
 
   async updateQueue(queueData: UpdateQueueData): Promise<QueueConfig> {
+    if (queueData.concurrency !== undefined && queueData.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     await this.ensureConnected();
     const { id, ...updates } = queueData;
     const res = await this.queues.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: "after" });

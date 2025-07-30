@@ -34,9 +34,7 @@ async function createJob(backend: Backend, queue = "default") {
 describe("Dispatcher", () => {
   const config: EngineConfig = {
     backend: { driver: "@sidequest/sqlite-backend" },
-    queues: [
-      { name: "default", concurrency: 1 },
-    ],
+    queues: [{ name: "default", concurrency: 1 }],
     maxConcurrentJobs: 5,
   };
 
@@ -79,19 +77,15 @@ describe("Dispatcher", () => {
       expect(await backend.listJobs({ state: "waiting" })).toHaveLength(2);
 
       const executorManager = new ExecutorManager(backend, config as NonNullableEngineConfig);
-      vi.spyOn(executorManager, 'availableSlotsByQueue').mockResolvedValue(0);
-      
-      const mockClaim = vi.spyOn(backend, 'claimPendingJob');
+      vi.spyOn(executorManager, "availableSlotsByQueue").mockResolvedValue(0);
 
-      const dispatcher = new Dispatcher(
-        backend,
-        new QueueManager(backend, config.queues!),
-        executorManager,
-      );
+      const mockClaim = vi.spyOn(backend, "claimPendingJob");
+
+      const dispatcher = new Dispatcher(backend, new QueueManager(backend, config.queues!), executorManager);
       dispatcher.start();
 
       expect(mockClaim).not.toBeCalled();
-      
+
       await dispatcher.stop();
     });
 

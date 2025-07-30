@@ -146,7 +146,7 @@ export class Engine {
       },
     };
 
-    if(this.config?.maxConcurrentJobs < 1) {
+    if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
       throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
     }
 

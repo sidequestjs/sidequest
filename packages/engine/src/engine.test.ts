@@ -114,13 +114,13 @@ describe("Engine", () => {
 
     sidequestTest("should throw error when maxConcurrentJobs is less than 1", async () => {
       const engine = new Engine();
-    
+
       await expect(() =>
         engine.configure({
           maxConcurrentJobs: 0,
-        })
+        }),
       ).rejects.toThrowError(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
-    
+
       await engine.close();
     });
   });
