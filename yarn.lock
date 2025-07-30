@@ -2624,6 +2624,7 @@ __metadata:
     "@highlightjs/cdn-assets": "npm:^11.11.1"
     "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
+    "@sidequest/engine": "workspace:^"
     "@types/feather-icons": "npm:^4"
     "@types/morgan": "npm:^1"
     chart.js: "npm:^4.5.0"
@@ -2644,7 +2645,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/engine@workspace:*, @sidequest/engine@workspace:packages/engine":
+"@sidequest/engine@workspace:*, @sidequest/engine@workspace:^, @sidequest/engine@workspace:packages/engine":
   version: 0.0.0-use.local
   resolution: "@sidequest/engine@workspace:packages/engine"
   dependencies:
