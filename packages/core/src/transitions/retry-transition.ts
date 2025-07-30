@@ -39,7 +39,7 @@ export class RetryTransition extends JobTransition {
       return new FailTransition(this.reason).apply(job);
     }
 
-    logger().error(this.reason);
+    logger("Core").error(this.reason);
     const reason = toErrorData(this.reason);
 
     const delay = this.delay ?? this.calculateBackoff(job.attempt);

@@ -1,3 +1,25 @@
+# [1.0.0-next.15](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.14...v1.0.0-next.15) (2025-07-30)
+
+
+### Bug Fixes
+
+* author ([ec1734a](https://github.com/sidequestjs/sidequest/commit/ec1734a6128cce771bc112be98df956ac38b6f1f))
+* author ([e81372f](https://github.com/sidequestjs/sidequest/commit/e81372fbba592521cee4cf7ad00a20950df831bb))
+* Proper dashboard and Sidequest shutdown ([#16](https://github.com/sidequestjs/sidequest/issues/16)) ([ed1d853](https://github.com/sidequestjs/sidequest/commit/ed1d853f53f0ddbdd2ed15a695adff1d2816b01c))
+* release ([4b2f4e7](https://github.com/sidequestjs/sidequest/commit/4b2f4e71348a1ec316b749dd9a35cf9cc4438037))
+* release ([#26](https://github.com/sidequestjs/sidequest/issues/26)) ([c6093ae](https://github.com/sidequestjs/sidequest/commit/c6093ae964551b18537b4acfb0d30d0b551888dd))
+* release.yml ([c37c57c](https://github.com/sidequestjs/sidequest/commit/c37c57c0ee212fcc1eb51973a6ede63c3b066385))
+* revert unlimited jobs ([#23](https://github.com/sidequestjs/sidequest/issues/23)) ([96ccc5d](https://github.com/sidequestjs/sidequest/commit/96ccc5db7aa26fbe9e8ca9b93ebbbd7f77b1677e)), closes [#21](https://github.com/sidequestjs/sidequest/issues/21)
+* Unhandled error on Executor Manager ([#24](https://github.com/sidequestjs/sidequest/issues/24)) ([81bd5e0](https://github.com/sidequestjs/sidequest/commit/81bd5e084a68fa9617efb97a94af10b736536eb5))
+* using personal token ([#25](https://github.com/sidequestjs/sidequest/issues/25)) ([91c5834](https://github.com/sidequestjs/sidequest/commit/91c58343421dc691fa108317c505c470b70c755a))
+* using sidequest release app ([1ecf1a7](https://github.com/sidequestjs/sidequest/commit/1ecf1a791c8418ebf17f14214704ba33a652fcf9))
+
+
+### Features
+
+* `Sidequest.build` from job ([#20](https://github.com/sidequestjs/sidequest/issues/20)) ([d7f5286](https://github.com/sidequestjs/sidequest/commit/d7f52866b3a3d3f786c368218545d5c02b9dc7aa))
+* unlimited jobs ([#21](https://github.com/sidequestjs/sidequest/issues/21)) ([0055f4a](https://github.com/sidequestjs/sidequest/commit/0055f4ac3ba51e193fb4f14268938f266fbfa6c0))
+
 # [1.0.0-next.14](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.13...v1.0.0-next.14) (2025-07-25)
 
 ### Features

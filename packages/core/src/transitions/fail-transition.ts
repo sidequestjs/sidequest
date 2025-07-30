@@ -27,7 +27,7 @@ export class FailTransition extends JobTransition {
   }
 
   apply(job: JobData): JobData {
-    logger().error(this.reason);
+    logger("Core").error(this.reason);
     const error = toErrorData(this.reason);
     job.errors ??= [];
     const errData = {
