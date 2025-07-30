@@ -1,3 +1,4 @@
+import { logger } from "@sidequest/core";
 import { DashboardConfig, SidequestDashboard } from "@sidequest/dashboard";
 import { Engine, EngineConfig, JobClassType } from "@sidequest/engine";
 import { JobOperations } from "./job";
@@ -104,13 +105,19 @@ export class Sidequest {
    * ```
    */
   static async start(config?: SidequestConfig) {
-    const engineConfig = await this.configure(config);
+    try {
+      const engineConfig = await this.configure(config);
 
-    const engine = this.engine.start(engineConfig);
-    const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
+      const engine = this.engine.start(engineConfig);
+      const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
 
-    await engine;
-    await dashboard;
+      await engine;
+      await dashboard;
+    } catch (error) {
+      logger().error("Failed to start Sidequest:", error);
+      await this.stop(); // Ensure cleanup on error
+      throw error; // Re-throw the error for further handling if needed
+    }
   }
 
   /**

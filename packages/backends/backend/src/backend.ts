@@ -210,7 +210,7 @@ export interface Backend {
   staleJobs(maxStaleMs?: number, maxClaimedMs?: number): Promise<JobData[]>;
 
   /**
-   * Deletes finished jobs before a cutoff date.
+   * Deletes completed, failed, and canceled jobs before a cutoff date.
    * @param cutoffDate The cutoff date.
    */
   deleteFinishedJobs(cutoffDate: Date): Promise<void>;
