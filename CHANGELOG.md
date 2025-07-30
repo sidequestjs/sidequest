@@ -1,3 +1,10 @@
+# [1.0.0-next.17](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.16...v1.0.0-next.17) (2025-07-30)
+
+
+### Bug Fixes
+
+* min concurrency ([#28](https://github.com/sidequestjs/sidequest/issues/28)) ([5e9877b](https://github.com/sidequestjs/sidequest/commit/5e9877b00a799142430c59a40742f778811c4a89))
+
 # [1.0.0-next.16](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.15...v1.0.0-next.16) (2025-07-30)
 
 
