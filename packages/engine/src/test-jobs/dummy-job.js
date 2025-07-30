@@ -1,4 +1,4 @@
-import { Job } from "../job";
+import { Job } from "@sidequest/core";
 
 export class DummyJob extends Job {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
