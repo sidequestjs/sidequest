@@ -185,4 +185,10 @@ describe("grantQueueConfig", () => {
       expect(sameConfig?.state).toEqual("active");
     });
   });
+
+  sidequestTest("throws error if queue concurrency is less than 1", async ({ backend }) => {
+    await expect(() => grantQueueConfig(backend, { name: "invalid-concurrency", concurrency: 0 })).rejects.toThrowError(
+      "Concurrency must be at least 1",
+    );
+  });
 });

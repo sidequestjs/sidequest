@@ -42,5 +42,20 @@ export default function defineUpdateQueueTestSuite() {
     it("should error on queue not found", async () => {
       await expect(backend.updateQueue({ id: -1 })).rejects.toThrow();
     });
+
+    it("should throw if concurrency is less than 1", async () => {
+      const queue: NewQueueData = {
+        name: "default-invalid",
+        concurrency: 2,
+        priority: 1,
+        state: "active",
+      };
+
+      const insertedQueue = await backend.createNewQueue(queue);
+
+      await expect(backend.updateQueue({ id: insertedQueue.id, concurrency: 0 })).rejects.toThrow(
+        "Concurrency must be at least 1",
+      );
+    });
   });
 }

@@ -62,5 +62,16 @@ export default function defineInsertQueueConfigTestSuite() {
         }),
       ).rejects.toThrow();
     });
+
+    it("should throw if concurrency is less than 1", async () => {
+      await expect(
+        backend.createNewQueue({
+          name: "invalid-concurrency",
+          concurrency: 0,
+          priority: 1,
+          state: "active",
+        }),
+      ).rejects.toThrow("Concurrency must be at least 1");
+    });
   });
 }

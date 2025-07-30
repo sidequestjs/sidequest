@@ -28,6 +28,10 @@ export default class MysqlBackend extends SQLBackend {
   }
 
   async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
+    if (queueConfig.concurrency !== undefined && queueConfig.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     const data: NewQueueData = {
       ...QUEUE_FALLBACK,
       ...queueConfig,
@@ -49,6 +53,10 @@ export default class MysqlBackend extends SQLBackend {
   }
 
   async updateQueue(queueData: UpdateQueueData): Promise<QueueConfig> {
+    if (queueData.concurrency !== undefined && queueData.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     const { id, ...updates } = queueData;
     logger("Backend").debug(`Updating queue: ${JSON.stringify(queueData)}`);
 

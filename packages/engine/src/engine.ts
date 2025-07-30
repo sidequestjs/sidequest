@@ -146,6 +146,10 @@ export class Engine {
       },
     };
 
+    if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
+      throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
+    }
+
     logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
 
     if (this.config.logger) {

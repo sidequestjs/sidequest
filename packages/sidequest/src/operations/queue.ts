@@ -119,10 +119,6 @@ export class QueueOperations {
    * @throws Error if the queue is not found or concurrency is invalid
    */
   async setConcurrency(queueName: string, concurrency: number): Promise<QueueConfig> {
-    if (concurrency < 0) {
-      throw new Error("Concurrency must be a positive number or 0 for unlimited");
-    }
-
     const backend = this.getBackend();
     const queue = await backend.getQueue(queueName);
 
