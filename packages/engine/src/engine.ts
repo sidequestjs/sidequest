@@ -165,6 +165,11 @@ export class Engine {
    * @param config Optional configuration object.
    */
   async start(config: EngineConfig): Promise<void> {
+    if (this.mainWorker) {
+      logger("Engine").warn("Sidequest engine already started");
+      return;
+    }
+
     await this.configure(config);
 
     logger("Engine").info(`Starting Sidequest using backend ${this.config!.backend.driver}`);
