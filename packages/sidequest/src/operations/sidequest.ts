@@ -1,6 +1,6 @@
+import { logger } from "@sidequest/core";
 import { DashboardConfig, SidequestDashboard } from "@sidequest/dashboard";
 import { Engine, EngineConfig, JobClassType } from "@sidequest/engine";
-import { logger } from "packages/core/dist";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
 
