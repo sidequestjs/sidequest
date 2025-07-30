@@ -168,13 +168,13 @@ export class JobOperations {
    * If `force` is `false`, it will simply update the available_at time for waiting jobs.
    * It is effectively a snooze with 0 delay.
    * This can only be applied to `waiting` and `running` jobs.
-   * Calling this on a running job will do nothing other than update the available_at time.
    *
    * If `force` is `true`, it will use RerunTransition to completely reset and re-run the job,
    * similar to the dashboard's re-run functionality. It will completely ignore the number of attempts
    * and the current state of the job, allowing it to be re-run regardless of its current state.
    * This can only be applied to jobs that are in `waiting`, `running`, `completed`, `canceled`, or `failed` states.
-   * Calling this on a running job will do nothing other than update the available_at time.
+   *
+   * Calling this method on a running job will do nothing other than update the available_at time.
    *
    * @param jobId - The ID of the job to run
    * @param force - Whether to force re-run the job regardless of state and attempts
@@ -189,7 +189,7 @@ export class JobOperations {
       throw new Error(`Job with ID ${jobId} not found`);
     }
 
-    // Simple run - just update available_at to make it available immediately
+    // First update available_at to make it available immediately
     job = await JobTransitioner.apply(backend, job, new SnoozeTransition(0));
     // If force, we apply RerunTransition to disregard the current state and attempts
     if (force) {

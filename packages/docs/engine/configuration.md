@@ -97,6 +97,7 @@ await Sidequest.start({
   maxConcurrentJobs: 50,
   minThreads: 4,
   maxThreads: 8,
+  idleWorkerTimeout: 10000, // 10 seconds
 
   // 4. Migration and startup
   skipMigration: false,
@@ -155,6 +156,7 @@ await Sidequest.start({
 | `maxConcurrentJobs`              | Maximum number of jobs processed simultaneously across all queues            | `10`                        |
 | `minThreads`                     | Minimum number of worker threads to use                                      | Number of CPU cores         |
 | `maxThreads`                     | Maximum number of worker threads to use                                      | `minThreads * 2`            |
+| `idleWorkerTimeout`              | Timeout (milliseconds) for idle workers before they are terminated           | `10000` (10 seconds)        |
 | `skipMigration`                  | Whether to skip database migration on startup                                | `false`                     |
 | `releaseStaleJobsIntervalMin`    | Frequency (minutes) for releasing stale jobs. Set to `false` to disable      | `60`                        |
 | `releaseStaleJobsMaxStaleMs`     | Maximum age (milliseconds) for a running job to be considered stale          | `600000` (10 minutes)       |
@@ -272,6 +274,7 @@ await Sidequest.start({
   maxConcurrentJobs: 100,
   minThreads: 8,
   maxThreads: 16,
+  idleWorkerTimeout: 30000, // 30 seconds for high throughput
   releaseStaleJobsIntervalMin: 30, // More frequent stale job cleanup
   cleanupFinishedJobsIntervalMin: 30, // More frequent cleanup
   queueDefaults: {

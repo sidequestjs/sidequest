@@ -40,6 +40,8 @@ export interface EngineConfig {
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
   maxThreads?: number;
+  /** Timeout in milliseconds for idle workers before they are terminated. Defaults to 10 seconds */
+  idleWorkerTimeout?: number;
 
   /**
    * Default job builder configuration.
@@ -127,6 +129,7 @@ export class Engine {
       gracefulShutdown: config?.gracefulShutdown ?? true,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
+      idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,
       releaseStaleJobsMaxStaleMs: config?.releaseStaleJobsMaxStaleMs ?? MISC_FALLBACK.maxStaleMs, // 10 minutes
       releaseStaleJobsMaxClaimedMs: config?.releaseStaleJobsMaxClaimedMs ?? MISC_FALLBACK.maxClaimedMs, // 1 minute
       jobDefaults: {

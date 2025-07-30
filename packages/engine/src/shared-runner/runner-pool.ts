@@ -22,7 +22,7 @@ export class RunnerPool {
       filename: runnerPath,
       minThreads: this.nonNullConfig.minThreads,
       maxThreads: this.nonNullConfig.maxThreads,
-      idleTimeout: 10_000,
+      idleTimeout: this.nonNullConfig.idleWorkerTimeout,
     });
     logger("RunnerPool").debug(
       `Created worker pool with min ${this.nonNullConfig.minThreads} threads and max ${this.nonNullConfig.maxThreads} threads`,
