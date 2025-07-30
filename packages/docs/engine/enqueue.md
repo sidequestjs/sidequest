@@ -71,7 +71,7 @@ await Sidequest.build(ReportJob)
 **Key Points:**
 
 - If the queue doesn't exist, it will be created automatically with default settings when running the job
-- Check the [Queue Management](/queues) section for more details on queue configuration
+- Check the [Queue Management](/queues/index) section for more details on queue configuration
 
 ### `.timeout(milliseconds: number)`
 
@@ -364,6 +364,6 @@ try {
 
 ## Next Steps
 
-- **[Job Classes](/jobs)** - Learn how to create custom job classes
-- **[Queue Management](/queues)** - Understand queue configuration and management
+- **[Job Classes](/jobs/index)** - Learn how to create custom job classes
+- **[Queue Management](/queues/index)** - Understand queue configuration and management
 - **[Monitoring Jobs](/dashboard)** - Use the dashboard to monitor job execution
