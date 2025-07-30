@@ -1,4 +1,3 @@
-import { sidequestTest } from "@/tests/fixture";
 import { CompletedResult, RetryResult, SnoozeResult } from "@sidequest/core";
 import { Job } from "./job";
 
@@ -23,39 +22,39 @@ describe("job.ts", () => {
     vi.restoreAllMocks();
   });
 
-  sidequestTest("should expose script and className correctly", async () => {
+  it("should expose script and className correctly", async () => {
     const job = new DummyJob();
     await job.ready();
     expect(typeof job.script).toBe("string");
     expect(job.className).toBe("DummyJob");
   });
 
-  sidequestTest("creates a complete transition", () => {
+  it("creates a complete transition", () => {
     const job = new DummyJob();
     const transition = job.complete("foo bar");
     expect(transition.result).toBe("foo bar");
   });
 
-  sidequestTest("creates a fail transition", () => {
+  it("creates a fail transition", () => {
     const job = new DummyJob();
     const transition = job.fail("error");
     expect(transition.error).toEqual({ message: "error" });
   });
 
-  sidequestTest("creates a retry transition", () => {
+  it("creates a retry transition", () => {
     const job = new DummyJob();
     const transition = job.retry("reason", 1000);
     expect(transition.error).toEqual({ message: "reason" });
     expect(transition.delay).toEqual(1000);
   });
 
-  sidequestTest("creates a snooze transition", () => {
+  it("creates a snooze transition", () => {
     const job = new DummyJob();
     const transition = job.snooze(1000);
     expect(transition.delay).toBe(1000);
   });
 
-  sidequestTest("fail/retry should accept an Error object", () => {
+  it("fail/retry should accept an Error object", () => {
     const job = new DummyJob();
     const error = new Error("fail");
     expect(job.fail(error).error.message).toEqual("fail");
@@ -63,7 +62,7 @@ describe("job.ts", () => {
   });
 
   describe("perform", () => {
-    sidequestTest("should return CompleteResult if run returns a value", async () => {
+    it("should return CompleteResult if run returns a value", async () => {
       class ValueJob extends Job {
         run() {
           return "abc";
@@ -75,7 +74,7 @@ describe("job.ts", () => {
       expect(result.result).toBe("abc");
     });
 
-    sidequestTest("should return the JobResult return by run", async () => {
+    it("should return the JobResult return by run", async () => {
       class TransitionJob extends Job {
         run() {
           return { __is_job_transition__: true, type: "snooze" } as SnoozeResult;
@@ -86,7 +85,7 @@ describe("job.ts", () => {
       expect(result.type).toBe("snooze");
     });
 
-    sidequestTest("should return RetryResult if run throws", async () => {
+    it("should return RetryResult if run throws", async () => {
       class ErrorJob extends Job {
         run() {
           throw new Error("fail!");
@@ -98,7 +97,7 @@ describe("job.ts", () => {
       expect(result.error.message).toEqual("fail!");
     });
 
-    sidequestTest("should return RetryResult if run unhandled promise", async () => {
+    it("should return RetryResult if run unhandled promise", async () => {
       class DummyUnhandled extends Job {
         run() {
           return new Promise(() => {
