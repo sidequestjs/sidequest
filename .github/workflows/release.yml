@@ -12,6 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -51,7 +58,5 @@ jobs:
 
       - name: Semantic Release
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-          GIT_COMMITTER_EMAIL: lucas@merencia.com
-          GIT_AUTHOR_EMAIL: lucas@merencia.com
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: npx semantic-release
