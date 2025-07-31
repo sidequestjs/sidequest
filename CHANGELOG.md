@@ -1,3 +1,10 @@
+# [1.0.0-next.20](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.19...v1.0.0-next.20) (2025-07-31)
+
+
+### Bug Fixes
+
+* show more and show less not saving state on page refresh ([#41](https://github.com/sidequestjs/sidequest/issues/41)) ([fcc99e7](https://github.com/sidequestjs/sidequest/commit/fcc99e77c2db4ff8dc7018913c2d9355aa88e1a8))
+
 # [1.0.0-next.19](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.18...v1.0.0-next.19) (2025-07-31)
 
 
