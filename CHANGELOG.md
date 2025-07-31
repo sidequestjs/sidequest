@@ -1,3 +1,10 @@
+# [1.0.0-next.21](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.20...v1.0.0-next.21) (2025-07-31)
+
+
+### Bug Fixes
+
+* add engines field to specify required Node.js version ([#42](https://github.com/sidequestjs/sidequest/issues/42)) ([44c9523](https://github.com/sidequestjs/sidequest/commit/44c952332dc5009186356350d5ecbe45f2c55f83))
+
 # [1.0.0-next.20](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.19...v1.0.0-next.20) (2025-07-31)
 
 

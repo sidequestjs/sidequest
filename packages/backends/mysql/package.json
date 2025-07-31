@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/mysql-backend",
-  "version": "1.0.0-next.20",
+  "version": "1.0.0-next.7",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/mysql-backend.cjs",

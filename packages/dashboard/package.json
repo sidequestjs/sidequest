@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/dashboard",
-  "version": "1.0.0-next.20",
+  "version": "1.0.0-next.4",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
