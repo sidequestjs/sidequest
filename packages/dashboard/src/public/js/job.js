@@ -24,10 +24,10 @@ function applySeeMore() {
       }
     }
 
-    toggleDetails(globalDetailsStates[container.id] ?? false);
+    toggleDetails(globalDetailsStates[container.id] !== undefined ? globalDetailsStates[container.id] : false);
 
     btn.addEventListener("click", () => {
-      toggleDetails(!globalDetailsStates[container.id] ?? true);
+      toggleDetails(globalDetailsStates[container.id] !== undefined ? !globalDetailsStates[container.id] : true);
     });
   });
 }
