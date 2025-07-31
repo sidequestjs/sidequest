@@ -16,5 +16,12 @@ export class CountWordJob extends Job {
     const count = matches ? matches.length : 0;
 
     console.log(`The word "${word}" appears ${count} times on the page ${url}`);
+    // Return the result as an object
+    // Will be available in the result of the job
+    return {
+      word,
+      count,
+      url,
+    };
   }
 }
