@@ -1,3 +1,10 @@
+# [1.0.0-next.18](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.17...v1.0.0-next.18) (2025-07-31)
+
+
+### Bug Fixes
+
+* Future canceled jobs not running ([#34](https://github.com/sidequestjs/sidequest/issues/34)) ([85a5212](https://github.com/sidequestjs/sidequest/commit/85a52120bfb8e20de94d9115988c8a693846d511))
+
 # [1.0.0-next.17](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.16...v1.0.0-next.17) (2025-07-30)
 
 

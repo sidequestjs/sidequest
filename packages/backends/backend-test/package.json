@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/backend-test",
-  "version": "1.0.0-next.17",
+  "version": "1.0.0-next.7",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
