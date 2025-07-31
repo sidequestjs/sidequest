@@ -7,6 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("htmx:afterSwap", () => {
-    document.getElementById("main-section").scroll(0, savedScrollY);
+    document.getElementById("main-section").scrollTo({ top: savedScrollY });
   });
 });
