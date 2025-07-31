@@ -21,6 +21,7 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
+    "@sidequest/engine": "workspace:*",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",

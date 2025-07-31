@@ -16,15 +16,17 @@ description: Development guide for Sidequest.js
 Sidequest is built as a monorepo with the following packages:
 
 - **`sidequest`** - Main package combining all components
+- **`@sidequest/docs`** - Documentation site using Vitepress
 - **`@sidequest/core`** - Core functionality, logging, and schema definitions
 - **`@sidequest/engine`** - Job processing engine with worker thread management
 - **`@sidequest/backend`** - Abstract backend interface
+- **`@sidequest/backend-test`** - Test suite for backend implementations
 - **`@sidequest/sqlite-backend`** - SQLite backend implementation
 - **`@sidequest/postgres-backend`** - PostgreSQL backend implementation
 - **`@sidequest/mysql-backend`** - MySQL backend implementation
+- **`@sidequest/mongo-backend`** - MongoDB backend implementation
 - **`@sidequest/dashboard`** - Web dashboard with Express.js, EJS, and HTMX
 - **`@sidequest/cli`** - Command-line interface tools
-- **`@sidequest/backend-test`** - Test suite for backend implementations
 
 ## Setup
 

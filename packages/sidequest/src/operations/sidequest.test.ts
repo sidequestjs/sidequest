@@ -1,4 +1,5 @@
-import { Job, NonNullableEngineConfig } from "@sidequest/engine";
+import { Job } from "@sidequest/core";
+import { NonNullableEngineConfig } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
 import { Sidequest, SidequestConfig } from "./sidequest";

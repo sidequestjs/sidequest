@@ -1,7 +1,6 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { NewJobData, UpdateJobData } from "@sidequest/backend";
-import { CancelTransition, JobData, JobState, RerunTransition, SnoozeTransition } from "@sidequest/core";
-import { Job } from "@sidequest/engine";
+import { CancelTransition, Job, JobData, JobState, RerunTransition, SnoozeTransition } from "@sidequest/core";
 import { JobOperations } from "./job";
 
 // Mock JobTransitioner to control its behavior

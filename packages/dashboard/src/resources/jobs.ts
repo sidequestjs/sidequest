@@ -1,5 +1,6 @@
 import { Backend } from "@sidequest/backend";
-import { JobState } from "@sidequest/core";
+import { CancelTransition, JobState, RerunTransition, SnoozeTransition } from "@sidequest/core";
+import { JobTransitioner } from "@sidequest/engine";
 import { Router } from "express";
 
 export function createJobsRouter(backend: Backend) {
@@ -111,7 +112,11 @@ export function createJobsRouter(backend: Backend) {
     const job = await backend?.getJob(jobId);
 
     if (job) {
-      await backend.updateJob({ id: job.id, available_at: new Date() });
+      if (job.state === "canceled") {
+        await JobTransitioner.apply(backend, job, new RerunTransition());
+      } else {
+        await JobTransitioner.apply(backend, job, new SnoozeTransition(0));
+      }
       res.header("HX-Trigger", "jobChanged").status(200).end();
     } else {
       res.status(404).end();
@@ -123,7 +128,7 @@ export function createJobsRouter(backend: Backend) {
     const job = await backend?.getJob(jobId);
 
     if (job) {
-      await backend.updateJob({ ...job, state: "canceled" });
+      await JobTransitioner.apply(backend, job, new CancelTransition());
       res.header("HX-Trigger", "jobChanged").status(200).end();
     } else {
       res.status(404).end();
@@ -135,8 +140,7 @@ export function createJobsRouter(backend: Backend) {
     const job = await backend?.getJob(jobId);
 
     if (job) {
-      const maxAttempts = job.max_attempts === job.attempt ? job.max_attempts + 1 : job.max_attempts;
-      await backend.updateJob({ ...job, state: "waiting", max_attempts: maxAttempts });
+      await JobTransitioner.apply(backend, job, new RerunTransition());
       res.header("HX-Trigger", "jobChanged").status(200).end();
     } else {
       res.status(404).end();

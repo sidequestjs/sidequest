@@ -1,10 +1,9 @@
 import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
-import { configureLogger, logger, LoggerOptions } from "@sidequest/core";
+import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
 import path from "path";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
-import { JobClassType } from "./job/job";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
@@ -41,6 +40,8 @@ export interface EngineConfig {
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
   maxThreads?: number;
+  /** Timeout in milliseconds for idle workers before they are terminated. Defaults to 10 seconds */
+  idleWorkerTimeout?: number;
 
   /**
    * Default job builder configuration.
@@ -128,6 +129,7 @@ export class Engine {
       gracefulShutdown: config?.gracefulShutdown ?? true,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
+      idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,
       releaseStaleJobsMaxStaleMs: config?.releaseStaleJobsMaxStaleMs ?? MISC_FALLBACK.maxStaleMs, // 10 minutes
       releaseStaleJobsMaxClaimedMs: config?.releaseStaleJobsMaxClaimedMs ?? MISC_FALLBACK.maxClaimedMs, // 1 minute
       jobDefaults: {

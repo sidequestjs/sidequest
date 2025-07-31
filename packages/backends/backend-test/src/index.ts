@@ -31,6 +31,7 @@ export function testBackend(backendFactory: () => Backend) {
   beforeEach(async () => {
     setTestBackend(backendFactory());
     await backend.migrate();
+    await backend.truncate();
   });
 
   afterEach(async () => {

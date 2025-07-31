@@ -1,4 +1,4 @@
-import { Job } from "../job";
+import { Job } from "@sidequest/core";
 
 export class DynamicDummyJob extends Job {
   async run() {

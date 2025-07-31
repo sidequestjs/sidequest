@@ -1,6 +1,5 @@
-import { JobData, JobResult, logger, toErrorData } from "@sidequest/core";
+import { Job, JobClassType, JobData, JobResult, logger, toErrorData } from "@sidequest/core";
 import { EngineConfig } from "../engine";
-import { Job, JobClassType } from "../job/job";
 import { importSidequest } from "../utils";
 
 /**
