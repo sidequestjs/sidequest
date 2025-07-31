@@ -27,6 +27,5 @@
   },
   "devDependencies": {
     "@sidequest/backend-test": "workspace:*"
-  },
-  "stableVersion": "1.0.0-next.6"
+  }
 }
