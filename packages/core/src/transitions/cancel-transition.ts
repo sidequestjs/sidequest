@@ -1,3 +1,4 @@
+import { logger } from "../logger";
 import { JobData } from "../schema";
 import { JobTransition } from "./transition";
 
@@ -15,6 +16,7 @@ import { JobTransition } from "./transition";
  */
 export class CancelTransition extends JobTransition {
   apply(job: JobData): JobData {
+    logger("Core").info(`Cancelling job #${job.id} - ${job.class}`);
     job.state = "canceled";
     job.canceled_at = new Date();
     return job;

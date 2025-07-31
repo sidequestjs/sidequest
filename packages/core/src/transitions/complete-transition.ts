@@ -24,7 +24,7 @@ export class CompleteTransition extends JobTransition {
   }
 
   apply(job: JobData): JobData {
-    logger("Core").info(`Job ${job.class} has completed with args: ${JSON.stringify(job.args)}`);
+    logger("Core").info(`Job #${job.id} - ${job.class} has completed`);
     job.completed_at = new Date();
     job.state = "completed";
     job.result = this.result ?? null;
