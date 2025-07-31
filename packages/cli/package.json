@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/cli",
-  "version": "1.0.0-next.4",
+  "version": "1.0.0-next.19",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "bin": {

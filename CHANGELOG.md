@@ -1,3 +1,10 @@
+# [1.0.0-next.19](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.18...v1.0.0-next.19) (2025-07-31)
+
+
+### Bug Fixes
+
+* remove unused delete button from job view ([#36](https://github.com/sidequestjs/sidequest/issues/36)) ([eedd15f](https://github.com/sidequestjs/sidequest/commit/eedd15f47afe18d8cd2cc9359474ee24e8f8f541))
+
 # [1.0.0-next.18](https://github.com/sidequestjs/sidequest/compare/v1.0.0-next.17...v1.0.0-next.18) (2025-07-31)
 
 
