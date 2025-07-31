@@ -8,7 +8,8 @@
   },
   "workspaces": [
     "packages/*",
-    "packages/backends/*"
+    "packages/backends/*",
+    "examples"
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production turbo run build",
