@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production turbo run build",
+    "build:examples": "cross-env NODE_ENV=production turbo run build --filter=examples",
     "test": "yarn vitest --exclude packages/backends",
     "test:ci": "turbo run test:ci --filter=!'@sidequest/*-backend'",
     "test:debug": "yarn vitest --test-timeout=0 --exclude packages/backends",

@@ -2705,7 +2705,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sidequest/sqlite-backend@workspace:packages/backends/sqlite":
+"@sidequest/sqlite-backend@workspace:*, @sidequest/sqlite-backend@workspace:packages/backends/sqlite":
   version: 0.0.0-use.local
   resolution: "@sidequest/sqlite-backend@workspace:packages/backends/sqlite"
   dependencies:
@@ -5985,6 +5985,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples@workspace:examples"
   dependencies:
+    "@sidequest/sqlite-backend": "workspace:*"
     "@types/express": "npm:^5"
     cheerio: "npm:^1.1.2"
     express: "npm:^5.1.0"
