@@ -1,6 +1,6 @@
 <section class="space-y-6">
   <form method="GET" id="filter-form" hx-get="/jobs" hx-target="#jobs-table"
-    hx-trigger="change from:* delay:300ms, every 3s, jobChanged">
+    hx-trigger="change from:* delay:300ms, every 3s, jobChanged" hx-push-url="true">
     <div class="flex flex-wrap items-end gap-4 text-base mb-4">
       <div class="form-control w-48">
         <label class="label label-text">Status</label>

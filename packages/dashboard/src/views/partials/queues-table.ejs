@@ -36,7 +36,7 @@
       <td><%= queue.jobs.filter(job => job.state === "failed").length %></td>
       <td>
         <button class="btn btn-sm"
-          hx-patch="/queues/<%= queue.name %>/toggle">
+          hx-patch="/queues/<%= queue.name %>/toggle" hx-push-url="false" hx-target="this">
           <% if(queue.state==="active") { %>
             <i data-feather="pause" class="w-4 h-4"></i>
           <% } else { %>
