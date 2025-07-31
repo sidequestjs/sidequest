@@ -114,7 +114,7 @@
         <h4 class="text-sm font-semibold mb-1">Constructor Arguments</h4>
       
         <% if (Array.isArray(job.constructor_args) && job.constructor_args.length > 0) { %>
-          <div class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
+          <div id="constructor-details" class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
             <div class="code-content overflow-x-auto max-h-[15rem] overflow-hidden transition-all">
               <pre><code class="language-json"><%= JSON.stringify(job.constructor_args, null, 2) %></code></pre>
             </div>
@@ -130,7 +130,7 @@
       <div class="mt-5">
         <h4 class="text-sm font-semibold mb-1">Run Arguments</h4>
         <% if (Array.isArray(job.args) && job.args.length > 0) { %>
-          <div class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
+          <div id="args-details" class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
             <div class="code-content overflow-x-auto max-h-[15rem] overflow-hidden transition-all">
               <pre><code class="language-json"><%= JSON.stringify(job.args, null, 2) %></code></pre>
             </div>
@@ -147,7 +147,7 @@
       <% if (job.result) { %>
         <div>
           <h4 class="text-sm font-semibold mb-1">Result</h4>
-          <div class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
+          <div id="result-details" class="sq-code bg-neutral-900 rounded p-3 text-xs font-mono">
             <div class="code-content overflow-x-auto max-h-[15rem] overflow-hidden transition-all">
               <pre><code class="language-json"><%= JSON.stringify(job.result, null, 2) %></code></pre>
             </div>
