@@ -7,6 +7,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@sidequest/sqlite-backend": "workspace:*",
     "cheerio": "^1.1.2",
     "express": "^5.1.0",
     "sidequest": "workspace:*"
