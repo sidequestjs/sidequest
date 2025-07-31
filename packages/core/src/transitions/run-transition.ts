@@ -14,7 +14,7 @@ import { JobTransition } from "./transition";
  */
 export class RunTransition extends JobTransition {
   apply(job: JobData): JobData {
-    logger("Core").info(`Running job #${job.id} - ${job.class} with args: ${JSON.stringify(job.args)}`);
+    logger("Core").info(`Running job #${job.id} - ${job.class}`);
     job.state = "running";
     job.attempted_at = new Date();
     job.attempt = job.attempt + 1;
