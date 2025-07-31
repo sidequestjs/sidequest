@@ -1,6 +1,9 @@
 {
   "name": "sidequest",
-  "version": "1.0.0-next.4",
+  "version": "1.0.0-next.20",
+  "engines": {
+    "node": ">=22.6.0"
+  },
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.cjs",
