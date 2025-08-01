@@ -14,25 +14,25 @@ import { Collection, Db, Filter, MongoClient } from "mongodb";
 import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRange, parseTimeRange } from "./utils";
 
 /**
- * Converts SQL ILIKE pattern to MongoDB regex pattern.
+ * Converts SQL LIKE pattern to MongoDB regex pattern.
  * Handles % wildcards.
  */
-function convertILikeToRegex(pattern: string): RegExp {
+function convertLikeToRegex(pattern: string): RegExp {
   // Convert % to .*
   const regexPattern = pattern.replace(/%/g, ".*");
   // Return case-insensitive regex
-  return new RegExp(`^${regexPattern}$`, "i");
+  return new RegExp(`^${regexPattern}$`);
 }
 
 /**
  * Creates a MongoDB filter condition that mimics SQL's whereOrWhereIn behavior.
- * Single values are treated as ILIKE patterns, arrays as $in conditions.
+ * Single values are treated as LIKE patterns, arrays as $in conditions.
  */
 function createFilter<T>(value: T | T[]): T | { $in: T[] } | { $regex: RegExp } {
   if (Array.isArray(value)) {
     return { $in: value };
   } else if (typeof value === "string") {
-    return { $regex: convertILikeToRegex(value) };
+    return { $regex: convertLikeToRegex(value) };
   } else {
     return value;
   }

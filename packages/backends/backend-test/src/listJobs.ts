@@ -256,7 +256,7 @@ export default function defineListJobsTestSuite() {
       expect(listJobs).toHaveLength(0);
     });
 
-    it("should list jobs with ILIKE pattern matching for queue", async () => {
+    it("should list jobs with LIKE pattern matching for queue", async () => {
       // Insert jobs with different queue names
       const job1: NewJobData = {
         queue: "email-queue",
@@ -360,7 +360,7 @@ export default function defineListJobsTestSuite() {
       expect(listJobs[0].class).toBe("DataProcessor");
     });
 
-    it("should list jobs with ILIKE pattern matching for state", async () => {
+    it("should list jobs with LIKE pattern matching for state", async () => {
       // Insert jobs with different states
       const job1 = {
         queue: "default",
