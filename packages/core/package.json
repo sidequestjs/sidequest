@@ -1,6 +1,28 @@
 {
   "name": "@sidequest/core",
   "version": "1.1.1",
+  "description": "@sidequest/core is the core package of SideQuest, a distributed background job queue for Node.js and TypeScript applications.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git",
+    "directory": "packages/core"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,6 +44,5 @@
   "dependencies": {
     "safe-stable-stringify": "^2.5.0",
     "winston": "^3.17.0"
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }

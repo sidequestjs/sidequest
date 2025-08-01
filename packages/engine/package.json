@@ -1,6 +1,28 @@
 {
   "name": "@sidequest/engine",
   "version": "1.1.1",
+  "description": "@sidequest/engine is the core engine of SideQuest, a distributed background job processing system for Node.js and TypeScript.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git",
+    "directory": "packages/engine"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -27,6 +49,5 @@
   },
   "peerDependencies": {
     "sidequest": "workspace:*"
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }

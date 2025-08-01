@@ -1,6 +1,28 @@
 {
   "name": "@sidequest/sqlite-backend",
   "version": "1.1.1",
+  "description": "@sidequest/sqlite-backend is a SQLite backend for Sidequest, a distributed background job queue system.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git",
+    "directory": "packages/backends/sqlite"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/sqlite-backend.cjs",

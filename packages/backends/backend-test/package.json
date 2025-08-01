@@ -1,6 +1,28 @@
 {
   "name": "@sidequest/backend-test",
   "version": "1.1.1",
+  "description": "@sidequest/backend-test is a test suite for backend implementations of Sidequest, a Node.js library for managing background jobs and distributed queues.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git",
+    "directory": "packages/backends/backend-test"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
@@ -22,6 +44,5 @@
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "vitest": "^3.2.4"
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }
