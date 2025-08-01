@@ -19,7 +19,7 @@ import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRa
  */
 function convertLikeToRegex(pattern: string): RegExp {
   // Escape special regex characters and convert % to .*
-  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape special regex characters
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // Convert % to .*
   const regexPattern = escaped.replace(/%/g, ".*");
   // Return case-insensitive regex
