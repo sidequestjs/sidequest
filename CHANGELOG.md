@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/sidequestjs/sidequest/compare/v1.0.0...v1.1.0) (2025-08-01)
+
+
+### Features
+
+* add develop branch configuration for prerelease and channel settings ([#46](https://github.com/sidequestjs/sidequest/issues/46)) ([d0f0b57](https://github.com/sidequestjs/sidequest/commit/d0f0b57298befe20f2348827ebcc7be19189356d))
+
 # 1.0.0 (2025-08-01)
 
 
