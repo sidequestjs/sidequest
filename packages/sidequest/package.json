@@ -1,6 +1,39 @@
 {
   "name": "sidequest",
   "version": "1.1.1",
+  "description": "Sidequest is a modern, scalable background job processor for Node.js applications.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "maintainers": [
+    {
+      "name": "Giovani Guizzo",
+      "email": "giovani@sidequestjs.com",
+      "url": "https://github.com/GiovaniGuizzo"
+    },
+    {
+      "name": "Lucas Merencia",
+      "email": "lucas@sidequestjs.com",
+      "url": "https://github.com/merencia"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=22.6.0"
   },

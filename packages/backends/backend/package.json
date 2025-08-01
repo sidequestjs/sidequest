@@ -1,6 +1,40 @@
 {
   "name": "@sidequest/backend",
   "version": "1.1.1",
+  "description": "@sidequest/backend is the backend package of SideQuest, a distributed job queue for Node.js and TypeScript.",
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript",
+    "queue",
+    "concurrency",
+    "background-jobs",
+    "distributed",
+    "background"
+  ],
+  "homepage": "https://sidequestjs.com/",
+  "bugs": {
+    "url": "https://github.com/sidequestjs/sidequest/issues"
+  },
+  "maintainers": [
+    {
+      "name": "Giovani Guizzo",
+      "email": "giovani@sidequestjs.com",
+      "url": "https://github.com/GiovaniGuizzo"
+    },
+    {
+      "name": "Lucas Merencia",
+      "email": "lucas@sidequestjs.com",
+      "url": "https://github.com/merencia"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidequestjs/sidequest.git",
+    "directory": "packages/backends/backend"
+  },
+  "funding": "https://github.com/sponsors/sidequestjs",
+  "packageManager": "yarn@4.9.2",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
@@ -22,6 +56,5 @@
   "dependencies": {
     "@sidequest/core": "workspace:*",
     "knex": "^3.1.0"
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }
