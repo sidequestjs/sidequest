@@ -69,7 +69,7 @@ export function safeParseJobData(job: JobData): JobData {
 export function whereOrWhereIn(queryBuilder: Knex.QueryBuilder, column: string, value?: string | string[]) {
   if (value) {
     if (typeof value === "string") {
-      queryBuilder.where(column, value);
+      queryBuilder.where(column, "LIKE", value);
     } else {
       queryBuilder.whereIn(column, value);
     }
