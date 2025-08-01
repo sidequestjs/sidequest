@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["Build and Test"]
+    branches: [master, develop]
+    types:
+      - completed
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup Latest Yarn
+        uses: threeal/setup-yarn-action@v2.0.0
+        with:
+          version: berry
+          cache: false
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Configure Yarn authentication and settings
+        run: |
+          cat <<EOF > .yarnrc.yml
+          nodeLinker: node-modules
+
+          npmRegistryServer: "https://registry.npmjs.org"
+          npmAuthToken: "${NPM_TOKEN}"
+
+          npmScopes:
+            sidequest:
+              npmRegistryServer: "https://registry.npmjs.org"
+              npmAuthToken: "${NPM_TOKEN}"
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: npx semantic-release

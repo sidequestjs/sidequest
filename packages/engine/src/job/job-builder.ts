@@ -6,14 +6,15 @@ import {
   FixedWindowConfig,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type FixedWindowUniqueness,
+  JobClassType,
   JobData,
   logger,
   TimePeriod,
   UniquenessConfig,
   UniquenessFactory,
 } from "@sidequest/core";
+import nodeCron, { ScheduledTask } from "node-cron";
 import { JOB_BUILDER_FALLBACK } from "./constants";
-import { JobClassType } from "./job";
 
 /**
  * Configuration for job uniqueness constraints.
@@ -169,12 +170,7 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
-  /**
-   * Enqueues the job with the specified arguments.
-   * @param args Arguments to pass to the job's run method.
-   * @returns A promise resolving to the created job data.
-   */
-  async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
+  private async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
     await job.ready();
@@ -196,17 +192,78 @@ export class JobBuilder<T extends JobClassType> {
       timeout: this.jobTimeout!,
       uniqueness_config: this.uniquenessConfig!,
     };
-    logger("JobBuilder").debug(
-      `Enqueuing job ${job.className} with args: ${JSON.stringify(args)}
-      and constructor args: ${JSON.stringify(this.constructorArgs)}`,
-    );
 
     if (this.uniquenessConfig) {
       const uniqueness = UniquenessFactory.create(this.uniquenessConfig);
       jobData.unique_digest = uniqueness.digest(jobData as JobData);
-      logger("JobBuilder").debug(`Job ${job.className} uniqueness digest: ${jobData.unique_digest}`);
+      logger("JobBuilder").debug(`Job ${jobData.class} uniqueness digest: ${jobData.unique_digest}`);
     }
 
+    return jobData;
+  }
+
+  /**
+   * Enqueues the job with the specified arguments.
+   * @param args Arguments to pass to the job's run method.
+   * @returns A promise resolving to the created job data.
+   */
+  async enqueue(...args: Parameters<InstanceType<T>["run"]>) {
+    const jobData = await this.build(...args);
+
+    logger("JobBuilder").debug(
+      `Enqueuing job ${jobData.class} with args: ${JSON.stringify(args)}
+      and constructor args: ${JSON.stringify(this.constructorArgs)}`,
+    );
     return this.backend.createNewJob(jobData);
+  }
+
+  /**
+   * Registers a recurring schedule to enqueue the job automatically based on a cron expression.
+   *
+   * This sets up an in-memory schedule that enqueues the job with the provided arguments
+   * every time the cron expression is triggered.
+   *
+   * @remarks
+   * - The schedule is **not persisted** to any database. It will be lost if the process restarts and must be re-registered at startup.
+   * - You must call this method during application initialization to ensure the job is scheduled correctly.
+   * - Uses node-cron’s `noOverlap: true` option to prevent concurrent executions.
+   *
+   * @param cronExpression - A valid cron expression (node-cron compatible) that defines when the job should be enqueued.
+   * @param args - Arguments to be passed to the job’s `run` method on each scheduled execution.
+   *
+   * @returns The underlying `ScheduledTask` instance created by node-cron.
+   *
+   * @throws {Error} If the cron expression is invalid.
+   */
+  async schedule(cronExpression: string, ...args: Parameters<InstanceType<T>["run"]>): Promise<ScheduledTask> {
+    if (!nodeCron.validate(cronExpression)) {
+      throw new Error(`Invalid cron expression ${cronExpression}`);
+    }
+
+    // Build the job data using the provided arguments,
+    // this ensures the scheduled state is going to be respected in cases where the builder was reused.
+    // Includes class name, queue, timeout, uniqueness, etc.
+    const jobData = await this.build(...args);
+
+    // Freeze the job data to prevent future modifications.
+    // Ensures the same payload is used on every scheduled execution.
+    Object.freeze(jobData);
+
+    logger("JobBuilder").debug(
+      `Scheduling job ${jobData.class} with cron: "${cronExpression}", args: ${JSON.stringify(args)}, ` +
+        `constructor args: ${JSON.stringify(this.constructorArgs)}`,
+    );
+
+    return nodeCron.schedule(
+      cronExpression,
+      async () => {
+        const newJobData: NewJobData = Object.assign({}, jobData);
+        logger("JobBuilder").debug(
+          `Cron triggered for job ${newJobData.class} at ${newJobData.available_at!.toISOString()} with args: ${JSON.stringify(args)}`,
+        );
+        return this.backend.createNewJob(jobData);
+      },
+      { noOverlap: true },
+    );
   }
 }

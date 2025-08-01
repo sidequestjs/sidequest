@@ -1,8 +1,25 @@
 import { sidequestTest } from "@/tests/fixture";
+import { Backend } from "@sidequest/backend";
+import { JobData, JobState, UniquenessFactory } from "@sidequest/core";
+import nodeCron from "node-cron";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
 
+vi.mock("node-cron", () => ({
+  default: {
+    validate: vi.fn(() => true),
+    schedule: vi.fn(),
+  },
+}));
+
+const scheduleMock = vi.mocked(nodeCron.schedule);
+const validateMock = vi.mocked(nodeCron.validate);
+
 describe("JobBuilder", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   sidequestTest("enqueues a job at default queue", async ({ backend }) => {
     const jobData = await new JobBuilder(backend, DummyJob).enqueue();
     expect(jobData).toEqual(
@@ -58,6 +75,138 @@ describe("JobBuilder", () => {
     const jobData = await new JobBuilder(backend, DummyJob).availableAt(futureDate).enqueue();
     expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(futureDate.getTime(), -2);
   });
+
+  sidequestTest("should enqueue job", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should enqueue job in different queue", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).queue("test-queue").enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+      queue: "test-queue",
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should enqueue job with timeout", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).timeout(100).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+    expect(jobData[0].timeout).toBe(100);
+  });
+
+  sidequestTest("should be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).enqueue();
+    await new JobBuilder(backend, DummyJob).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique(true).enqueue()).rejects.toThrow();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs in the same period", async ({ backend }) => {
+    vi.useFakeTimers();
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
+    await expect(new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue()).rejects.toThrow();
+    vi.advanceTimersByTime(1100);
+    await new JobBuilder(backend, DummyJob).unique({ period: "second" }).enqueue();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest(
+    "should not be able to enqueue duplicated jobs with different args withargs=false",
+    async ({ backend }) => {
+      await new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue();
+      await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: false }).enqueue("arg1")).rejects.toThrow();
+
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobData.length).toBe(1);
+    },
+  );
+
+  sidequestTest("should be able to enqueue duplicated jobs with different args", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue();
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(2);
+  });
+
+  sidequestTest("should not be able to enqueue duplicated jobs with same args withargs=true", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1");
+    await expect(new JobBuilder(backend, DummyJob).unique({ withArgs: true }).enqueue("arg1")).rejects.toThrow();
+
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+  });
+
+  sidequestTest.for([
+    { expected: 1, state: "waiting" },
+    { expected: 1, state: "running" },
+    { expected: 1, state: "claimed" },
+    { expected: 2, state: "canceled" },
+    { expected: 2, state: "failed" },
+    { expected: 2, state: "completed" },
+  ] as { expected: number; state: JobState }[])(
+    "should have %i jobs if first job is %s",
+    async ({ expected, state }, { backend }) => {
+      const job1 = await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+
+      const newData = { ...job1, state };
+
+      const uniqueness = UniquenessFactory.create(newData.uniqueness_config!);
+      newData.unique_digest = uniqueness.digest(newData);
+      await backend.updateJob(newData);
+
+      try {
+        await new JobBuilder(backend, DummyJob).unique(true).enqueue();
+      } catch {
+        // noop
+      }
+
+      const jobData = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobData.length).toBe(expected);
+    },
+  );
 
   describe("constructor defaults", () => {
     sidequestTest("uses default queue when no defaults provided", async ({ backend }) => {
@@ -181,6 +330,45 @@ describe("JobBuilder", () => {
         .unique({ withArgs: true, period: "minute" })
         .enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
+    });
+  });
+
+  describe("schedule", () => {
+    let jobBuilder: JobBuilder<typeof DummyJob>;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      jobBuilder = new JobBuilder({} as Backend, DummyJob);
+    });
+
+    it("calls node-cron with correct cron expression and enqueues job with args", async () => {
+      const cronExpression = "* * * * *";
+
+      const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+      const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+      jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+      await jobBuilder.schedule(cronExpression, "foo", "bar");
+
+      expect(nodeCron.validate).toHaveBeenCalledWith(cronExpression);
+      expect(nodeCron.schedule).toHaveBeenCalled();
+
+      const [calledExpression, callback] = scheduleMock.mock.calls[0] as [
+        string,
+        (...args: unknown[]) => unknown,
+        unknown?,
+      ];
+      expect(calledExpression).toBe(cronExpression);
+
+      await callback();
+
+      expect(createNewJobMock).toHaveBeenCalled();
+    });
+
+    it("throws error if cron expression is invalid", async () => {
+      validateMock.mockReturnValueOnce(false);
+
+      await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
     });
   });
 });

@@ -1,6 +1,15 @@
 import { Backend } from "@sidequest/backend";
-import { JobData, JobTransitionFactory, logger, QueueConfig, RunTransition, SnoozeTransition } from "@sidequest/core";
+import {
+  JobData,
+  JobTransitionFactory,
+  logger,
+  QueueConfig,
+  RetryTransition,
+  RunTransition,
+  SnoozeTransition,
+} from "@sidequest/core";
 import EventEmitter from "events";
+import { NonNullableEngineConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
 
@@ -15,19 +24,15 @@ export class ExecutorManager {
   /**
    * Creates a new ExecutorManager.
    * @param backend The backend instance.
-   * @param maxConcurrentJobs The maximum number of concurrent jobs across all queues.
-   * @param minThreads Minimum number of worker threads to use.
-   * @param maxThreads Maximum number of worker threads to use.
+   * @param nonNullConfig The non-nullable engine configuration.
    */
   constructor(
     private backend: Backend,
-    private maxConcurrentJobs: number,
-    private minThreads: number,
-    private maxThreads: number,
+    private nonNullConfig: NonNullableEngineConfig,
   ) {
     this.activeByQueue = {};
     this.activeJobs = new Set();
-    this.runnerPool = new RunnerPool(this.minThreads, this.maxThreads);
+    this.runnerPool = new RunnerPool(this.nonNullConfig);
   }
 
   /**
@@ -54,7 +59,7 @@ export class ExecutorManager {
    * @returns The number of available slots.
    */
   availableSlotsGlobal() {
-    const limit = this.maxConcurrentJobs;
+    const limit = this.nonNullConfig.maxConcurrentJobs;
     const availableSlots = limit - this.activeJobs.size;
     if (availableSlots < 0) {
       return 0;
@@ -93,13 +98,11 @@ export class ExecutorManager {
     job = await JobTransitioner.apply(this.backend, job, new RunTransition());
 
     const signal = new EventEmitter();
-
     let isRunning = true;
-
-    const jobChecker = async () => {
+    const cancellationCheck = async () => {
       while (isRunning) {
         const watchedJob = await this.backend.getJob(job.id);
-        if (watchedJob?.state === "canceled") {
+        if (watchedJob!.state === "canceled") {
           logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
           signal.emit("abort");
           isRunning = false;
@@ -108,11 +111,25 @@ export class ExecutorManager {
         await new Promise((r) => setTimeout(r, 1000));
       }
     };
-    void jobChecker();
+    void cancellationCheck();
 
     try {
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
-      const result = await this.runnerPool.run(job, signal);
+
+      const runPromise = this.runnerPool.run(job, signal);
+
+      if (job.timeout) {
+        void new Promise(() => {
+          setTimeout(() => {
+            logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
+            signal.emit("abort");
+            void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
+          }, job.timeout!);
+        });
+      }
+
+      const result = await runPromise;
+
       isRunning = false;
       logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
       const transition = JobTransitionFactory.create(result);
@@ -121,10 +138,10 @@ export class ExecutorManager {
       isRunning = false;
       const err = error as Error;
       if (err.message === "The task has been aborted") {
-        logger("Executor Manager").debug(`Job ${job.id} was canceled`);
+        logger("Executor Manager").debug(`Job ${job.id} was aborted`);
       } else {
-        logger("Executor Manager").error(`Error executing job ${job.id}: ${err.message}`);
-        throw error;
+        logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
+        await JobTransitioner.apply(this.backend, job, new RetryTransition(err));
       }
     } finally {
       isRunning = false;

@@ -13,7 +13,7 @@ export class QueueOperations {
    * @returns The backend instance.
    * @throws Error if the engine is not configured.
    */
-  private backend: Backend | undefined;
+  private backend?: Backend;
 
   /**
    * Singleton instance of QueueOperations.
@@ -35,7 +35,7 @@ export class QueueOperations {
    *
    * @param backend - The backend instance to set
    */
-  public setBackend(backend: Backend) {
+  public setBackend(backend: Backend | undefined) {
     this.backend = backend;
   }
 
@@ -119,10 +119,6 @@ export class QueueOperations {
    * @throws Error if the queue is not found or concurrency is invalid
    */
   async setConcurrency(queueName: string, concurrency: number): Promise<QueueConfig> {
-    if (concurrency < 0) {
-      throw new Error("Concurrency must be a positive number or 0 for unlimited");
-    }
-
     const backend = this.getBackend();
     const queue = await backend.getQueue(queueName);
 

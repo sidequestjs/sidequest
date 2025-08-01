@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/engine",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-next.22",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -10,6 +10,9 @@
     "import": "./dist/index.js",
     "require": "./dist/index.cjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",
@@ -21,6 +24,9 @@
     "@sidequest/core": "workspace:*",
     "node-cron": "^4.1.1",
     "piscina": "^5.1.2"
+  },
+  "peerDependencies": {
+    "sidequest": "workspace:*"
   },
   "packageManager": "yarn@4.9.2"
 }

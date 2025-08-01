@@ -1,25 +1,16 @@
-import {
-  CompletedResult,
-  ErrorData,
-  FailedResult,
-  isJobResult,
-  JobData,
-  JobResult,
-  JobState,
-  logger,
-  RetryResult,
-  SnoozeResult,
-  toErrorData,
-  UniquenessConfig,
-} from "@sidequest/core";
 import { access } from "fs/promises";
 import { pathToFileURL } from "url";
+import { logger } from "../logger";
+import { ErrorData, JobData, JobState } from "../schema";
+import { toErrorData } from "../tools";
+import { CompletedResult, FailedResult, isJobResult, JobResult, RetryResult, SnoozeResult } from "../transitions";
+import { UniquenessConfig } from "../uniquiness";
 
 /**
  * Type for a job class constructor.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: unknown[]) => unknown } };
+export type JobClassType = (new (...args: any) => Job) & { prototype: { run: (...args: any) => unknown } };
 
 /**
  * Abstract base class for Sidequest jobs.
@@ -318,7 +309,7 @@ async function hasClassExported(filePath: string, className: string): Promise<bo
 
     return false;
   } catch (e) {
-    logger().debug(e);
+    logger("Core").debug(e);
     return false;
   }
 }

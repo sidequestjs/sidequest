@@ -1,4 +1,5 @@
-import { Job, NonNullableEngineConfig } from "@sidequest/engine";
+import { Job } from "@sidequest/core";
+import { NonNullableEngineConfig } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
 import { Sidequest, SidequestConfig } from "./sidequest";
@@ -207,6 +208,38 @@ describe("Sidequest", () => {
 
       expect(mockEngineInstance.configure).toHaveBeenCalled();
       expect(mockEngineInstance.start).toHaveBeenCalled();
+    });
+
+    it("should call stop if engine start fails", async () => {
+      const error = new Error("Engine start failed");
+      vi.mocked(mockEngineInstance.start).mockRejectedValue(error);
+
+      // Spy on the stop method
+      const stopSpy = vi.spyOn(Sidequest, "stop");
+
+      await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
+
+      expect(mockEngineInstance.start).toHaveBeenCalled();
+      expect(stopSpy).toHaveBeenCalled();
+
+      stopSpy.mockRestore();
+    });
+
+    it("should call stop if dashboard start fails", async () => {
+      const error = new Error("Dashboard start failed");
+      mockSidequestDashboard.start.mockRejectedValue(error);
+
+      // Spy on the stop method
+      const stopSpy = vi.spyOn(Sidequest, "stop");
+
+      await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
+
+      expect(mockEngineInstance.configure).toHaveBeenCalled();
+      expect(mockEngineInstance.start).toHaveBeenCalled();
+      expect(mockSidequestDashboard.start).toHaveBeenCalled();
+      expect(stopSpy).toHaveBeenCalled();
+
+      stopSpy.mockRestore();
     });
   });
 

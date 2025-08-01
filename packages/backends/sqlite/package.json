@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/sqlite-backend",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-next.22",
   "license": "LGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/sqlite-backend.cjs",
@@ -11,6 +11,10 @@
     "import": "./dist/sqlite-backend.js",
     "require": "./dist/sqlite-backend.cjs"
   },
+  "files": [
+    "dist",
+    "migrations"
+  ],
   "scripts": {
     "build": "npx rollup -c",
     "dev": "npx rollup -c -w",

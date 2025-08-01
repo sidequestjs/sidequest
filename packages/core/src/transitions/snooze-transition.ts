@@ -26,7 +26,7 @@ export class SnoozeTransition extends JobTransition {
   }
 
   apply(job: JobData): JobData {
-    logger("Core").info(`Job ${job.class} snoozed by ${this.delay}ms`);
+    logger("Core").info(`Job #${job.id} - ${job.class} snoozed by ${this.delay}ms`);
 
     // Attempts are only decremented if the job is running and has already been attempted
     // This means that the job will not consider the current run as an attempt

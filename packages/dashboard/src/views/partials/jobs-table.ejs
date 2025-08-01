@@ -15,10 +15,10 @@
   <tbody>
     <% jobs.forEach(job => { %>
     <tr class="hover:bg-base-300">
-      <td class="px-4 py-3 text-base-content link"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
-      <td class="px-4 py-3 text-base-content"><%= job.class %></td>
-      <td class="px-4 py-3"><%= job.queue %></td>
-      <td class="px-4 py-3">
+      <td class="px-2 py-3 text-base-content link"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
+      <td class="px-2 py-3 text-base-content"><%= job.class %></td>
+      <td class="px-2 py-3"><%= job.queue %></td>
+      <td class="px-2 py-3">
         <span class="badge <%= {
             completed: 'badge-success',
             failed: 'badge-error',
@@ -30,16 +30,16 @@
           <%= job.state.charAt(0).toUpperCase() + job.state.slice(1) %>
         </span>
       </td>
-      <td class="px-4 py-3"><%= job.attempt %> / <%= job.max_attempts %></td>
-      <td class="px-4 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
-      <td class="px-4 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
-      <td class="px-4 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
-      <td class="max-w-3">
+      <td class="px-2 py-3"><%= job.attempt %> / <%= job.max_attempts %></td>
+      <td class="px-2 py-3"><%= job.available_at?.toISOString?.() || '-' %></td>
+      <td class="px-2 py-3"><%= job.completed_at?.toISOString?.() || '-' %></td>
+      <td class="px-2 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
+      <td class="px-2 py-3 flex flex-nowrap gap-2">
         <% if (job.available_at > new Date()) { %>
-          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run"><i data-feather="play" class="w-4 h-4"></i>Run</button>
+          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run" hx-push-url="false" hx-target="this"><i data-feather="play" class="w-4 h-4"></i>Run</button>
         <% } %>
         <% if (!['canceled', 'failed', 'completed'].includes(job.state)){ %>
-          <button class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/cancel"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
+          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/cancel" hx-push-url="false" hx-target="this"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
         <% } %>
       </td>
     </tr>

@@ -11,7 +11,7 @@ import { JobTransition } from "./transition";
  */
 export class RerunTransition extends JobTransition {
   apply(job: JobData): JobData {
-    logger("Core").debug(`Re-running job ${job.class} with args: ${JSON.stringify(job.args)}`);
+    logger("Core").info(`Re-running job #${job.id} - ${job.class}`);
 
     // Reset job state to waiting
     job.state = "waiting";

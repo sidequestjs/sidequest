@@ -26,7 +26,19 @@ Remember to install `@sidequest/sqlite-backend` before running with the default 
 
 ## 2. Custom Configuration
 
-You can fully customize how Sidequest runs in your application. You can choose your backend, define queues, set concurrency limits, and configure the dashboard.
+You can fully customize how Sidequest runs in your application. The configuration options are organized into several categories:
+
+- **Backend**: Database connection and driver settings
+- **Queues**: Initial queue definitions and default queue behavior
+- **Job Processing**: Concurrency, threading, and job execution settings
+- **Maintenance**: Automatic cleanup and stale job handling
+- **Logging**: Log level and output format configuration
+- **Job Defaults**: Default settings applied to all new jobs
+- **Dashboard**: Web interface configuration and authentication
+
+### Basic Custom Configuration
+
+Here's a basic custom configuration example:
 
 ```typescript
 import { Sidequest } from "sidequest";
@@ -37,15 +49,92 @@ await Sidequest.start({
     driver: "@sidequest/postgres-backend", // or @sidequest/sqlite-backend, @sidequest/mysql-backend, etc.
     config: "postgresql://postgres:postgres@localhost:5432/postgres",
   },
+
   // 2. Queues: define queue names, priorities, concurrency, and initial state
   queues: [
-    { name: "default", concurrency: 2, priority: 50 },
-    { name: "critical", concurrency: 5, priority: 100 },
-    { name: "reports", concurrency: 1 },
+    { name: "default", concurrency: 2, priority: 50, state: "active" },
+    { name: "critical", concurrency: 5, priority: 100, state: "active" },
+    { name: "reports", concurrency: 1, state: "paused" },
   ],
-  // 3. Maximum concurrent jobs (across all queues)
+
+  // 3. Job processing configuration
   maxConcurrentJobs: 50,
+
   // 4. Dashboard: enable/disable, set port, and basic auth
+  dashboard: {
+    enabled: true,
+    port: 8678,
+    auth: {
+      user: "admin",
+      password: "secret",
+    },
+  },
+});
+```
+
+### Complete Configuration Example
+
+For advanced use cases, here's a comprehensive configuration showing all available options:
+
+```typescript
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  // 1. Backend: choose your preferred database
+  backend: {
+    driver: "@sidequest/postgres-backend", // or @sidequest/sqlite-backend, @sidequest/mysql-backend, etc.
+    config: "postgresql://postgres:postgres@localhost:5432/postgres",
+  },
+
+  // 2. Queues: define queue names, priorities, concurrency, and initial state
+  queues: [
+    { name: "default", concurrency: 2, priority: 50, state: "active" },
+    { name: "critical", concurrency: 5, priority: 100, state: "active" },
+    { name: "reports", concurrency: 1, state: "paused" },
+  ],
+
+  // 3. Job processing configuration
+  maxConcurrentJobs: 50,
+  minThreads: 4,
+  maxThreads: 8,
+  idleWorkerTimeout: 10000, // 10 seconds
+
+  // 4. Migration and startup
+  skipMigration: false,
+
+  // 5. Job maintenance and cleanup
+  releaseStaleJobsIntervalMin: 60,
+  releaseStaleJobsMaxStaleMs: 10 * 60 * 1000, // 10 minutes
+  releaseStaleJobsMaxClaimedMs: 1 * 60 * 1000, // 1 minute
+  cleanupFinishedJobsIntervalMin: 60,
+  cleanupFinishedJobsOlderThan: 30 * 24 * 60 * 60 * 1000, // 30 days
+
+  // 6. Logging configuration
+  logger: {
+    level: "info", // 'debug', 'info', 'warn', 'error'
+    json: false,
+  },
+
+  // 7. Shutdown behavior
+  gracefulShutdown: true,
+
+  // 8. Default job configuration
+  jobDefaults: {
+    queue: "default",
+    timeout: 30000, // 30 seconds
+    maxAttempts: 3,
+    availableAt: new Date(), // immediate
+    uniqueness: false,
+  },
+
+  // 9. Default queue configuration
+  queueDefaults: {
+    concurrency: 10,
+    priority: 0,
+    state: "active",
+  },
+
+  // 10. Dashboard: enable/disable, set port, and basic auth
   dashboard: {
     enabled: true,
     port: 8678,
@@ -59,14 +148,36 @@ await Sidequest.start({
 
 ### Configuration Options
 
-| Option              | Description                                                                                 | Default                              |
-| ------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `backend`           | Which backend driver and config string to use (SQLite, Postgres, MySQL, MongoDB)            | SQLite (`@sidequest/sqlite-backend`) |
-| `queues`            | Array of queue configs. Name, concurrency, priority, initial state (`waiting` or `paused`)  | `[]`                                 |
-| `maxConcurrentJobs` | Maximum number of jobs processed at the same time across all queues                         | `100`                                |
-| `dashboard.enabled` | Enable or disable the dashboard UI                                                          | `true`                               |
-| `dashboard.port`    | Port where the dashboard runs                                                               | `8678`                               |
-| `dashboard.auth`    | Basic authentication (user/password) for dashboard access. If omitted, no auth is required. | not set (no auth)                    |
+| Option                           | Description                                                                  | Default                     |
+| -------------------------------- | ---------------------------------------------------------------------------- | --------------------------- |
+| `backend.driver`                 | Backend driver package name (SQLite, Postgres, MySQL, MongoDB)               | `@sidequest/sqlite-backend` |
+| `backend.config`                 | Backend-specific connection string or configuration object                   | `./sidequest.sqlite`        |
+| `queues`                         | Array of queue configurations with name, concurrency, priority, and state    | `[]`                        |
+| `maxConcurrentJobs`              | Maximum number of jobs processed simultaneously across all queues            | `10`                        |
+| `minThreads`                     | Minimum number of worker threads to use                                      | Number of CPU cores         |
+| `maxThreads`                     | Maximum number of worker threads to use                                      | `minThreads * 2`            |
+| `idleWorkerTimeout`              | Timeout (milliseconds) for idle workers before they are terminated           | `10000` (10 seconds)        |
+| `skipMigration`                  | Whether to skip database migration on startup                                | `false`                     |
+| `releaseStaleJobsIntervalMin`    | Frequency (minutes) for releasing stale jobs. Set to `false` to disable      | `60`                        |
+| `releaseStaleJobsMaxStaleMs`     | Maximum age (milliseconds) for a running job to be considered stale          | `600000` (10 minutes)       |
+| `releaseStaleJobsMaxClaimedMs`   | Maximum age (milliseconds) for a claimed job to be considered stale          | `60000` (1 minute)          |
+| `cleanupFinishedJobsIntervalMin` | Frequency (minutes) for cleaning up finished jobs. Set to `false` to disable | `60`                        |
+| `cleanupFinishedJobsOlderThan`   | Age (milliseconds) after which finished jobs are deleted                     | `2592000000` (30 days)      |
+| `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                         | `info`                      |
+| `logger.json`                    | Whether to output logs in JSON format                                        | `false`                     |
+| `gracefulShutdown`               | Whether to enable graceful shutdown handling                                 | `true`                      |
+| `jobDefaults.queue`              | Default queue name for new jobs                                              | `default`                   |
+| `jobDefaults.timeout`            | Default timeout (milliseconds) for job execution                             | none                        |
+| `jobDefaults.maxAttempts`        | Default maximum retry attempts for failed jobs                               | `5`                         |
+| `jobDefaults.availableAt`        | Default delay before job becomes available for execution                     | Current time (immediate)    |
+| `jobDefaults.uniqueness`         | Default uniqueness constraint for jobs                                       | `false` (no uniqueness)     |
+| `queueDefaults.concurrency`      | Default concurrency limit for auto-created queues                            | `10`                        |
+| `queueDefaults.priority`         | Default priority for auto-created queues                                     | `0`                         |
+| `queueDefaults.state`            | Default state for auto-created queues (`active` or `paused`)                 | `active`                    |
+| `dashboard.enabled`              | Enable or disable the dashboard UI                                           | `true`                      |
+| `dashboard.port`                 | Port where the dashboard runs                                                | `8678`                      |
+| `dashboard.auth.user`            | Username for dashboard basic authentication                                  | Not set (no auth)           |
+| `dashboard.auth.password`        | Password for dashboard basic authentication                                  | Not set (no auth)           |
 
 ::: danger
 If `auth` is not configured and `dashboard: true` is enabled in production, the dashboard will be publicly accessible. This is a security risk and **not recommended**.
@@ -80,7 +191,9 @@ If you enqueue a job to a queue that does not exist yet, Sidequest will automati
 
 You can run Sidequest on any supported backend. Supported backends include Postgres, SQLite, MySQL, and soon MongoDB. Install the corresponding driver and provide the config string.
 
-**Example: Using PostgreSQL backend**
+**See:** [Installation Guide](/installation#choose-your-backend) for details on installing drivers.
+
+### Using PostgreSQL backend
 
 ```typescript
 backend: {
@@ -89,7 +202,7 @@ backend: {
 }
 ```
 
-**Example: Using MySQL backend**
+### Using MySQL backend
 
 ```typescript
 backend: {
@@ -98,13 +211,59 @@ backend: {
 }
 ```
 
-**See:** [Installation Guide](/installation#choose-your-backend) for details on installing drivers.
+## 4. Configuration Reference
 
-## 4. Full Example
+The comprehensive configuration example above demonstrates all available options. In practice, you typically only need to configure the options relevant to your use case. Here are some common configuration patterns:
 
 ::: code-group
 
-```typescript [TypeScript]
+```typescript [Production Setup]
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  backend: {
+    driver: "@sidequest/postgres-backend",
+    config: process.env.DATABASE_URL,
+  },
+  queues: [
+    { name: "default", concurrency: 5, priority: 50 },
+    { name: "critical", concurrency: 10, priority: 100 },
+    { name: "emails", concurrency: 2, priority: 30 },
+  ],
+  maxConcurrentJobs: 20,
+  logger: {
+    level: "info",
+    json: true, // Structured logging for production
+  },
+  dashboard: {
+    enabled: true,
+    port: parseInt(process.env.DASHBOARD_PORT || "8678"),
+    auth: {
+      user: process.env.DASHBOARD_USER!,
+      password: process.env.DASHBOARD_PASSWORD!,
+    },
+  },
+});
+```
+
+```typescript [Development Setup]
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  logger: {
+    level: "debug", // Verbose logging for development
+    json: false,
+  },
+  dashboard: {
+    enabled: true,
+    port: 3000,
+    // No auth for local development
+  },
+  // Use default SQLite backend for easy setup
+});
+```
+
+```typescript [High-Throughput Setup]
 import { Sidequest } from "sidequest";
 
 await Sidequest.start({
@@ -112,69 +271,14 @@ await Sidequest.start({
     driver: "@sidequest/postgres-backend",
     config: "postgresql://postgres:postgres@localhost:5432/postgres",
   },
-  queues: [
-    { name: "default", concurrency: 2, priority: 50 },
-    { name: "critical", concurrency: 5, priority: 100 },
-    { name: "reports", concurrency: 1, state: "paused" },
-  ],
   maxConcurrentJobs: 100,
-  dashboard: {
-    enabled: true,
-    port: 8678,
-    auth: {
-      user: "admin",
-      password: "secret",
-    },
-  },
-});
-```
-
-```typescript [ESM]
-import { Sidequest } from "sidequest";
-
-await Sidequest.start({
-  backend: {
-    driver: "@sidequest/postgres-backend",
-    config: "postgresql://postgres:postgres@localhost:5432/postgres",
-  },
-  queues: [
-    { name: "default", concurrency: 2, priority: 50 },
-    { name: "critical", concurrency: 5, priority: 100 },
-    { name: "reports", concurrency: 1, state: "paused" },
-  ],
-  maxConcurrentJobs: 100,
-  dashboard: {
-    enabled: true,
-    port: 8678,
-    auth: {
-      user: "admin",
-      password: "secret",
-    },
-  },
-});
-```
-
-```javascript [CommonJS]
-const { Sidequest } = require("sidequest");
-
-Sidequest.start({
-  backend: {
-    driver: "@sidequest/postgres-backend",
-    config: "postgresql://postgres:postgres@localhost:5432/postgres",
-  },
-  queues: [
-    { name: "default", concurrency: 2, priority: 50 },
-    { name: "critical", concurrency: 5, priority: 100 },
-    { name: "reports", concurrency: 1, state: "paused" },
-  ],
-  maxConcurrentJobs: 100,
-  dashboard: {
-    enabled: true,
-    port: 8678,
-    auth: {
-      user: "admin",
-      password: "secret",
-    },
+  minThreads: 8,
+  maxThreads: 16,
+  idleWorkerTimeout: 30000, // 30 seconds for high throughput
+  releaseStaleJobsIntervalMin: 30, // More frequent stale job cleanup
+  cleanupFinishedJobsIntervalMin: 30, // More frequent cleanup
+  queueDefaults: {
+    concurrency: 20, // Higher default concurrency
   },
 });
 ```

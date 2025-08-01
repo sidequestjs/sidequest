@@ -27,13 +27,8 @@ export class MainWorker {
 
         this.dispatcher = new Dispatcher(
           this.backend,
-          new QueueManager(this.backend, nonNullConfig.queues),
-          new ExecutorManager(
-            this.backend,
-            nonNullConfig.maxConcurrentJobs,
-            nonNullConfig.minThreads,
-            nonNullConfig.maxThreads,
-          ),
+          new QueueManager(this.backend, nonNullConfig.queues, nonNullConfig.queueDefaults),
+          new ExecutorManager(this.backend, nonNullConfig),
         );
         this.dispatcher.start();
 

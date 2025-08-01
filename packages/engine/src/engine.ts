@@ -1,17 +1,9 @@
-import {
-  Backend,
-  BackendConfig,
-  createBackendFromDriver,
-  MISC_FALLBACK,
-  NewQueueData,
-  QUEUE_FALLBACK,
-} from "@sidequest/backend";
-import { configureLogger, logger, LoggerOptions } from "@sidequest/core";
+import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
+import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
 import path from "path";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
-import { JobClassType } from "./job/job";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
@@ -48,6 +40,8 @@ export interface EngineConfig {
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
   maxThreads?: number;
+  /** Timeout in milliseconds for idle workers before they are terminated. Defaults to 10 seconds */
+  idleWorkerTimeout?: number;
 
   /**
    * Default job builder configuration.
@@ -135,12 +129,15 @@ export class Engine {
       gracefulShutdown: config?.gracefulShutdown ?? true,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
+      idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,
       releaseStaleJobsMaxStaleMs: config?.releaseStaleJobsMaxStaleMs ?? MISC_FALLBACK.maxStaleMs, // 10 minutes
       releaseStaleJobsMaxClaimedMs: config?.releaseStaleJobsMaxClaimedMs ?? MISC_FALLBACK.maxClaimedMs, // 1 minute
       jobDefaults: {
         queue: config?.jobDefaults?.queue ?? JOB_BUILDER_FALLBACK.queue!,
         maxAttempts: config?.jobDefaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!,
-        availableAt: config?.jobDefaults?.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
+        // This here does not use a fallback default because it is a getter.
+        // It needs to be set at job creation time.
+        availableAt: config?.jobDefaults?.availableAt,
         timeout: config?.jobDefaults?.timeout ?? JOB_BUILDER_FALLBACK.timeout!,
         uniqueness: config?.jobDefaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!,
       },
@@ -151,21 +148,19 @@ export class Engine {
       },
     };
 
+    if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
+      throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
+    }
+
+    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
+
     if (this.config.logger) {
       configureLogger(this.config.logger);
     }
 
-    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
-    this.backend = await createBackendFromDriver(this.config.backend);
-
+    this.backend = new LazyBackend(this.config.backend);
     if (!this.config.skipMigration) {
       await this.backend.migrate();
-    }
-
-    if (this.config.queues) {
-      for (const queue of this.config.queues) {
-        await grantQueueConfig(this.backend, queue, this.config.queueDefaults);
-      }
     }
 
     return this.config;
@@ -176,9 +171,20 @@ export class Engine {
    * @param config Optional configuration object.
    */
   async start(config: EngineConfig): Promise<void> {
+    if (this.mainWorker) {
+      logger("Engine").warn("Sidequest engine already started");
+      return;
+    }
+
     await this.configure(config);
 
     logger("Engine").info(`Starting Sidequest using backend ${this.config!.backend.driver}`);
+
+    if (this.config!.queues) {
+      for (const queue of this.config!.queues) {
+        await grantQueueConfig(this.backend!, queue, this.config!.queueDefaults, true);
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -237,10 +243,11 @@ export class Engine {
       this.shuttingDown = true;
       logger("Engine").debug("Closing Sidequest engine...");
       if (this.mainWorker) {
-        this.mainWorker.send({ type: "shutdown" });
-        await new Promise((resolve) => {
+        const promise = new Promise((resolve) => {
           this.mainWorker!.on("exit", resolve);
         });
+        this.mainWorker.send({ type: "shutdown" });
+        await promise;
       }
       await this.backend?.close();
       this.config = undefined;
@@ -267,6 +274,11 @@ export class Engine {
       throw new Error("Engine is shutting down, cannot build job.");
     }
     logger("Engine").debug(`Building job for class: ${JobClass.name}`);
-    return new JobBuilder(this.backend, JobClass, this.config.jobDefaults);
+    return new JobBuilder(this.backend, JobClass, {
+      ...this.config.jobDefaults,
+      // We need to do this check again because available at is a getter. It needs to be set at job creation time.
+      // If not set, it will use the fallback value which is outdated from config.
+      availableAt: this.config.jobDefaults.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
+    });
   }
 }

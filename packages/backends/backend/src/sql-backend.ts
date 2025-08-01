@@ -60,6 +60,10 @@ export abstract class SQLBackend implements Backend {
   }
 
   async createNewQueue(queueConfig: NewQueueData): Promise<QueueConfig> {
+    if (queueConfig.concurrency !== undefined && queueConfig.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     const data: NewQueueData = {
       ...QUEUE_FALLBACK,
       ...queueConfig,
@@ -88,6 +92,10 @@ export abstract class SQLBackend implements Backend {
   }
 
   async updateQueue(queueData: UpdateQueueData) {
+    if (queueData.concurrency !== undefined && queueData.concurrency < 1) {
+      throw new Error("Concurrency must be at least 1");
+    }
+
     const { id, ...updates } = queueData;
     logger("Backend").debug(`Updating queue: ${JSON.stringify(queueData)}`);
 

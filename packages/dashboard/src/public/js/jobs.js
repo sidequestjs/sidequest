@@ -28,13 +28,3 @@ document.addEventListener("htmx:configRequest", (evt) => {
     evt.detail.parameters.end = endDate.toISOString();
   }
 });
-
-document.addEventListener("htmx:afterRequest", (evt) => {
-  const form = document.getElementById("filter-form");
-  if (!form) return;
-
-  const params = new URLSearchParams(new FormData(form)).toString();
-
-  const url = `/jobs?${params}`;
-  window.history.pushState({}, "", url);
-});

@@ -149,10 +149,6 @@ describe("QueueOperations", () => {
       expect(result).toEqual(updatedConfig);
     });
 
-    it("should throw error for invalid concurrency", async () => {
-      await expect(QueueOperations.instance.setConcurrency("test-queue", -1)).rejects.toThrow();
-    });
-
     it("should throw error when queue not found", async () => {
       vi.mocked(mockBackend.getQueue).mockResolvedValue(undefined);
 

@@ -108,10 +108,29 @@ describe("grantQueueConfig", () => {
       expect(initialConfig?.concurrency).toEqual(5);
 
       // Update with different configuration
-      const updatedConfig = await grantQueueConfig(backend, { name: "update-test", concurrency: 10 });
+      const updatedConfig = await grantQueueConfig(backend, { name: "update-test", concurrency: 10 }, undefined, true);
       expect(updatedConfig?.concurrency).toEqual(10);
       expect(updatedConfig?.id).toEqual(initialConfig?.id); // Same queue, just updated
     });
+
+    sidequestTest(
+      "does not update existing queue when configuration differs and forceUpdate is false",
+      async ({ backend }) => {
+        // Create initial queue
+        const initialConfig = await grantQueueConfig(backend, { name: "update-test", concurrency: 5 });
+        expect(initialConfig?.concurrency).toEqual(5);
+
+        // Update with different configuration
+        const updatedConfig = await grantQueueConfig(
+          backend,
+          { name: "update-test", concurrency: 10 },
+          undefined,
+          false,
+        );
+        expect(updatedConfig?.concurrency).toEqual(5);
+        expect(updatedConfig?.id).toEqual(initialConfig?.id); // Same queue, just updated
+      },
+    );
 
     sidequestTest("updates existing queue with defaults when configuration differs", async ({ backend }) => {
       const defaults: QueueDefaults = {
@@ -121,7 +140,12 @@ describe("grantQueueConfig", () => {
       };
 
       // Create initial queue without defaults
-      const initialConfig = await grantQueueConfig(backend, { name: "update-defaults-test", concurrency: 5 });
+      const initialConfig = await grantQueueConfig(
+        backend,
+        { name: "update-defaults-test", concurrency: 5 },
+        undefined,
+        true,
+      );
       expect(initialConfig?.concurrency).toEqual(5);
 
       // Update with defaults and new values
@@ -129,6 +153,7 @@ describe("grantQueueConfig", () => {
         backend,
         { name: "update-defaults-test", priority: 7, state: "paused" }, // only specify priority
         defaults,
+        true,
       );
 
       expect(updatedConfig?.concurrency).toEqual(5); // unchanged from initial
@@ -159,5 +184,11 @@ describe("grantQueueConfig", () => {
       expect(sameConfig?.priority).toEqual(2);
       expect(sameConfig?.state).toEqual("active");
     });
+  });
+
+  sidequestTest("throws error if queue concurrency is less than 1", async ({ backend }) => {
+    await expect(() => grantQueueConfig(backend, { name: "invalid-concurrency", concurrency: 0 })).rejects.toThrowError(
+      "Concurrency must be at least 1",
+    );
   });
 });

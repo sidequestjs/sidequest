@@ -1,5 +1,6 @@
+import { JobClassType, logger } from "@sidequest/core";
 import { DashboardConfig, SidequestDashboard } from "@sidequest/dashboard";
-import { Engine, EngineConfig, JobClassType } from "@sidequest/engine";
+import { Engine, EngineConfig } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
 
@@ -79,8 +80,8 @@ export class Sidequest {
    */
   static async configure(config?: EngineConfig) {
     const _config = await this.engine.configure(config);
-    this.job.setBackend(this.engine.getBackend()!);
-    this.queue.setBackend(this.engine.getBackend()!);
+    this.job.setBackend(this.engine.getBackend());
+    this.queue.setBackend(this.engine.getBackend());
     return _config;
   }
 
@@ -104,18 +105,37 @@ export class Sidequest {
    * ```
    */
   static async start(config?: SidequestConfig) {
-    const engineConfig = await this.configure(config);
+    try {
+      const engineConfig = await this.configure(config);
 
-    const engine = this.engine.start(engineConfig);
-    const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
+      const engine = this.engine.start(engineConfig);
+      const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
 
-    await engine;
-    await dashboard;
+      await engine;
+      await dashboard;
+    } catch (error) {
+      logger().error("Failed to start Sidequest:", error);
+      await this.stop(); // Ensure cleanup on error
+      throw error; // Re-throw the error for further handling if needed
+    }
   }
 
+  /**
+   * Stops the SideQuest instance by closing all active components.
+   *
+   * This method performs cleanup operations including:
+   * - Closing the engine
+   * - Clearing the job backend
+   * - Clearing the queue backend
+   * - Closing the dashboard
+   *
+   * @returns A promise that resolves when all cleanup operations are complete
+   */
   static async stop() {
     await this.engine.close();
-    this.dashboard.close();
+    this.job.setBackend(undefined);
+    this.queue.setBackend(undefined);
+    await this.dashboard.close();
   }
 
   /**
