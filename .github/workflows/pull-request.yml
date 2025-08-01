@@ -2,9 +2,9 @@ name: Build and Test
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
   pull_request:
-    branches: [master, develop]
+    branches: [master]
     paths-ignore:
       - "README.md"
       - "CONTRIBUTING.md"
