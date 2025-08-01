@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/sidequestjs/sidequest/compare/v1.1.0...v1.1.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* improve LazyBackend initialization to ensure single instance creation ([#47](https://github.com/sidequestjs/sidequest/issues/47)) ([2a016d1](https://github.com/sidequestjs/sidequest/commit/2a016d14ec5a1206fda532bb27d1c96d3b3069c4))
+
 # [1.1.0](https://github.com/sidequestjs/sidequest/compare/v1.0.0...v1.1.0) (2025-08-01)
 
 

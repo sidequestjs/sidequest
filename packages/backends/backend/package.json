@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/backend",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
