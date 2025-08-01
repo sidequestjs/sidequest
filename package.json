@@ -26,7 +26,7 @@
     "format:check": "prettier --check \"**/*.{ts,js,mts,tsx,jsx}\"",
     "lint": "eslint . --ext .ts,.mts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.mts,.js,.tsx,.jsx --fix",
-    "dev": "cross-env NODE_ENV=development turbo run dev --concurrency=13",
+    "dev": "cross-env NODE_ENV=development turbo run dev --concurrency 13",
     "clean:dist": "rimraf packages/**/dist",
     "clean:turbo": "rimraf **/.turbo",
     "clean": "yarn clean:dist; yarn clean:turbo",

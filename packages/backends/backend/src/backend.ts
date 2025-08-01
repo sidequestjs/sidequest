@@ -175,7 +175,7 @@ export interface Backend {
    *
    * The state, queue, and jobClass parameters can be single values or arrays.
    * If arrays are provided, they are treated as OR conditions.
-   * If a single value is provided, it is treated as a LIKE match, so you can append and prepend wildcards
+   * If a single value is provided, it is treated as a LIKE match, so you can append and prepend % wildcards
    * to match substrings.
    */
   listJobs(params?: {

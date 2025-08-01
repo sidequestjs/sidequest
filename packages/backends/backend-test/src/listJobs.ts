@@ -375,7 +375,6 @@ export default function defineListJobsTestSuite() {
       const job2 = {
         queue: "default",
         class: "TestJob",
-
         args: [],
         constructor_args: [],
         state: "waiting" as const,
