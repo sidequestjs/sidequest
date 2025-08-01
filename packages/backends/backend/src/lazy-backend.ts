@@ -26,6 +26,13 @@ import { createBackendFromDriver } from "./factory";
  */
 export class LazyBackend implements Backend {
   /**
+   * A promise that resolves to a {@link Backend} instance.
+   * Used to ensure that the backend is initialized asynchronously and only once.
+   * May be undefined if the backend has not been initialized yet.
+   */
+  private backendPromise?: Promise<Backend>;
+
+  /**
    * Optional instance of the {@link Backend} class.
    * Used to store the backend implementation, which may be undefined if not yet initialized.
    */
@@ -37,8 +44,21 @@ export class LazyBackend implements Backend {
    */
   constructor(private config: BackendConfig) {}
 
+  /**
+   * Initializes the backend instance if it has not already been created.
+   *
+   * If the backend does not exist, this method creates a new backend instance
+   * using the provided configuration. It ensures that the backend is only
+   * initialized once, even if called multiple times concurrently, by caching
+   * the initialization promise.
+   *
+   * @returns {Promise<void>} A promise that resolves when the backend has been initialized.
+   */
   async init(): Promise<void> {
-    this.backend ??= await createBackendFromDriver(this.config);
+    if (!this.backend) {
+      this.backendPromise ??= createBackendFromDriver(this.config);
+      this.backend = await this.backendPromise;
+    }
   }
 
   async migrate(): Promise<void> {

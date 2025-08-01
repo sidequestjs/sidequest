@@ -52,8 +52,12 @@ describe("LazyBackend", () => {
   });
 
   it("should not re-initialize backend if already initialized", async () => {
-    await lazyBackend.migrate();
-    await lazyBackend.close();
+    const promiseMigrate = lazyBackend.migrate();
+    const promiseMigrate2 = lazyBackend.migrate();
+
+    await promiseMigrate;
+    await promiseMigrate2;
+
     expect(createBackendFromDriver).toHaveBeenCalledTimes(1);
   });
 
