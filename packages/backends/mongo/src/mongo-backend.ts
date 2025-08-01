@@ -18,8 +18,10 @@ import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRa
  * Handles % wildcards.
  */
 function convertLikeToRegex(pattern: string): RegExp {
+  // Escape special regex characters and convert % to .*
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape special regex characters
   // Convert % to .*
-  const regexPattern = pattern.replace(/%/g, ".*");
+  const regexPattern = escaped.replace(/%/g, ".*");
   // Return case-insensitive regex
   return new RegExp(`^${regexPattern}$`);
 }
