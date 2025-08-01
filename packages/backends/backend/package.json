@@ -16,18 +16,6 @@
   "bugs": {
     "url": "https://github.com/sidequestjs/sidequest/issues"
   },
-  "maintainers": [
-    {
-      "name": "Giovani Guizzo",
-      "email": "giovani@sidequestjs.com",
-      "url": "https://github.com/GiovaniGuizzo"
-    },
-    {
-      "name": "Lucas Merencia",
-      "email": "lucas@sidequestjs.com",
-      "url": "https://github.com/merencia"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sidequestjs/sidequest.git",
