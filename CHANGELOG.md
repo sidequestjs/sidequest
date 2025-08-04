@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/sidequestjs/sidequest/compare/v1.1.1...v1.2.0) (2025-08-04)
+
+
+### Features
+
+* enhance job listing functionality with pattern matching for queue, jobClass, and state ([#50](https://github.com/sidequestjs/sidequest/issues/50)) ([4153dd8](https://github.com/sidequestjs/sidequest/commit/4153dd82d7e662a8892d7d80e3bac351d7ae1fda))
+
 ## [1.1.1](https://github.com/sidequestjs/sidequest/compare/v1.1.0...v1.1.1) (2025-08-01)
 
 
