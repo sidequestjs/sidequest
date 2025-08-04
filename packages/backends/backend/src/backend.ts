@@ -170,11 +170,18 @@ export interface Backend {
    * @param params.timeRange.from Start attempted_at date for filtering jobs.
    * @param params.timeRange.to End attempted_at date for filtering jobs.
    * @returns An array of job data.
+   *
+   * @remarks
+   *
+   * The state, queue, and jobClass parameters can be single values or arrays.
+   * If arrays are provided, they are treated as OR conditions.
+   * If a single value is provided, it is treated as a LIKE match, so you can append and prepend % wildcards
+   * to match substrings.
    */
   listJobs(params?: {
     queue?: string | string[];
     jobClass?: string | string[];
-    state?: JobState | JobState[];
+    state?: JobState | `${string}%${string}` | JobState[];
     limit?: number;
     offset?: number;
     args?: unknown[];

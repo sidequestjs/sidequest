@@ -255,5 +255,163 @@ export default function defineListJobsTestSuite() {
       });
       expect(listJobs).toHaveLength(0);
     });
+
+    it("should list jobs with LIKE pattern matching for queue", async () => {
+      // Insert jobs with different queue names
+      const job1: NewJobData = {
+        queue: "email-queue",
+        class: "EmailJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "email.js",
+        attempt: 0,
+      };
+
+      const job2: NewJobData = {
+        queue: "report-queue",
+        class: "ReportJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "report.js",
+        attempt: 0,
+      };
+
+      const job3: NewJobData = {
+        queue: "notification",
+        class: "NotificationJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "notification.js",
+        attempt: 0,
+      };
+
+      await backend.createNewJob(job1);
+      await backend.createNewJob(job2);
+      await backend.createNewJob(job3);
+
+      // Test wildcard matching - should match both email-queue and report-queue
+      let listJobs = await backend.listJobs({ queue: "%-queue" });
+      expect(listJobs).toHaveLength(2);
+      expect(listJobs.every((job) => job.queue.endsWith("-queue"))).toBe(true);
+
+      // Test prefix matching - should match all queues starting with "email"
+      listJobs = await backend.listJobs({ queue: "email%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].queue).toBe("email-queue");
+
+      // Test contains matching - should match notification
+      listJobs = await backend.listJobs({ queue: "%notification%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].queue).toBe("notification");
+    });
+
+    it("should list jobs with LIKE pattern matching for jobClass", async () => {
+      // Insert jobs with different class names
+      const job1: NewJobData = {
+        queue: "default",
+        class: "SendEmailJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "email.js",
+        attempt: 0,
+      };
+
+      const job2: NewJobData = {
+        queue: "default",
+        class: "ProcessEmailJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "email.js",
+        attempt: 0,
+      };
+
+      const job3: NewJobData = {
+        queue: "default",
+        class: "DataProcessor",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "processor.js",
+        attempt: 0,
+      };
+
+      await backend.createNewJob(job1);
+      await backend.createNewJob(job2);
+      await backend.createNewJob(job3);
+
+      // Test wildcard matching - should match both email jobs
+      let listJobs = await backend.listJobs({ jobClass: "%EmailJob" });
+      expect(listJobs).toHaveLength(2);
+      expect(listJobs.every((job) => job.class.endsWith("EmailJob"))).toBe(true);
+
+      // Test prefix matching - should match jobs starting with "Send"
+      listJobs = await backend.listJobs({ jobClass: "Send%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].class).toBe("SendEmailJob");
+
+      // Test contains matching - should match DataProcessor
+      listJobs = await backend.listJobs({ jobClass: "%taProc%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].class).toBe("DataProcessor");
+    });
+
+    it("should list jobs with LIKE pattern matching for state", async () => {
+      // Insert jobs with different states
+      const job1 = {
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting" as const,
+        script: "test.js",
+        attempt: 0 as const,
+      };
+
+      const job2 = {
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting" as const,
+        script: "test.js",
+        attempt: 0 as const,
+      };
+
+      const job3 = {
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting" as const,
+        script: "test.js",
+        attempt: 0 as const,
+      };
+
+      await backend.createNewJob(job1);
+      const newJob2 = await backend.createNewJob(job2);
+      const newJob3 = await backend.createNewJob(job3);
+      await backend.updateJob({ ...newJob2, state: "running", attempted_at: new Date() });
+      await backend.updateJob({ ...newJob3, state: "completed", attempted_at: new Date(2000, 0, 1) });
+
+      // Test prefix matching - should match states starting with "wait"
+      let listJobs = await backend.listJobs({ state: "wait%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].state).toBe("waiting");
+
+      // Test suffix matching - should match states ending with "ing"
+      listJobs = await backend.listJobs({ state: "%ing" });
+      expect(listJobs).toHaveLength(2);
+      expect(listJobs.every((job) => job.state.endsWith("ing"))).toBe(true);
+
+      // Test contains matching - should match "completed"
+      listJobs = await backend.listJobs({ state: "%complet%" });
+      expect(listJobs).toHaveLength(1);
+      expect(listJobs[0].state).toBe("completed");
+    });
   });
 }

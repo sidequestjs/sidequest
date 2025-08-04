@@ -30,7 +30,7 @@ export function createJobsRouter(backend: Backend) {
       limit: pageSize,
       offset: offset,
       queue: typeof queue === "string" && queue.trim() ? queue : undefined,
-      jobClass: typeof jobClass === "string" && jobClass.trim() ? jobClass : undefined,
+      jobClass: typeof jobClass === "string" && jobClass.trim() ? "%" + jobClass + "%" : undefined,
       state: status as JobState,
     };
 

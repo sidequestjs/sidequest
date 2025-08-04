@@ -13,6 +13,33 @@ import { JobData, JobState, QueueConfig } from "@sidequest/core";
 import { Collection, Db, Filter, MongoClient } from "mongodb";
 import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRange, parseTimeRange } from "./utils";
 
+/**
+ * Converts SQL LIKE pattern to MongoDB regex pattern.
+ * Handles % wildcards.
+ */
+function convertLikeToRegex(pattern: string): RegExp {
+  // Escape special regex characters and convert % to .*
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+  // Convert % to .*
+  const regexPattern = escaped.replace(/%/g, ".*");
+  // Return case-insensitive regex
+  return new RegExp(`^${regexPattern}$`);
+}
+
+/**
+ * Creates a MongoDB filter condition that mimics SQL's whereOrWhereIn behavior.
+ * Single values are treated as LIKE patterns, arrays as $in conditions.
+ */
+function createFilter<T>(value: T | T[]): T | { $in: T[] } | { $regex: RegExp } {
+  if (Array.isArray(value)) {
+    return { $in: value };
+  } else if (typeof value === "string") {
+    return { $regex: convertLikeToRegex(value) };
+  } else {
+    return value;
+  }
+}
+
 export default class MongoBackend implements Backend {
   private client: MongoClient;
   private db: Db;
@@ -185,9 +212,9 @@ export default class MongoBackend implements Backend {
   }): Promise<JobData[]> {
     await this.ensureConnected();
     const filter: Filter<JobData> = {};
-    if (params?.queue) filter.queue = Array.isArray(params.queue) ? { $in: params.queue } : params.queue;
-    if (params?.jobClass) filter.class = Array.isArray(params.jobClass) ? { $in: params.jobClass } : params.jobClass;
-    if (params?.state) filter.state = Array.isArray(params.state) ? { $in: params.state } : params.state;
+    if (params?.queue) filter.queue = createFilter(params.queue);
+    if (params?.jobClass) filter.class = createFilter(params.jobClass);
+    if (params?.state) filter.state = createFilter(params.state);
     if (params?.args) filter.args = params.args;
     if (params?.timeRange?.from || params?.timeRange?.to) {
       filter.attempted_at = {};
