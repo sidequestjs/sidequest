@@ -24,6 +24,13 @@ The main entry point is the `Sidequest` class, which provides static methods to 
 
 The `Sidequest` class serves as the primary interface for all engine operations. It provides static methods that coordinate the underlying Engine and Dashboard components.
 
+::: tip Specific Usages
+
+1. If you want to enable only the engine without starting job processing (e.g., to allow enqueueing only), [you can partially setup Sidequest using `Sidequest.configure`](./configuration.md#_2-partial-startup).
+2. If you want to simply run the engine to process jobs without the dashboard, [you can use `Sidequest.start({ dashboard: { enabled: false } })`](./configuration#configuration-options).
+3. If you want to only run the dashboard without job processing, [you can use the `SidequestDashboard` class directly](/dashboard#starting-only-the-dashboard).
+   :::
+
 ### `Sidequest.configure`
 
 Configures the Sidequest engine system with the provided options. This method initializes the engine but does not start job processing - it's useful when you want to set up configuration without immediately starting the system, e.g., when you want to enqueue jobs but not necessarily process them in that instance.
