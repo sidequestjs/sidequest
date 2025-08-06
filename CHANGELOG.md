@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/sidequestjs/sidequest/compare/v1.2.0...v1.3.0) (2025-08-06)
+
+
+### Features
+
+* add pooling control for PG knex config ([#53](https://github.com/sidequestjs/sidequest/issues/53)) ([7db5d6b](https://github.com/sidequestjs/sidequest/commit/7db5d6bfb556b7ffdcab9064c5004a46027021f5))
+
 # [1.2.0](https://github.com/sidequestjs/sidequest/compare/v1.1.1...v1.2.0) (2025-08-04)
 
 

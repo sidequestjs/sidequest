@@ -8,6 +8,15 @@ description: Sidequest.js Engine Overview and API Reference
 
 The Sidequest engine is the core component that orchestrates job processing, queue management, and worker coordination. This document provides an overview of the main entry point and API for interacting with the Sidequest system.
 
+::: tip Specific Usages
+
+Before you delve into the details, here are some common scenarios you might be interested in:
+
+1. If you want to enable only the engine without starting job processing (e.g., to allow enqueueing only), [you can partially setup Sidequest using `Sidequest.configure`](./configuration.md#_2-partial-startup).
+2. If you want to simply run the engine to process jobs without the dashboard, [you can use `Sidequest.start({ dashboard: { enabled: false } })`](./configuration#configuration-options).
+3. If you want to only run the dashboard without job processing, [you can use the `SidequestDashboard` class directly](/dashboard#starting-only-the-dashboard).
+   :::
+
 ## Summary
 
 Sidequest provides a powerful, production-ready job processing system built for Node.js applications. The engine handles:
