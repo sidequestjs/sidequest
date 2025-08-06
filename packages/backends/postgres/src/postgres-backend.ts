@@ -3,28 +3,54 @@ import createKnex, { Knex } from "knex";
 import path from "path";
 
 /**
+ * Configuration for PostgreSQL backend that supports full Knex configuration options.
+ */
+export type PostgresBackendConfig = Pick<Knex.Config, "pool" | "connection">;
+
+const defaultKnexConfig = {
+  client: "pg",
+  migrations: {
+    directory: path.join(import.meta.dirname, "..", "migrations"),
+    tableName: "sidequest_migrations",
+    extension: "cjs",
+  },
+};
+
+/**
  * Provides a backend implementation for PostgreSQL databases using Knex.
  *
  * @extends SQLBackend
  *
  * @example
+ * Basic usage with connection string:
  * ```typescript
- * const backend = new PostgresBackend({ connection: 'postgres://user:pass@localhost/db' });
+ * const backend = new PostgresBackend('postgres://user:pass@localhost/db');
  * ```
  *
- * @param dbConfig - The database configuration object containing the connection string or Knex connection config.
+ * @example
+ * Advanced usage with connection pooling:
+ * ```typescript
+ * const backend = new PostgresBackend({
+ *   connection: 'postgres://user:pass@localhost/db',
+ *   pool: {
+ *     min: 2,
+ *     max: 10,
+ *     acquireTimeoutMillis: 60000,
+ *     idleTimeoutMillis: 600000
+ *   }
+ * });
+ * ```
+ *
+ * @param dbConfig - Database configuration - can be a connection string or limited Knex config
  */
 export default class PostgresBackend extends SQLBackend {
-  constructor(dbConfig: string | Knex.ConnectionConfig) {
-    const knex = createKnex({
-      client: "pg",
-      connection: dbConfig,
-      migrations: {
-        directory: path.join(import.meta.dirname, "..", "migrations"),
-        tableName: "sidequest_migrations",
-        extension: "cjs",
-      },
-    });
+  constructor(dbConfig: string | Knex.ConnectionConfig | PostgresBackendConfig) {
+    const knexConfig: Knex.Config = {
+      ...defaultKnexConfig,
+      ...(typeof dbConfig === "string" ? { connection: dbConfig } : dbConfig),
+    };
+
+    const knex = createKnex(knexConfig);
     super(knex);
   }
 
