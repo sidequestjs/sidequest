@@ -97,6 +97,10 @@ export default defineConfig({
             link: "/starting",
           },
           {
+            text: "Backends",
+            link: "/backends",
+          },
+          {
             text: "Enqueueing Jobs",
             link: "/enqueue",
           },
