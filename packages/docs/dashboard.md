@@ -131,6 +131,68 @@ await Sidequest.start({
 });
 ```
 
+## Starting only the Dashboard
+
+In some scenarios, you may want to run only the dashboard without starting the Sidequest engine. This is useful for monitoring existing job queues, creating dedicated monitoring instances, or separating concerns in your architecture.
+
+### Installation
+
+First, install the dashboard package:
+
+```bash
+npm install @sidequest/dashboard
+# or
+yarn add @sidequest/dashboard
+```
+
+You'll also need to install the appropriate backend driver for your database:
+
+```bash
+# For PostgreSQL (recommended)
+npm install @sidequest/postgres-backend
+
+# For SQLite
+npm install @sidequest/sqlite-backend
+
+# For MySQL
+npm install @sidequest/mysql-backend
+
+# For MongoDB
+npm install @sidequest/mongo-backend
+```
+
+### Basic Usage
+
+Use the `SidequestDashboard` class to create a standalone dashboard instance:
+
+```typescript
+// or import form `sidequest` directly if you have the full library
+import { SidequestDashboard } from "@sidequest/dashboard";
+
+const dashboard = new SidequestDashboard();
+
+await dashboard.start({
+  enabled: true,
+  port: 8678,
+  backendConfig: {
+    driver: "@sidequest/postgres-backend",
+    config: "postgresql://localhost:5432/sidequest",
+  },
+});
+
+console.log("Dashboard available at http://localhost:8678");
+```
+
+### Shutting Down
+
+To properly close the dashboard and clean up resources:
+
+```typescript
+// Graceful shutdown
+await dashboard.close();
+console.log("Dashboard stopped and resources cleaned up");
+```
+
 ## Dashboard Features
 
 ### 1. Job Statistics Overview
@@ -263,7 +325,7 @@ Real-time queue monitoring with:
 
 The dashboard includes a clean navigation structure:
 
-```
+```text
 Dashboard Home -> Overview and Statistics
 ├── Jobs -> Job listing, filtering, and management
 ├── Queues -> Queue status and controls
