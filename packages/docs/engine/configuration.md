@@ -10,7 +10,7 @@ Sidequest.js is designed to be flexible and cloud-agnostic. You can start it ins
 
 ## 1. Basic Startup
 
-The simplest way to start Sidequest is with all the default settings. This automatically uses the SQLite backend and enables the dashboard.
+The simplest way to configure and start Sidequest is with all the default settings. This automatically uses the SQLite backend and enables the dashboard.
 
 ```typescript
 import { Sidequest } from "sidequest";
@@ -24,7 +24,31 @@ console.log("Sidequest started! Dashboard: http://localhost:8678");
 Remember to install `@sidequest/sqlite-backend` before running with the default settings, or make sure to install the appropriate backend driver for your setup.
 :::
 
-## 2. Custom Configuration
+## 2. Partial Startup
+
+If you prefer NOT to start Sidequest, but merely configure it allowing job enqueueing, you can use the `Sidequest.configure` method. This allows you to set up the engine without starting it immediately (i.e., no worker will process jobs).
+
+```typescript
+import { Sidequest } from "sidequest";
+
+await Sidequest.configure({
+  backend: {
+    driver: "@sidequest/sqlite-backend",
+    config: "./sidequest.sqlite",
+  },
+  queues: [
+    { name: "default", concurrency: 2, priority: 50, state: "active" },
+    { name: "critical", concurrency: 5, priority: 100, state: "active" },
+  ],
+});
+console.log("Sidequest configured but not started yet.");
+```
+
+::: tip
+If you use `Sidequest.configure`, you can then enqueue jobs without starting the engine. This is useful if you want to enable this instance to only enqueue jobs, but not necessarily process them, e.g., in a web server context where you want to enqueue jobs from HTTP requests without starting workers.
+:::
+
+## 3. Custom Configuration
 
 You can fully customize how Sidequest runs in your application. The configuration options are organized into several categories:
 
@@ -187,7 +211,7 @@ If `auth` is not configured and `dashboard: true` is enabled in production, the 
 If you enqueue a job to a queue that does not exist yet, Sidequest will automatically create the queue using default settings: `status: active`, `priority: 0`, and `concurrency: 10`. You can later adjust these settings if needed.
 :::
 
-## 3. Switching Backends
+## 4. Switching Backends
 
 You can run Sidequest on any supported backend. Supported backends include Postgres, SQLite, MySQL, and soon MongoDB. Install the corresponding driver and provide the config string.
 
@@ -211,7 +235,7 @@ backend: {
 }
 ```
 
-## 4. Configuration Reference
+## 5. Configuration Reference
 
 The comprehensive configuration example above demonstrates all available options. In practice, you typically only need to configure the options relevant to your use case. Here are some common configuration patterns:
 

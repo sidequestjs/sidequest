@@ -28,7 +28,9 @@ Sidequest is built as a monorepo with the following packages:
 - **`@sidequest/dashboard`** - Web dashboard with Express.js, EJS, and HTMX
 - **`@sidequest/cli`** - Command-line interface tools
 
-## Setup
+## Build
+
+If you want to build Sidequest from source, follow these steps:
 
 ```bash
 # Clone the repository
@@ -43,10 +45,33 @@ yarn install
 
 # Build all packages
 yarn build
+```
 
-# Run tests
-yarn test
+## Development Mode
 
-# Start development mode
+If you want to develop Sidequest, you can run the development server for the entire application, including the documentation site:
+
+```bash
 yarn dev
+```
+
+This will enable the dev server, which will watch for changes in the source code and automatically rebuild the affected packages. The documentation site will also be available at `http://localhost:5173`.
+
+## Testing
+
+To run the tests, first either build the application or run it in development mode. Then, you can execute the tests for all packages in a separate terminal:
+
+```bash
+# Starts all the test DBs in Docker containers
+yarn db:all
+
+# Run tests for all packages
+yarn test:all
+```
+
+If you'd rather not run backend tests, you can run the minified test suite without starting any DB containers:
+
+```bash
+# Run tests without backend implementations
+yarn test
 ```
