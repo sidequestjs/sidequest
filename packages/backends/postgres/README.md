@@ -79,6 +79,24 @@ backend: {
 }
 ```
 
+**PostgreSQL with more complex pooling config:**
+
+```typescript
+backend: {
+  driver: '@sidequest/postgres-backend',
+  config: {
+    connection: 'postgresql://user:password@localhost:5432'
+    pool: {
+      min: 5,
+      max: 50,
+      idleTimeoutMillis: 30000,
+      acquireTimeoutMillis: 10000,
+      createTimeoutMillis: 3000,
+    }
+  }
+}
+```
+
 ### Features
 
 - **Advanced Concurrency** - Uses PostgreSQL's robust locking mechanisms for safe job claiming
