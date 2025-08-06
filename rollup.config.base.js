@@ -36,6 +36,15 @@ export default function createConfig(pkg, input = "src/index.ts", plugins = []) 
                 "import.meta.dirname": "__dirname",
                 "import.meta.url": "__filename",
                 "import.meta.filename": "__filename",
+
+                // Replace dynamic import with require for CJS
+                // This is a workaround for CJS compatibility because otherwise it would import the module as ESM
+                // and fail to correctly configure Sidequest using the CJS modules
+                // Fixes: https://github.com/sidequestjs/sidequest/issues/59
+                "return await import('sidequest'); // !rollup replace-me":
+                  "return require('sidequest'); // !rollup replaced",
+                '"main.js"); // !rollup replace-me': '"main.cjs"); // !rollup replaced',
+                '"runner.js"); // !rollup replace-me': '"runner.cjs"); // !rollup replaced',
               },
             }),
           ]

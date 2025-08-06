@@ -4,7 +4,7 @@ import path from "path";
 import Piscina from "piscina";
 import { NonNullableEngineConfig } from "../engine";
 
-const runnerPath = path.resolve(import.meta.dirname, "runner.js");
+const runnerPath = path.resolve(import.meta.dirname, "runner.js"); // !rollup replace-me
 
 /**
  * A pool of worker threads for running jobs in parallel using Piscina.

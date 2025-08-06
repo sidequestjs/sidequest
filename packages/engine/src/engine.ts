@@ -8,7 +8,7 @@ import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
 
-const workerPath = path.resolve(import.meta.dirname, "workers", "main.js");
+const workerPath = path.resolve(import.meta.dirname, "workers", "main.js"); // !rollup replace-me
 
 /**
  * Configuration options for the Sidequest engine.
