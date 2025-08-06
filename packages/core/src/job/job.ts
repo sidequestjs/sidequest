@@ -266,14 +266,14 @@ async function buildPath(className: string) {
     if (hasExported) {
       const relativePath = path.relative(import.meta.dirname, filePath!);
       logger("Job").debug(`${filePath} exports class ${className}, relative path: ${relativePath}`);
-      return relativePath;
+      return relativePath.replaceAll("\\", "/");
     }
   }
 
   if (filePaths.length > 0) {
     const relativePath = path.relative(import.meta.dirname, filePaths[0]!);
     logger("Job").debug(`No class ${className} found in stack, returning first file path: ${relativePath}`);
-    return relativePath;
+    return relativePath.replaceAll("\\", "/");
   }
 
   throw new Error("Could not determine the task path");
