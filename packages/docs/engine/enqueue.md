@@ -10,6 +10,9 @@ Once your [Sidequest engine is configured](./configuration), you can enqueue job
 
 ::: tip
 You can enqueue new jobs from within other jobs, allowing for complex workflows and job chaining. Just use `Sidequest.build()` inside your job's `run` method to create and enqueue new jobs dynamically.
+
+If you enqueue a job from within another job, make sure that everything runs inside the same ESM/CJS context.
+Trying to enqueue a job from a CJS job when your Sidequest instance is running in ESM (or vice-versa) will lead to errors.
 :::
 
 ## Basic Job Enqueueing
