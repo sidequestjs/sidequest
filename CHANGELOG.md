@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/sidequestjs/sidequest/compare/v1.4.0...v1.4.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* fixes job enqueue inside CJS jobs ([#60](https://github.com/sidequestjs/sidequest/issues/60)) ([14c959c](https://github.com/sidequestjs/sidequest/commit/14c959c7f130183da0ce27daa520acee389f5c2a))
+
 # [1.4.0](https://github.com/sidequestjs/sidequest/compare/v1.3.0...v1.4.0) (2025-08-07)
 
 
