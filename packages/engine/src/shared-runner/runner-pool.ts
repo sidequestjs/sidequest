@@ -1,10 +1,7 @@
 import { JobData, JobResult, logger } from "@sidequest/core";
 import EventEmitter from "events";
-import path from "path";
 import Piscina from "piscina";
 import { NonNullableEngineConfig } from "../engine";
-
-const runnerPath = path.resolve(import.meta.dirname, "runner.js"); // !rollup replace-me
 
 /**
  * A pool of worker threads for running jobs in parallel using Piscina.
@@ -19,7 +16,7 @@ export class RunnerPool {
    */
   constructor(private nonNullConfig: NonNullableEngineConfig) {
     this.pool = new Piscina({
-      filename: runnerPath,
+      filename: this.nonNullConfig.runnerPath,
       minThreads: this.nonNullConfig.minThreads,
       maxThreads: this.nonNullConfig.maxThreads,
       idleTimeout: this.nonNullConfig.idleWorkerTimeout,

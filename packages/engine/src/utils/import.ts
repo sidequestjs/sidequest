@@ -4,5 +4,5 @@
  * @returns A promise that resolves to the imported "sidequest" module.
  */
 export async function importSidequest() {
-  return await import("sidequest"); // !rollup replace-me
+  return await import("sidequest");
 }
