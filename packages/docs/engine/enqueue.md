@@ -8,6 +8,13 @@ description: Complete guide to enqueueing jobs using the JobBuilder pattern in S
 
 Once your [Sidequest engine is configured](./configuration), you can enqueue jobs for processing using the `Sidequest.build()` method. This method returns a `JobBuilder` instance that provides a fluent interface for configuring and enqueueing jobs.
 
+::: tip
+You can enqueue new jobs from within other jobs, allowing for complex workflows and job chaining. Just use `Sidequest.build()` inside your job's `run` method to create and enqueue new jobs dynamically.
+
+If you enqueue a job from within another job, make sure that everything runs inside the same ESM/CJS context.
+Trying to enqueue another job from within a CJS job when your Sidequest instance is running in ESM (or vice-versa) will lead to errors.
+:::
+
 ## Basic Job Enqueueing
 
 The simplest way to enqueue a job is using the minimal builder pattern:
