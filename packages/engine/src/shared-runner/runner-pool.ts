@@ -1,6 +1,7 @@
 import { JobData, JobResult, logger } from "@sidequest/core";
 import EventEmitter from "events";
 import Piscina from "piscina";
+import { DEFAULT_RUNNER_PATH } from "../constants";
 import { NonNullableEngineConfig } from "../engine";
 
 /**
@@ -16,7 +17,7 @@ export class RunnerPool {
    */
   constructor(private nonNullConfig: NonNullableEngineConfig) {
     this.pool = new Piscina({
-      filename: this.nonNullConfig.runnerPath,
+      filename: DEFAULT_RUNNER_PATH,
       minThreads: this.nonNullConfig.minThreads,
       maxThreads: this.nonNullConfig.maxThreads,
       idleTimeout: this.nonNullConfig.idleWorkerTimeout,

@@ -2,7 +2,7 @@ import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE
 import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
-import path from "path";
+import { DEFAULT_WORKER_PATH } from "./constants";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
@@ -40,22 +40,6 @@ export interface EngineConfig {
   maxThreads?: number;
   /** Timeout in milliseconds for idle workers before they are terminated. Defaults to 10 seconds */
   idleWorkerTimeout?: number;
-  /**
-   * Path to the worker script to run the main Sidequest application.
-   * If not provided, the default worker script will be used.
-   * This can be useful for custom worker implementations or testing.
-   *
-   * @defaultValue The default worker script path is `./workers/main.js`
-   */
-  workerPath?: string;
-  /**
-   * Path to the runner script used by the RunnerPool.
-   * If not provided, the default runner script will be used.
-   * This can be useful for custom runner implementations or testing.
-   *
-   * @defaultValue The default runner script path is `./shared-runner/runner.js`
-   */
-  runnerPath?: string;
   /**
    * Default job builder configuration.
    * This allows setting default values for job properties like queue, timeout, uniqueness, etc.
@@ -158,8 +142,6 @@ export class Engine {
         priority: config?.queueDefaults?.priority ?? QUEUE_FALLBACK.priority,
         state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state,
       },
-      workerPath: config?.workerPath ?? path.resolve(import.meta.dirname, "workers", "main.js"),
-      runnerPath: config?.runnerPath ?? path.resolve(import.meta.dirname, "shared-runner", "runner.js"),
     };
 
     if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
@@ -208,7 +190,7 @@ export class Engine {
       if (!this.mainWorker) {
         const runWorker = () => {
           logger("Engine").debug("Starting main worker...");
-          this.mainWorker = fork(this.config!.workerPath);
+          this.mainWorker = fork(DEFAULT_WORKER_PATH);
           logger("Engine").debug(`Worker PID: ${this.mainWorker.pid}`);
           this.mainWorker.on("message", (msg) => {
             if (msg === "ready") {
