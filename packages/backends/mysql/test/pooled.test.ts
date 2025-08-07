@@ -1,8 +1,8 @@
 import { SQLDriverConfig } from "@sidequest/backend";
 import { testBackend } from "@sidequest/backend-test";
-import PostgresBackend from "../src/postgres-backend";
+import PostgresBackend from "../src/mysql-backend";
 
-const connection = process.env.POSTGRES_URL ?? "postgresql://postgres:postgres@localhost:5432/postgres";
+const connection = process.env.POSTGRES_URL ?? "mysql://root:mysql@localhost:3306/testdb";
 const config: SQLDriverConfig = {
   connection,
   pool: {

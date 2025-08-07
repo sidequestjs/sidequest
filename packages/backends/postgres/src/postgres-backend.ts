@@ -1,11 +1,6 @@
-import { SQLBackend } from "@sidequest/backend";
+import { SQLBackend, SQLDriverConfig } from "@sidequest/backend";
 import createKnex, { Knex } from "knex";
 import path from "path";
-
-/**
- * Configuration for PostgreSQL backend that supports full Knex configuration options.
- */
-export type PostgresBackendConfig = Pick<Knex.Config, "pool" | "connection">;
 
 const defaultKnexConfig = {
   client: "pg",
@@ -44,7 +39,7 @@ const defaultKnexConfig = {
  * @param dbConfig - Database configuration - can be a connection string or limited Knex config
  */
 export default class PostgresBackend extends SQLBackend {
-  constructor(dbConfig: string | Knex.ConnectionConfig | PostgresBackendConfig) {
+  constructor(dbConfig: string | SQLDriverConfig) {
     const knexConfig: Knex.Config = {
       ...defaultKnexConfig,
       ...(typeof dbConfig === "string" ? { connection: dbConfig } : dbConfig),

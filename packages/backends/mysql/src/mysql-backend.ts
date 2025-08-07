@@ -5,6 +5,7 @@ import {
   QUEUE_FALLBACK,
   safeParseJobData,
   SQLBackend,
+  SQLDriverConfig,
   UpdateJobData,
   UpdateQueueData,
   whereOrWhereIn,
@@ -13,17 +14,23 @@ import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sid
 import createKnex, { Knex } from "knex";
 import path from "path";
 
+const defaultKnexConfig = {
+  client: "mysql2",
+  migrations: {
+    directory: path.join(import.meta.dirname, "..", "migrations"),
+    tableName: "sidequest_migrations",
+    extension: "cjs",
+  },
+};
+
 export default class MysqlBackend extends SQLBackend {
-  constructor(dbConfig: string | Knex.ConnectionConfig) {
-    const knex = createKnex({
-      client: "mysql2",
-      connection: dbConfig,
-      migrations: {
-        directory: path.join(import.meta.dirname, "..", "migrations"),
-        tableName: "sidequest_migrations",
-        extension: "cjs",
-      },
-    });
+  constructor(dbConfig: string | SQLDriverConfig) {
+    const knexConfig: Knex.Config = {
+      ...defaultKnexConfig,
+      ...(typeof dbConfig === "string" ? { connection: dbConfig } : dbConfig),
+    };
+
+    const knex = createKnex(knexConfig);
     super(knex);
   }
 
