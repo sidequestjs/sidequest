@@ -1,4 +1,4 @@
-import { Job, JobClassType, JobData, JobResult, logger, toErrorData } from "@sidequest/core";
+import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPath, toErrorData } from "@sidequest/core";
 import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
 
@@ -14,7 +14,11 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
   let script: Record<string, JobClassType> = {};
   try {
     logger("Runner").debug(`Importing job script "${jobData.script}"`);
-    script = (await import(jobData.script)) as Record<string, JobClassType>;
+
+    // Convert relative path to absolute file URL for dynamic import
+    const scriptUrl = resolveScriptPath(jobData.script);
+
+    script = (await import(scriptUrl)) as Record<string, JobClassType>;
     logger("Runner").debug(`Successfully imported job script "${jobData.script}"`);
   } catch (error) {
     const errorMessage = `Failed to import job script "${jobData.script}": ${error instanceof Error ? error.message : String(error)}`;

@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/mongo-backend",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "@sidequest/mongo-backend is a MongoDB backend for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",

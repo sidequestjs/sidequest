@@ -36,7 +36,7 @@ describe("runner.ts", () => {
     jobData.script = "invalid!";
     const result = (await run({ jobData, config })) as FailedResult;
     expect(result.type).toEqual("failed");
-    expect(result.error.message).toMatch(/Cannot find package 'invalid!'/);
+    expect(result.error.message).toMatch(/Cannot find module/);
   });
 
   sidequestTest("fails with invalid class", async ({ config }) => {
