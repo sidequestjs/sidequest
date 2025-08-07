@@ -190,6 +190,8 @@ await Sidequest.start({
 | `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                         | `info`                      |
 | `logger.json`                    | Whether to output logs in JSON format                                        | `false`                     |
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                 | `true`                      |
+| `workerPath`                     | Path to the worker script (for main runner).                                 | `./workers/main.js`         |
+| `runnerPath`                     | Path to the shared runner script (for shared runner).                        | `./shared-runner/runner.js` |
 | `jobDefaults.queue`              | Default queue name for new jobs                                              | `default`                   |
 | `jobDefaults.timeout`            | Default timeout (milliseconds) for job execution                             | none                        |
 | `jobDefaults.maxAttempts`        | Default maximum retry attempts for failed jobs                               | `5`                         |
