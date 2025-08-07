@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/sidequestjs/sidequest/compare/v1.3.0...v1.4.0) (2025-08-07)
+
+
+### Features
+
+* relative path on script resolution ([#58](https://github.com/sidequestjs/sidequest/issues/58)) ([65cf83a](https://github.com/sidequestjs/sidequest/commit/65cf83aebf66f1707be387b461a1dfc96c2dcd66))
+
 # [1.3.0](https://github.com/sidequestjs/sidequest/compare/v1.2.0...v1.3.0) (2025-08-06)
 
 
