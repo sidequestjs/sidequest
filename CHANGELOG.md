@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/sidequestjs/sidequest/compare/v1.4.1...v1.4.2) (2025-08-08)
+
+
+### Bug Fixes
+
+* allow passing full configs on sql backends ([#63](https://github.com/sidequestjs/sidequest/issues/63)) ([9820992](https://github.com/sidequestjs/sidequest/commit/9820992887884d36e02f8757bb4cae5067a11495))
+
 ## [1.4.1](https://github.com/sidequestjs/sidequest/compare/v1.4.0...v1.4.1) (2025-08-07)
 
 
