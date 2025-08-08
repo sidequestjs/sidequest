@@ -1,3 +1,10 @@
+import { Knex } from "knex";
+
+/**
+ * Configuration object for an SQL-based backend driver.
+ */
+export type SQLDriverConfig = Knex.Config;
+
 /**
  * Configuration for a backend driver.
  */

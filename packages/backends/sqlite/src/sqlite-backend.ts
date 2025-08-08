@@ -1,8 +1,18 @@
-import { safeParseJobData, SQLBackend } from "@sidequest/backend";
+import { safeParseJobData, SQLBackend, SQLDriverConfig } from "@sidequest/backend";
 import { JobData } from "@sidequest/core";
-import createKnex from "knex";
+import createKnex, { Knex } from "knex";
 import { hostname } from "os";
 import path from "path";
+
+const defaultKnexConfig = {
+  client: "sqlite3",
+  useNullAsDefault: true,
+  migrations: {
+    directory: path.join(import.meta.dirname, "..", "migrations"),
+    tableName: "sidequest_migrations",
+    extension: "cjs",
+  },
+};
 
 /**
  * Represents a backend implementation for SQLite databases using Knex.
@@ -19,19 +29,19 @@ import path from "path";
  * @extends SQLBackend
  */
 export default class SqliteBackend extends SQLBackend {
-  constructor(filePath = "./sidequest.sqlite") {
-    const knex = createKnex({
-      client: "sqlite3",
-      connection: {
-        filename: filePath,
-      },
-      useNullAsDefault: true,
-      migrations: {
-        directory: path.join(import.meta.dirname, "..", "migrations"),
-        tableName: "sidequest_migrations",
-        extension: "cjs",
-      },
-    });
+  constructor(dbConfig: string | SQLDriverConfig = "./sidequest.sqlite") {
+    const knexConfig: Knex.Config = {
+      ...defaultKnexConfig,
+      ...(typeof dbConfig === "string"
+        ? {
+            connection: {
+              filename: dbConfig,
+            },
+          }
+        : dbConfig),
+    };
+
+    const knex = createKnex(knexConfig);
     super(knex);
   }
 
