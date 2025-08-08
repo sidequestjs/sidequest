@@ -80,8 +80,9 @@ export class Sidequest {
    */
   static async configure(config?: EngineConfig) {
     const _config = await this.engine.configure(config);
-    this.job.setBackend(this.engine.getBackend());
-    this.queue.setBackend(this.engine.getBackend());
+    const backend = this.engine.getBackend();
+    this.job.setBackend(backend);
+    this.queue.setBackend(backend);
     return _config;
   }
 

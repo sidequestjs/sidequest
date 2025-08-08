@@ -7,10 +7,12 @@ import { DummyJob } from "./test-jobs/dummy-job";
 vi.mock("child_process", () => ({
   fork: vi.fn().mockReturnValue({
     pid: 12345,
-    on: vi.fn((event: string, callback: (message: string) => void) => {
+    on: vi.fn((event: string, callback: (message?: string) => void) => {
       if (event === "message") {
         // Immediately call the ready callback
         setTimeout(() => callback("ready"), 10);
+      } else if (event === "exit") {
+        setTimeout(() => callback(), 10);
       }
     }),
     send: vi.fn(),
@@ -248,6 +250,185 @@ describe("Engine", () => {
       const job = await engine.build(DummyJob).availableAt(futureDate).enqueue();
 
       expect(job.available_at.getTime()).toBe(futureDate.getTime());
+    });
+  });
+
+  describe("start", () => {
+    sidequestTest("should start engine with default configuration", async () => {
+      const engine = new Engine();
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      });
+
+      expect(engine.getConfig()).toBeDefined();
+      expect(engine.getBackend()).toBeDefined();
+
+      await engine.close();
+    });
+
+    sidequestTest("should start engine with custom configuration", async () => {
+      const engine = new Engine();
+      const customConfig = {
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        queues: [{ name: "test-queue", concurrency: 3 }],
+        maxConcurrentJobs: 15,
+        logger: { level: "debug" as const, json: false },
+        gracefulShutdown: false,
+      };
+
+      await engine.start(customConfig);
+
+      const config = engine.getConfig();
+      expect(config).toBeDefined();
+      expect(config!.backend.config).toBe(":memory:");
+      expect(config!.queues).toHaveLength(1);
+      expect(config!.queues[0].name).toBe("test-queue");
+      expect(config!.maxConcurrentJobs).toBe(15);
+      expect(config!.logger.level).toBe("debug");
+      expect(config!.gracefulShutdown).toBe(false);
+
+      await engine.close();
+    });
+
+    sidequestTest("should warn when starting already started engine", async () => {
+      const engine = new Engine();
+      const config = {
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      };
+
+      const configSpy = vi.spyOn(engine, "configure");
+
+      await engine.start(config);
+
+      // Try to start again
+      await engine.start(config);
+
+      // Should not crash and should warn
+      expect(engine.getConfig()).toBeDefined();
+      expect(configSpy).toHaveBeenCalledTimes(1);
+      await engine.close();
+    });
+
+    sidequestTest("should use config from configure when start is called after configure", async () => {
+      const engine = new Engine();
+
+      // First configure the engine with specific settings
+      const configureConfig = {
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        maxConcurrentJobs: 25,
+        logger: { level: "warn" as const, json: true },
+        skipMigration: false,
+        gracefulShutdown: true,
+      };
+
+      await engine.configure(configureConfig);
+
+      // Then try to start with different settings
+      const startConfig = {
+        backend: { driver: "@sidequest/sqlite-backend", config: "different.db" },
+        maxConcurrentJobs: 10,
+        logger: { level: "debug" as const, json: false },
+        skipMigration: true,
+        gracefulShutdown: false,
+      };
+
+      await engine.start(startConfig);
+
+      // Should use the config from configure(), not from start()
+      const finalConfig = engine.getConfig();
+      expect(finalConfig).toBeDefined();
+      expect(finalConfig!.maxConcurrentJobs).toBe(25); // From configure
+      expect(finalConfig!.logger.level).toBe("warn"); // From configure
+      expect(finalConfig!.logger.json).toBe(true); // From configure
+      expect(finalConfig!.skipMigration).toBe(false); // From configure
+      expect(finalConfig!.gracefulShutdown).toBe(true); // From configure
+
+      // Should NOT use the values from start()
+      expect(finalConfig!.maxConcurrentJobs).not.toBe(10);
+      expect(finalConfig!.logger.level).not.toBe("debug");
+      expect(finalConfig!.logger.json).not.toBe(false);
+      expect(finalConfig!.skipMigration).not.toBe(true);
+      expect(finalConfig!.gracefulShutdown).not.toBe(false);
+
+      await engine.close();
+    });
+
+    sidequestTest("should create queues when provided in config", async () => {
+      const engine = new Engine();
+      const queues = [
+        { name: "high-priority", concurrency: 5, priority: 10 },
+        { name: "low-priority", concurrency: 2, priority: 1 },
+      ];
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        queues,
+      });
+
+      const backend = engine.getBackend();
+      expect(backend).toBeDefined();
+
+      // Verify queues were created
+      const createdQueues = await backend!.listQueues();
+      const queueNames = createdQueues.map((q) => q.name).sort();
+      expect(queueNames).toContain("high-priority");
+      expect(queueNames).toContain("low-priority");
+
+      await engine.close();
+    });
+
+    sidequestTest("should apply queue defaults when creating queues", async () => {
+      const engine = new Engine();
+      const queueDefaults = {
+        concurrency: 8,
+        priority: 3,
+        state: "active" as const,
+      };
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        queues: [{ name: "test-queue" }], // No explicit config, should use defaults
+        queueDefaults,
+      });
+
+      const backend = engine.getBackend();
+      const queues = await backend!.listQueues();
+      const testQueue = queues.find((q) => q.name === "test-queue");
+
+      expect(testQueue).toBeDefined();
+      expect(testQueue!.concurrency).toBe(8);
+      expect(testQueue!.priority).toBe(3);
+      expect(testQueue!.state).toBe("active");
+
+      await engine.close();
+    });
+
+    sidequestTest("should enable graceful shutdown by default", async () => {
+      const engine = new Engine();
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      });
+
+      const config = engine.getConfig();
+      expect(config!.gracefulShutdown).toBe(true);
+
+      await engine.close();
+    });
+
+    sidequestTest("should allow disabling graceful shutdown", async () => {
+      const engine = new Engine();
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        gracefulShutdown: false,
+      });
+
+      const config = engine.getConfig();
+      expect(config!.gracefulShutdown).toBe(false);
+
+      await engine.close();
     });
   });
 
