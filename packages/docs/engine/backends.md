@@ -20,6 +20,10 @@ Backends in Sidequest are responsible for:
 
 All backends implement the same `Backend` interface, ensuring consistent behavior regardless of which database you choose.
 
+::: tip
+Backends are usually defined by the `driver` configuration and a config object. The config object cna be a connection string, or a [Knex configuration object](https://knexjs.org/guide/#configuration-options).
+:::
+
 ## Available Backends
 
 ### PostgreSQL (Recommended)
