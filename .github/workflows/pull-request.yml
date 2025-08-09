@@ -85,3 +85,8 @@ jobs:
           MYSQL_URL: mysql://root:root@127.0.0.1:3306/test
           MONGODB_URL: mongodb://127.0.0.1:27017/test
         run: yarn test:all:ci
+
+      - name: Run integration tests
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: yarn test:integration:ci
