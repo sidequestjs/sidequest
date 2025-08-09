@@ -1,4 +1,4 @@
-import { Job } from "sidequest";
+import { Job, Sidequest } from "sidequest";
 
 /**
  * A simple job that executes successfully
@@ -6,6 +6,12 @@ import { Job } from "sidequest";
 export class SuccessJob extends Job {
   run(message) {
     return `Success: ${message}`;
+  }
+}
+
+export class EnqueueFromWithinJob extends Job {
+  run(message) {
+    return Sidequest.build(SuccessJob).enqueue("Enqueued from within: " + message);
   }
 }
 

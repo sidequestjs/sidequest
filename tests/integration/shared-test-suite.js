@@ -6,7 +6,7 @@ const backend = {
 };
 
 export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") {
-  const { SuccessJob, RetryJob, FailingJob, TimeoutJob } = jobs;
+  const { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } = jobs;
 
   describe(`[${moduleType}] Sidequest Integration Tests`, () => {
     afterEach(async () => {
@@ -17,6 +17,26 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
     describe(`[${moduleType}] Basic Job Execution`, () => {
       test(`[${moduleType}] should start Sidequest and execute a simple job`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+        });
+
+        const jobBuilder = Sidequest.build(EnqueueFromWithinJob);
+        const jobData = await jobBuilder.enqueue();
+
+        expect(jobData.id).toBeDefined();
+        expect(jobData.state).toBe("waiting");
+        expect(jobData.class).toBe("EnqueueFromWithinJob");
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const jobs = await Sidequest.job.list();
+          return jobs.length === 2 && jobs.every((job) => job.state === "completed");
+        }, 5000);
+      });
+
+      test(`[${moduleType}] should start Sidequest and execute a job that enqueues another job`, async () => {
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],

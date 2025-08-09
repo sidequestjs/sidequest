@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { Job } = require("sidequest");
+const { Job, Sidequest } = require("sidequest");
 
 /**
  * A simple job that executes successfully
@@ -7,6 +7,12 @@ const { Job } = require("sidequest");
 class SuccessJob extends Job {
   run(message) {
     return `Success: ${message}`;
+  }
+}
+
+class EnqueueFromWithinJob extends Job {
+  run(message) {
+    return Sidequest.build(SuccessJob).enqueue("Enqueued from within: " + message);
   }
 }
 
@@ -50,4 +56,5 @@ module.exports = {
   RetryJob,
   FailingJob,
   TimeoutJob,
+  EnqueueFromWithinJob,
 };
