@@ -1,6 +1,6 @@
 ## Checklist for Pull Requests
 
-- [ ] All tests pass (`yarn test:all`)
+- [ ] All tests pass (`yarn test:all` and `yarn test:integration`)
 - [ ] Code follows the style guide and passes lint checks
 - [ ] Documentation is updated (README, docs, etc)
 - [ ] Linked to corresponding issue, if applicable
