@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/sidequestjs/sidequest/compare/v1.4.2...v1.4.3) (2025-08-11)
+
+
+### Bug Fixes
+
+* set schema name for migrations based on searchPath in PostgresBackend ([#67](https://github.com/sidequestjs/sidequest/issues/67)) ([686afa5](https://github.com/sidequestjs/sidequest/commit/686afa5971b273b215bed553e6482c7249418977))
+
 ## [1.4.2](https://github.com/sidequestjs/sidequest/compare/v1.4.1...v1.4.2) (2025-08-08)
 
 
