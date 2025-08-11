@@ -45,6 +45,11 @@ export default class PostgresBackend extends SQLBackend {
       ...(typeof dbConfig === "string" ? { connection: dbConfig } : dbConfig),
     };
 
+    if (knexConfig.searchPath) {
+      knexConfig.migrations!.schemaName =
+        typeof knexConfig.searchPath === "string" ? knexConfig.searchPath : knexConfig.searchPath[0];
+    }
+
     const knex = createKnex(knexConfig);
     super(knex);
   }
