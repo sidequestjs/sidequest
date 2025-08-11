@@ -1,5 +1,4 @@
 import { SQLBackend, SQLDriverConfig } from "@sidequest/backend";
-import { logger } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import path from "path";
 
@@ -72,29 +71,11 @@ export default class PostgresBackend extends SQLBackend {
   async migrate(): Promise<void> {
     // Create schema if it doesn't exist
     if (this.schemaName) {
-      await this.ensureSchemaExists(this.schemaName);
+      await this.knex.raw(`CREATE SCHEMA IF NOT EXISTS ??`, [this.schemaName]);
     }
 
     // Call parent migrate method
     await super.migrate();
-  }
-
-  /**
-   * Ensures that the specified PostgreSQL schema exists in the database.
-   * If the schema does not exist, it attempts to create it.
-   * Any errors encountered during creation (such as the schema already existing)
-   * are logged as warnings, but not thrown.
-   *
-   * @param schemaName - The name of the schema to ensure exists.
-   * @returns A promise that resolves when the operation is complete.
-   */
-  private async ensureSchemaExists(schemaName: string): Promise<void> {
-    try {
-      await this.knex.raw(`CREATE SCHEMA IF NOT EXISTS ??`, [schemaName]);
-    } catch (error) {
-      // Log the error but don't throw - the schema might already exist
-      logger("Backend").warn(`Could not create schema ${schemaName}:`, error);
-    }
   }
 
   truncDate(date: string, unit: "m" | "h" | "d"): string {
