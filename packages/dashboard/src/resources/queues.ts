@@ -3,10 +3,18 @@ import { Request, Response, Router } from "express";
 
 export async function renderQueuesTable(backend: Backend, req: Request, res: Response) {
   const queues = await backend.listQueues({ column: "name", order: "asc" });
-  const jobsFromQueues = await backend?.listJobs({ queue: queues?.map((queue) => queue.name) });
+  const jobsFromQueues = await backend.countJobsByQueues();
   const parsedQueues = queues?.map((queue) => ({
     ...queue,
-    jobs: jobsFromQueues?.filter((job) => job.queue === queue.name),
+    jobs: jobsFromQueues[queue.name] ?? {
+      total: 0,
+      waiting: 0,
+      claimed: 0,
+      running: 0,
+      completed: 0,
+      failed: 0,
+      canceled: 0,
+    },
   }));
 
   const isHtmx = req.get("hx-request");
