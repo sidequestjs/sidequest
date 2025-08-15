@@ -6,15 +6,7 @@ export async function renderQueuesTable(backend: Backend, req: Request, res: Res
   const jobsFromQueues = await backend.countJobsByQueues();
   const parsedQueues = queues?.map((queue) => ({
     ...queue,
-    jobs: jobsFromQueues[queue.name] ?? {
-      total: 0,
-      waiting: 0,
-      claimed: 0,
-      running: 0,
-      completed: 0,
-      failed: 0,
-      canceled: 0,
-    },
+    jobs: jobsFromQueues[queue.name],
   }));
 
   const isHtmx = req.get("hx-request");
