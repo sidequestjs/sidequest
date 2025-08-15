@@ -172,7 +172,7 @@
                   Attempt <%= err.attempt %> by <%= err.attempt_by %>
                 </div>
                 <% if (err.stack) { %>
-                  <details class="mt-1">
+                  <details id="details-for-<%= err.attempt %>" class="mt-1">
                     <summary class="cursor-pointer text-primary">Stack Trace</summary>
                     <pre class="bg-neutral-950 rounded p-2 mt-1 text-[11px] overflow-x-auto whitespace-pre-wrap text-base-content">
       <%- err.stack %>
