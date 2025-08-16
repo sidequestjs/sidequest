@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/sidequestjs/sidequest/compare/v1.4.3...v1.5.0) (2025-08-16)
+
+
+### Features
+
+* Add `countJobsByQueues` to backend implementations and fixed 2 minor bugs ([#70](https://github.com/sidequestjs/sidequest/issues/70)) ([7a22053](https://github.com/sidequestjs/sidequest/commit/7a2205366fcb063e2bb2dc947b3097508b0a893e))
+
 ## [1.4.3](https://github.com/sidequestjs/sidequest/compare/v1.4.2...v1.4.3) (2025-08-11)
 
 
