@@ -1,5 +1,6 @@
 // Global variable to store details state
 let globalDetailsStates = {};
+let globalStackTraces = {};
 
 function applySeeMore() {
   document.querySelectorAll(".sq-code").forEach((container) => {
@@ -34,3 +35,18 @@ function applySeeMore() {
 
 document.addEventListener("DOMContentLoaded", applySeeMore);
 document.addEventListener("htmx:afterSwap", applySeeMore);
+
+// Save and restore stacktrace open/closed
+document.addEventListener("htmx:beforeSwap", () => {
+  const elements = document.getElementsByTagName("details");
+  for (const details of elements) {
+    globalStackTraces[details.id] = details.open;
+  }
+});
+
+document.addEventListener("htmx:afterSwap", () => {
+  const elements = document.getElementsByTagName("details");
+  for (const details of elements) {
+    details.open = globalStackTraces[details.id] !== undefined ? globalStackTraces[details.id] : false;
+  }
+});

@@ -200,6 +200,12 @@ export interface Backend {
   countJobs(timeRange?: { from?: Date; to?: Date }): Promise<JobCounts>;
 
   /**
+   * Counts jobs grouped by their queues.
+   * @returns A record mapping queue names to their respective job counts.
+   */
+  countJobsByQueues(): Promise<Record<string, JobCounts>>;
+
+  /**
    * Counts jobs over time, grouped by a specified time unit.
    *
    * @param timeRange The time range to filter jobs. e.g., 12m, 12h, 12d.

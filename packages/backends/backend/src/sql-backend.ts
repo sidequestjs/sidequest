@@ -284,6 +284,45 @@ export abstract class SQLBackend implements Backend {
     return counts;
   }
 
+  async countJobsByQueues(): Promise<Record<string, JobCounts>> {
+    // Get all queue names from the queues table and any queues that might only exist in jobs
+    const queuesFromTable = await this.knex("sidequest_queues").select("name as queue");
+    const queuesFromJobs = await this.knex("sidequest_jobs").select("queue").distinct();
+
+    const queueSet = new Set<string>();
+    queuesFromTable.forEach((q: { queue: string }) => queueSet.add(q.queue));
+    queuesFromJobs.forEach((q: { queue: string }) => queueSet.add(q.queue));
+
+    // Initialize result with zeroed JobCounts for every queue
+    const result: Record<string, JobCounts> = {};
+    queueSet.forEach((queue) => {
+      result[queue] = {
+        total: 0,
+        waiting: 0,
+        claimed: 0,
+        running: 0,
+        completed: 0,
+        failed: 0,
+        canceled: 0,
+      };
+    });
+
+    // Aggregate jobs by queue and state
+    const rows = (await this.knex("sidequest_jobs")
+      .select("queue", "state")
+      .count("id as count")
+      .groupBy("queue", "state")) as { queue: string; state: JobState; count: string }[];
+
+    // Fill counts into the initialized result
+    rows.forEach((row) => {
+      const count = parseInt(row.count, 10);
+      result[row.queue][row.state] = (result[row.queue][row.state] ?? 0) + count;
+      result[row.queue].total += count;
+    });
+
+    return result;
+  }
+
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
     // Parse time range (e.g., "12m", "12h", "12d")
     const match = /^(\d+)([mhd])$/.exec(timeRange);

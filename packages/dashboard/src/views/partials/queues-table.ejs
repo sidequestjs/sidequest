@@ -29,11 +29,11 @@
       </td>
       <td><%= queue.concurrency %></td>
       <td><%= queue.priority %></td>
-      <td><%= queue.jobs.length %></td>
-      <td><%= queue.jobs.filter(job => job.state === "waiting").length %></td>
-      <td><%= queue.jobs.filter(job => job.state === "running").length %></td>
-      <td><%= queue.jobs.filter(job => job.state === "completed").length %></td>
-      <td><%= queue.jobs.filter(job => job.state === "failed").length %></td>
+      <td><%= queue.jobs.total %></td>
+      <td><%= queue.jobs.waiting %></td>
+      <td><%= queue.jobs.running %></td>
+      <td><%= queue.jobs.completed %></td>
+      <td><%= queue.jobs.failed %></td>
       <td>
         <button class="btn btn-sm"
           hx-patch="/queues/<%= queue.name %>/toggle" hx-push-url="false" hx-target="this">

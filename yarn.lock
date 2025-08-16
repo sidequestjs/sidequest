@@ -11409,7 +11409,7 @@ __metadata:
     semantic-release: "npm:^24.2.7"
     tailwindcss: "npm:^4.1.10"
     tsx: "npm:^4.19.4"
-    turbo: "npm:^2.5.5"
+    turbo: "npm:^2.5.6"
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.34.0"
     vitepress: "npm:^1.6.3"
@@ -12350,58 +12350,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-darwin-64@npm:2.5.5"
+"turbo-darwin-64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-darwin-64@npm:2.5.6"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-darwin-arm64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-darwin-arm64@npm:2.5.5"
+"turbo-darwin-arm64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-darwin-arm64@npm:2.5.6"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-linux-64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-linux-64@npm:2.5.5"
+"turbo-linux-64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-linux-64@npm:2.5.6"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-linux-arm64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-linux-arm64@npm:2.5.5"
+"turbo-linux-arm64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-linux-arm64@npm:2.5.6"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-windows-64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-windows-64@npm:2.5.5"
+"turbo-windows-64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-windows-64@npm:2.5.6"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-windows-arm64@npm:2.5.5":
-  version: 2.5.5
-  resolution: "turbo-windows-arm64@npm:2.5.5"
+"turbo-windows-arm64@npm:2.5.6":
+  version: 2.5.6
+  resolution: "turbo-windows-arm64@npm:2.5.6"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo@npm:^2.5.5":
-  version: 2.5.5
-  resolution: "turbo@npm:2.5.5"
+"turbo@npm:^2.5.6":
+  version: 2.5.6
+  resolution: "turbo@npm:2.5.6"
   dependencies:
-    turbo-darwin-64: "npm:2.5.5"
-    turbo-darwin-arm64: "npm:2.5.5"
-    turbo-linux-64: "npm:2.5.5"
-    turbo-linux-arm64: "npm:2.5.5"
-    turbo-windows-64: "npm:2.5.5"
-    turbo-windows-arm64: "npm:2.5.5"
+    turbo-darwin-64: "npm:2.5.6"
+    turbo-darwin-arm64: "npm:2.5.6"
+    turbo-linux-64: "npm:2.5.6"
+    turbo-linux-arm64: "npm:2.5.6"
+    turbo-windows-64: "npm:2.5.6"
+    turbo-windows-arm64: "npm:2.5.6"
   dependenciesMeta:
     turbo-darwin-64:
       optional: true
@@ -12417,7 +12417,7 @@ __metadata:
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 10c0/f51ec295286b4126fee2a5020754126ccff8d062332599aeb2ad26edabd1847bc8c535f81cd4fa3aedcca9fd47e70c4effe3d38cbbac487ceed2db393e89fb0f
+  checksum: 10c0/b9657bf211bbcfe3911496e4fee6c9a24526bc37e9cadf7f0c76d0376e9c9dfafaacec27f5a61bb621dfe330600ce68c1b21e4cdc19bdccd3ebfe66766fcf62f
   languageName: node
   linkType: hard
 

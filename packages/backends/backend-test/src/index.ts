@@ -2,6 +2,7 @@ import { Backend } from "@sidequest/backend";
 import { backend, setTestBackend } from "./backend";
 import defineClaimPendingJobTestSuite from "./claimPendingJob";
 import defineCountJobsTestSuite from "./countJobs";
+import defineCountJobsByQueuesTestSuite from "./countJobsByQueues";
 import defineCountJobsOverTimeTestSuite from "./countJobsOverTime";
 import defineCreateNewJobTestSuite from "./createNewJob";
 import defineInsertQueueConfigTestSuite from "./createNewQueue";
@@ -49,6 +50,7 @@ export function testBackend(backendFactory: () => Backend) {
   defineListQueuesTestSuite();
   defineListJobsTestSuite();
   defineCountJobsTestSuite();
+  defineCountJobsByQueuesTestSuite();
   defineStaleJobsTestSuite();
   defineUpdateJobTestSuite();
   defineCountJobsOverTimeTestSuite();
