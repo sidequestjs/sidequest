@@ -49,6 +49,34 @@ await Sidequest.start({
 });
 ```
 
+**Using Knex Configuration Object:**
+
+```typescript
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  backend: {
+    driver: "@sidequest/postgres-backend",
+    config: {
+      connection: {
+        host: "localhost",
+        port: 5432,
+        user: "username",
+        password: "password",
+        database: "sidequest",
+      },
+      pool: {
+        min: 2,
+        max: 10,
+        acquireTimeoutMillis: 60000,
+        idleTimeoutMillis: 600000,
+      },
+      searchPath: ["sidequest", "public"],
+    },
+  },
+});
+```
+
 **Advantages:**
 
 - **Excellent concurrency**: Advanced locking mechanisms prevent job conflicts
