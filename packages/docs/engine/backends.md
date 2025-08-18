@@ -58,18 +58,10 @@ await Sidequest.start({
   backend: {
     driver: "@sidequest/postgres-backend",
     config: {
-      connection: {
-        host: "localhost",
-        port: 5432,
-        user: "username",
-        password: "password",
-        database: "sidequest",
-      },
+      connection: "postgres://user:password@localhost:5432/mydb",
       pool: {
         min: 2,
         max: 10,
-        acquireTimeoutMillis: 60000,
-        idleTimeoutMillis: 600000,
       },
       searchPath: ["sidequest", "public"],
     },
