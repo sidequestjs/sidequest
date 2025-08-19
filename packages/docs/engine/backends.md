@@ -370,6 +370,10 @@ export class MyCustomBackend implements Backend {
     // Count jobs by state
   }
 
+  async countJobsByQueues(): Promise<Record<string, JobCounts>>; {
+    // Count jobs by queue
+  }
+
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
     // Count jobs over time for analytics
   }
