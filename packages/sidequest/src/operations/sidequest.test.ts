@@ -2,7 +2,8 @@ import { Job } from "@sidequest/core";
 import { NonNullableEngineConfig } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
-import { Sidequest, SidequestConfig } from "./sidequest";
+import { Sidequest } from "./sidequest";
+import { SidequestConfig } from "./types";
 
 // Mock dependencies
 const mockSidequestDashboard = vi.hoisted(() => ({
