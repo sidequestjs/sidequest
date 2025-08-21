@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/sidequestjs/sidequest/compare/v1.5.2...v1.6.0) (2025-08-21)
+
+
+### Features
+
+* add rerun button for canceled, failed, or completed jobs in jobs table ([#83](https://github.com/sidequestjs/sidequest/issues/83)) ([d1a89a0](https://github.com/sidequestjs/sidequest/commit/d1a89a01be4f176065f7c5a654e81f4db03a5db9))
+
 ## [1.5.2](https://github.com/sidequestjs/sidequest/compare/v1.5.1...v1.5.2) (2025-08-21)
 
 
