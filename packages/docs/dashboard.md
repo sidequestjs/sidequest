@@ -59,6 +59,11 @@ await Sidequest.start({
 console.log("Dashboard available at http://localhost:3000/sidequest");
 ```
 
+::: danger
+If attaching to an existing server, be aware that you are potentially exposing the dashboard to the public internet. Always secure it with authentication and proper network controls.
+We suggest adding authentication in your main server configuration or on your web proxy to protect the dashboard route.
+:::
+
 ### Custom Configuration
 
 Configure dashboard settings during Sidequest startup:
