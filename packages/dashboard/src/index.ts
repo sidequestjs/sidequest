@@ -233,13 +233,19 @@ export class SidequestDashboard {
    * @returns {Promise<void>} Resolves when all resources have been closed and cleaned up.
    */
   async close() {
-    await this.backend?.close();
-    await new Promise<void>((resolve) => {
-      this.server?.close(() => {
-        logger("Dashboard").info("Sidequest Dashboard stopped");
-        resolve();
+    try {
+      await this.backend?.close();
+    } catch (error) {
+      logger("Dashboard").error("Failed to close backend", error);
+    }
+    if (this.server) {
+      await new Promise<void>((resolve) => {
+        this.server!.close(() => {
+          logger("Dashboard").info("Sidequest Dashboard stopped");
+          resolve();
+        });
       });
-    });
+    }
 
     this.backend = undefined;
     this.server = undefined;

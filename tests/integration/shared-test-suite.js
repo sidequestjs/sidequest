@@ -1,14 +1,27 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 const backend = {
   driver: "@sidequest/postgres-backend",
   config: process.env.POSTGRES_URL ?? "postgresql://postgres:postgres@localhost:5432/postgres",
 };
 
+const logger = {
+  level: "info",
+};
+
 export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") {
   const { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } = jobs;
 
   describe(`[${moduleType}] Sidequest Integration Tests`, () => {
+    beforeAll(async () => {
+      await Sidequest.configure({
+        backend,
+        logger,
+      });
+      await Sidequest.getBackend()?.truncate();
+      await Sidequest.stop();
+    });
+
     afterEach(async () => {
       await Sidequest.getBackend()?.truncate();
       // Always stop Sidequest after each test
@@ -20,6 +33,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobBuilder = Sidequest.build(EnqueueFromWithinJob);
@@ -40,6 +54,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobBuilder = Sidequest.build(SuccessJob);
@@ -63,6 +78,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default", concurrency: 2 }],
+          logger,
         });
 
         const jobs = await Promise.all([
@@ -96,6 +112,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
             { name: "high-priority", priority: 10 },
             { name: "low-priority", priority: 1 },
           ],
+          logger,
         });
 
         const highPriorityJob = await Sidequest.build(SuccessJob).queue("high-priority").enqueue("High Priority");
@@ -125,6 +142,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(RetryJob).maxAttempts(3).enqueue("retry-test");
@@ -143,6 +161,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(FailingJob).maxAttempts(2).enqueue("always-fails");
@@ -161,6 +180,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const startTime = Date.now();
@@ -186,6 +206,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -207,6 +228,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -224,6 +246,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -244,6 +267,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default", concurrency: 1 }], // No workers to keep job waiting
+          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -265,6 +289,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         await expect(Sidequest.job.cancel(99999)).rejects.toThrow();
@@ -274,6 +299,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob).enqueue(1000000);
@@ -290,6 +316,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default", concurrency: 1 }], // No workers initially
+          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -311,6 +338,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -326,6 +354,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default", concurrency: 1 }], // No workers
+          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -347,6 +376,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         // Enqueue multiple jobs
@@ -375,6 +405,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         await Sidequest.build(SuccessJob).enqueue("list-test-1");
@@ -398,6 +429,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "pausable" }],
+          logger,
         });
 
         // Pause the queue
@@ -421,6 +453,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "stats-queue" }],
+          logger,
         });
 
         await Sidequest.build(SuccessJob).queue("stats-queue").enqueue("queue-stats-test");
@@ -440,6 +473,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
             { name: "fast", concurrency: 3 },
             { name: "slow", concurrency: 1 },
           ],
+          logger,
         });
 
         const jobs = await Promise.all([
@@ -462,6 +496,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
           backend,
           queues: [{ name: "default", concurrency: 5 }],
           maxConcurrentJobs: 10,
+          logger,
         });
 
         // Enqueue many jobs
@@ -483,6 +518,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -494,6 +530,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.start({
           backend,
           queues: [{ name: "default" }],
+          logger,
         });
 
         // Should be able to enqueue new jobs

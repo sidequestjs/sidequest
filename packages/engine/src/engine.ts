@@ -246,7 +246,11 @@ export class Engine {
         this.mainWorker.send({ type: "shutdown" });
         await promise;
       }
-      await this.backend?.close();
+      try {
+        await this.backend?.close();
+      } catch (error) {
+        logger("Engine").error("Error closing backend:", error);
+      }
       this.config = undefined;
       this.backend = undefined;
       this.mainWorker = undefined;
