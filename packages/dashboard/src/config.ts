@@ -1,11 +1,11 @@
 import { BackendConfig } from "@sidequest/backend";
-import { Express } from "express";
+import { Server } from "node:http";
 
 /**
  * Configuration for the Dashboard module.
  *
  * Provides options to control backend integration, network settings, authentication,
- * routing and optional Express app mounting for the dashboard server.
+ * routing and optional HTTP server mounting for the dashboard server.
  *
  * @remarks
  * All fields are optional to allow minimal configuration; callers should apply sensible
@@ -34,13 +34,15 @@ export interface DashboardConfig {
   };
   /**
    * Optional custom route for this instance.
-   * Only applicable if `app` is provided.
+   * Only applicable if `server` is provided.
    */
   customRoute?: string;
   /**
-   * Optional Express application to mount the dashboard onto.
-   * If provided, the dashboard will be mounted onto this app instead of starting its own server.
+   * Optional Node.js HTTP Server to mount the dashboard onto.
+   * If provided, the dashboard will be mounted onto this server instead of starting its own.
    * When using this option, the `port` setting is ignored.
+   * This works with any web framework (Express, Fastify, Koa, etc.) as long as they
+   * expose their underlying HTTP server.
    */
-  app?: Express;
+  server?: Server;
 }

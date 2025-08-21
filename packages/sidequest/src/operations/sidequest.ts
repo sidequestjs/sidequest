@@ -112,7 +112,7 @@ export class Sidequest {
       const engineStartPromise = this.engine.start(engineConfig);
 
       let dashboardStartPromise;
-      if (config?.dashboard?.app) {
+      if (config?.dashboard?.server) {
         dashboardStartPromise = this.dashboard.attach({
           ...config?.dashboard,
           backendConfig: engineConfig.backend,

@@ -129,9 +129,9 @@ export class SidequestDashboard {
    * This asynchronous method merges the provided DashboardConfig with sensible defaults
    * (including `enabled: true` and a default `backendConfig.driver` of `"@sidequest/sqlite-backend"`),
    * assigns the resulting configuration to `this.config`, and performs the full initialization
-   * sequence required to make the dashboard active and mounted on an Express application.
+   * sequence required to make the dashboard active and mounted on an HTTP server.
    *
-   * Can only work if `config.app` is provided, as this method does not start its own server.
+   * Can only work if `config.server` is provided, as this method does not start its own server.
    *
    * @param config - Partial or full DashboardConfig to apply for this instance.
    * @returns A promise that resolves when initialization and attachment complete.
@@ -166,7 +166,7 @@ export class SidequestDashboard {
     this.setupEJS();
     this.setupRoutes();
 
-    this.attachToApp();
+    this.attachToServer();
   }
 
   /**
@@ -267,36 +267,59 @@ export class SidequestDashboard {
   }
 
   /**
-   * Attach the dashboard Express application to an existing Express application.
+   * Attach the dashboard to an existing Node.js HTTP Server.
    *
-   * This method determines the mount path from `this.customRoute` (defaults to "/")
-   * and mounts the internal dashboard app (`this.app`) onto the target Express
-   * application retrieved from `this.config!.app` using `targetApp.use(customRoute, this.app!)`.
+   * This method intercepts HTTP requests to the target server and handles
+   * dashboard-related requests by mounting the dashboard Express app.
+   * This approach makes the dashboard compatible with any web framework
+   * (Express, Fastify, Koa, etc.) as long as they expose their HTTP server.
    *
-   * Side effects:
-   * - Logs a debug message indicating the intended mount route.
-   * - Throws an Error if no target app is provided.
-   * - Logs an info message after mounting indicating the actual attached route.
+   * @remarks
+   * - Uses the `customRoute` as the base path for dashboard routes (defaults to "/")
+   * - Intercepts requests at the HTTP server level before they reach the framework
+   * - Only handles requests that match the dashboard's base path
+   * - Passes through all other requests to the original server handlers
    *
-   * Notes:
-   * - `customRoute` is used verbatim as the mount path; ensure it is a valid Express
-   *   mount path (a leading "/" is recommended to avoid unexpected double-slashes).
-   * - This method assumes `this.config` and `this.app` have been initialized.
+   * @throws If no target server is provided in the configuration
    */
-  attachToApp() {
+  attachToServer() {
     const customRoute = this.customRoute ?? "/";
-    const targetApp = this.config!.app;
+    const targetServer = this.config!.server;
 
-    logger("Dashboard").debug(`Attaching Dashboard to existing Express app at route ${customRoute}`);
+    logger("Dashboard").debug(`Attaching Dashboard to existing HTTP server at route ${customRoute}`);
 
-    if (!targetApp) {
-      throw new Error("No target app provided to attach the dashboard");
+    if (!targetServer) {
+      throw new Error("No target server provided to attach the dashboard");
     }
 
-    // Mount the dashboard app at the custom route on the target app
-    targetApp.use(customRoute, this.app!);
+    // Store the original request listener
+    const originalListeners = targetServer.listeners("request");
+    targetServer.removeAllListeners("request");
 
-    logger("Dashboard").info(`Dashboard attached to existing Express app at "${customRoute}"`);
+    // Create a new request handler that intercepts dashboard routes
+    targetServer.on("request", (req, res) => {
+      const url = req.url ?? "";
+
+      // Check if the request is for the dashboard
+      if (url.startsWith(customRoute)) {
+        // Remove the custom route prefix from the URL for the dashboard app
+        const dashboardPath = url.slice(customRoute.length - (customRoute === "/" ? 1 : 0));
+        req.url = dashboardPath || "/";
+
+        // Handle the request with the dashboard app
+        this.app!(req, res);
+      } else {
+        // Pass the request to the original handlers
+        for (const listener of originalListeners) {
+          if (typeof listener === "function") {
+            listener.call(targetServer, req, res);
+            break; // Only call the first listener to avoid duplicate processing
+          }
+        }
+      }
+    });
+
+    logger("Dashboard").info(`Dashboard attached to existing HTTP server at "${customRoute}"`);
   }
 
   /**
