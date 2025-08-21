@@ -6,7 +6,7 @@ const backend = {
 };
 
 const logger = {
-  level: "debug",
+  level: "info",
 };
 
 export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") {
