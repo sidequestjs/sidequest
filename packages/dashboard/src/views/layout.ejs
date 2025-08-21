@@ -4,31 +4,43 @@
     <meta charset="UTF-8" />
     <title><%= title || 'Sidequest Dashboard' %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="/public/css/styles.css" rel="stylesheet" />
-    <script src="/public/js/htmx.js"></script>
-    <script src="/public/js/feather-icons.js"></script>
-    <script src="/public/js/highlight.js"></script>
-    <script src="/public/js/chart.js"></script>
-    <script src="/public/js/scroll.js"></script>
+    <link href="<%= basePath %>/public/css/styles.css" rel="stylesheet" />
+    <script src="<%= basePath %>/public/js/htmx.js"></script>
+    <script src="<%= basePath %>/public/js/feather-icons.js"></script>
+    <script src="<%= basePath %>/public/js/highlight.js"></script>
+    <script src="<%= basePath %>/public/js/chart.js"></script>
+    <script src="<%= basePath %>/public/js/scroll.js"></script>
+    <script>
+      window.SIDEQUEST_BASE_PATH = "<%= basePath %>";
+    </script>
   </head>
   <body class="h-full bg-base-100 text-base-content">
     <div class="flex h-full">
       <!-- Sidebar -->
       <aside class="w-64 bg-neutral border-r border-base-100 flex flex-col">
         <div class="p-4 flex items-center gap-2 border-b border-base-100">
-          <img src="/public/img/logo.png" alt="Sidequest Logo" class="h-14 w-auto" />
+          <img src="<%= basePath %>/public/img/logo.png" alt="Sidequest Logo" class="h-14 w-auto" />
           <span class="text-xl font-semibold text-white">Sidequest</span>
         </div>
         <nav class="flex-1 p-4 space-y-2 text-sm">
-          <a href="/" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Dashboard</a>
-          <a href="/jobs" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Jobs</a>
-          <a href="/queues" class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content">Queues</a>
+          <a
+            href="<%= basePath %>/"
+            class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content"
+            >Dashboard</a
+          >
+          <a
+            href="<%= basePath %>/jobs"
+            class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content"
+            >Jobs</a
+          >
+          <a
+            href="<%= basePath %>/queues"
+            class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-secondary hover:text-secondary-content"
+            >Queues</a
+          >
         </nav>
-        <div class="p-4 border-t border-base-100 text-xs text-neutral-content">
-          v0.1.0 — OSS Edition
-        </div>
+        <div class="p-4 border-t border-base-100 text-xs text-neutral-content">v0.1.0 — OSS Edition</div>
       </aside>
-      
 
       <!-- Main content -->
       <main id="main-section" class="flex-1 p-6 overflow-y-auto"><%- body %></main>

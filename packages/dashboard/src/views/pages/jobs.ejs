@@ -1,5 +1,5 @@
 <section class="space-y-6">
-  <form method="GET" id="filter-form" hx-get="/jobs" hx-target="#jobs-table"
+  <form method="GET" id="filter-form" hx-get="<%= basePath %>/jobs" hx-target="#jobs-table"
     hx-trigger="change from:* delay:300ms, every 3s, jobChanged" hx-push-url="true" hx-sync="this:replace">
     <div class="flex flex-wrap items-end gap-4 text-base mb-4">
       <div class="form-control w-48">
@@ -75,7 +75,7 @@
   </form>
 </section>
 
-<script src="/public/js/jobs.js"></script>
+<script src="<%= basePath %>/public/js/jobs.js"></script>
 
 <script>
   const startUtc = "<%= filters.start %>";

@@ -57,6 +57,17 @@ export class SidequestDashboard {
    */
   private backend?: Backend;
 
+  /**
+   * Optional custom route for this instance.
+   *
+   * When set, this string is used in place of the automatically generated route.
+   * Expected to be a path-like string (for example `"/items/123"`). If undefined,
+   * the default routing logic will be used.
+   *
+   * @private
+   */
+  private customRoute?: string;
+
   constructor() {
     this.app = express();
   }
@@ -110,6 +121,52 @@ export class SidequestDashboard {
     this.setupRoutes();
 
     this.listen();
+  }
+
+  /**
+   * Attach and initialize the Dashboard instance with the provided configuration.
+   *
+   * This asynchronous method merges the provided DashboardConfig with sensible defaults
+   * (including `enabled: true` and a default `backendConfig.driver` of `"@sidequest/sqlite-backend"`),
+   * assigns the resulting configuration to `this.config`, and performs the full initialization
+   * sequence required to make the dashboard active and mounted on an Express application.
+   *
+   * Can only work if `config.app` is provided, as this method does not start its own server.
+   *
+   * @param config - Partial or full DashboardConfig to apply for this instance.
+   * @returns A promise that resolves when initialization and attachment complete.
+   * @throws If backend creation fails or any setup step throws, the promise rejects with the originating error.
+   */
+  async attach(config: DashboardConfig) {
+    this.config = {
+      enabled: true,
+      backendConfig: {
+        driver: "@sidequest/sqlite-backend",
+      },
+      ...config,
+    };
+
+    if (!this.config.enabled) {
+      logger("Dashboard").debug(`Dashboard is disabled`);
+      return;
+    }
+
+    this.app ??= express();
+    this.backend = await createBackendFromDriver(this.config.backendConfig!);
+
+    // Enforce leading slash on customRoute if provided
+    if (this.config.customRoute) {
+      this.customRoute = this.config.customRoute?.startsWith("/")
+        ? this.config.customRoute
+        : `/${this.config.customRoute}`;
+    }
+
+    this.setupMiddlewares();
+    this.setupAuth();
+    this.setupEJS();
+    this.setupRoutes();
+
+    this.attachToApp();
   }
 
   /**
@@ -195,9 +252,51 @@ export class SidequestDashboard {
    */
   setupRoutes() {
     logger("Dashboard").debug(`Setting up routes`);
+
+    // Set up middleware to pass base path to all templates
+    // Should be empty string if mounted at root, or the customRoute if provided
+    const basePath = this.customRoute ?? "";
+    this.app!.use((req, res, next) => {
+      res.locals.basePath = this.app ? basePath : "";
+      next();
+    });
+
     this.app!.use(...createDashboardRouter(this.backend!));
     this.app!.use(...createJobsRouter(this.backend!));
     this.app!.use(...createQueuesRouter(this.backend!));
+  }
+
+  /**
+   * Attach the dashboard Express application to an existing Express application.
+   *
+   * This method determines the mount path from `this.customRoute` (defaults to "/")
+   * and mounts the internal dashboard app (`this.app`) onto the target Express
+   * application retrieved from `this.config!.app` using `targetApp.use(customRoute, this.app!)`.
+   *
+   * Side effects:
+   * - Logs a debug message indicating the intended mount route.
+   * - Throws an Error if no target app is provided.
+   * - Logs an info message after mounting indicating the actual attached route.
+   *
+   * Notes:
+   * - `customRoute` is used verbatim as the mount path; ensure it is a valid Express
+   *   mount path (a leading "/" is recommended to avoid unexpected double-slashes).
+   * - This method assumes `this.config` and `this.app` have been initialized.
+   */
+  attachToApp() {
+    const customRoute = this.customRoute ?? "/";
+    const targetApp = this.config!.app;
+
+    logger("Dashboard").debug(`Attaching Dashboard to existing Express app at route ${customRoute}`);
+
+    if (!targetApp) {
+      throw new Error("No target app provided to attach the dashboard");
+    }
+
+    // Mount the dashboard app at the custom route on the target app
+    targetApp.use(customRoute, this.app!);
+
+    logger("Dashboard").info(`Dashboard attached to existing Express app at "${customRoute}"`);
   }
 
   /**
@@ -234,12 +333,14 @@ export class SidequestDashboard {
    */
   async close() {
     await this.backend?.close();
-    await new Promise<void>((resolve) => {
-      this.server?.close(() => {
-        logger("Dashboard").info("Sidequest Dashboard stopped");
-        resolve();
+    if (this.server) {
+      await new Promise<void>((resolve) => {
+        this.server?.close(() => {
+          logger("Dashboard").info("Sidequest Dashboard stopped");
+          resolve();
+        });
       });
-    });
+    }
 
     this.backend = undefined;
     this.server = undefined;

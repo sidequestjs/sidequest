@@ -15,7 +15,7 @@
   <tbody>
     <% jobs.forEach(job => { %>
     <tr class="hover:bg-base-300">
-      <td class="px-2 py-3 text-base-content link"><a href="/jobs/<%= job.id %>"><%= job.id %></a></td>
+      <td class="px-2 py-3 text-base-content link"><a href="<%= basePath %>/jobs/<%= job.id %>"><%= job.id %></a></td>
       <td class="px-2 py-3 text-base-content"><%= job.class %></td>
       <td class="px-2 py-3"><%= job.queue %></td>
       <td class="px-2 py-3">
@@ -36,10 +36,10 @@
       <td class="px-2 py-3 text-base-content"><%= job.claimed_by || '-' %></td>
       <td class="px-2 py-3 flex flex-nowrap gap-2">
         <% if (job.available_at > new Date()) { %>
-          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/run" hx-push-url="false" hx-target="this"><i data-feather="play" class="w-4 h-4"></i>Run</button>
+          <button type="button" class="btn btn-sm" hx-patch="<%= basePath %>/jobs/<%= job.id %>/run" hx-push-url="false" hx-target="this"><i data-feather="play" class="w-4 h-4"></i>Run</button>
         <% } %>
         <% if (!['canceled', 'failed', 'completed'].includes(job.state)){ %>
-          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/cancel" hx-push-url="false" hx-target="this"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
+          <button type="button" class="btn btn-sm" hx-patch="<%= basePath %>/jobs/<%= job.id %>/cancel" hx-push-url="false" hx-target="this"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
         <% } %>
       </td>
     </tr>
@@ -49,7 +49,7 @@
 
 <div class="join mt-4">
   <% if (pagination.page > 1) { %>
-  <button type="button" class="join-item btn btn-sm" hx-get="/jobs" hx-target="#jobs-table" hx-include="#filter-form"
+  <button type="button" class="join-item btn btn-sm" hx-get="<%= basePath %>/jobs" hx-target="#jobs-table" hx-include="#filter-form"
     hx-vals='{"page": <%= pagination.page - 1 %>}'>«</button>
   <% } else { %>
   <button class="join-item btn btn-sm btn-disabled">«</button>
@@ -60,7 +60,7 @@
   </button>
 
   <% if (pagination.hasNextPage) { %>
-  <button type="button" class="join-item btn btn-sm" hx-get="/jobs" hx-target="#jobs-table" hx-include="#filter-form"
+  <button type="button" class="join-item btn btn-sm" hx-get="<%= basePath %>/jobs" hx-target="#jobs-table" hx-include="#filter-form"
     hx-vals='{"page": <%= pagination.page + 1 %>}'>»</button>
   <% } else { %>
   <button class="join-item btn btn-sm btn-disabled">»</button>

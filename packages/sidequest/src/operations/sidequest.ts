@@ -109,11 +109,20 @@ export class Sidequest {
     try {
       const engineConfig = await this.configure(config);
 
-      const engine = this.engine.start(engineConfig);
-      const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
+      const engineStartPromise = this.engine.start(engineConfig);
 
-      await engine;
-      await dashboard;
+      let dashboardStartPromise;
+      if (config?.dashboard?.app) {
+        dashboardStartPromise = this.dashboard.attach({
+          ...config?.dashboard,
+          backendConfig: engineConfig.backend,
+        });
+      } else {
+        dashboardStartPromise = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
+      }
+
+      await engineStartPromise;
+      await dashboardStartPromise;
     } catch (error) {
       logger().error("Failed to start Sidequest:", error);
       await this.stop(); // Ensure cleanup on error
