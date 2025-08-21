@@ -44,5 +44,6 @@ export class RunnerPool {
   async destroy(): Promise<void> {
     logger("RunnerPool").debug("Destroying worker pool");
     await this.pool.destroy();
+    logger("RunnerPool").debug("Worker pool destroyed");
   }
 }

@@ -54,8 +54,11 @@ export class MainWorker {
   async shutdown() {
     if (!this.shuttingDown) {
       this.shuttingDown = true;
+      logger("Worker").debug("Shutting down dispatcher");
       await this.dispatcher?.stop();
+      logger("Worker").debug("Shutting down engine");
       await this.engine.close();
+      logger("Worker").debug("Main worker completely shut down");
     }
   }
 

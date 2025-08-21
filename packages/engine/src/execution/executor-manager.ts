@@ -161,6 +161,7 @@ export class ExecutorManager {
           logger("ExecutorManager").info("All active jobs finished. Destroying runner pool.");
           try {
             await this.runnerPool.destroy();
+            logger("ExecutorManager").debug("Runner pool destroyed. Returning.");
             resolve();
           } catch (error) {
             logger("ExecutorManager").error("Error while destroying runner pool:", error);
