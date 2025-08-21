@@ -1,3 +1,4 @@
+import { inspect } from "util";
 import winston from "winston";
 
 let _logger: winston.Logger;
@@ -55,7 +56,7 @@ export function configureLogger(options: LoggerOptions) {
       winston.format.errors({ stack: true }),
       winston.format.label({ label: "Sidequest" }),
       winston.format.printf(({ timestamp, level, message, label, stack, scope, ...metadata }) => {
-        const metaStr = Object.keys(metadata).length ? `\n${JSON.stringify(metadata, null, 2)}` : "";
+        const metaStr = Object.keys(metadata).length ? `\n${inspect(metadata)}` : "";
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const base = `[${level}] [${timestamp}] [${label}] ${scope ? `[${scope as string}] ` : ""}: ${message}${metaStr}`;
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string

@@ -1,6 +1,7 @@
 import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import { Knex } from "knex";
 import { hostname } from "os";
+import { inspect } from "util";
 import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
 import { JOB_FALLBACK, MISC_FALLBACK, QUEUE_FALLBACK } from "./constants";
 import { formatDateForBucket, safeParseJobData, whereOrWhereIn } from "./utils";
@@ -69,9 +70,9 @@ export abstract class SQLBackend implements Backend {
       ...queueConfig,
     };
 
-    logger("Backend").debug(`Inserting new queue config: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Inserting new queue config: ${inspect(data)}`);
     const newConfig = (await this.knex("sidequest_queues").insert(data).returning("*")) as QueueConfig[];
-    logger("Backend").debug(`Queue inserted successfully: ${JSON.stringify(newConfig[0])}`);
+    logger("Backend").debug(`Queue inserted successfully: ${inspect(newConfig[0])}`);
 
     return newConfig[0];
   }
@@ -97,7 +98,7 @@ export abstract class SQLBackend implements Backend {
     }
 
     const { id, ...updates } = queueData;
-    logger("Backend").debug(`Updating queue: ${JSON.stringify(queueData)}`);
+    logger("Backend").debug(`Updating queue: ${inspect(queueData)}`);
 
     if (!id) throw new Error("Queue id is required for update.");
 
@@ -108,7 +109,7 @@ export abstract class SQLBackend implements Backend {
 
     if (!updated) throw new Error("Cannot update queue, not found.");
 
-    logger("Backend").debug(`Queue updated successfully: ${JSON.stringify(updated)}`);
+    logger("Backend").debug(`Queue updated successfully: ${inspect(updated)}`);
     return updated;
   }
 
@@ -135,11 +136,11 @@ export abstract class SQLBackend implements Backend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : JOB_FALLBACK.uniqueness_config,
       inserted_at: new Date(),
     };
-    logger("Backend").debug(`Creating new job: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Creating new job: ${inspect(data)}`);
 
     try {
       const inserted = (await this.knex("sidequest_jobs").insert(data).returning("*")) as JobData[];
-      logger("Backend").debug(`Job created successfully: ${JSON.stringify(inserted)}`);
+      logger("Backend").debug(`Job created successfully: ${inspect(inserted)}`);
 
       return safeParseJobData(inserted[0]);
     } catch (error) {
@@ -199,7 +200,7 @@ export abstract class SQLBackend implements Backend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
 
-    logger("Backend").debug(`Updating job: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Updating job: ${inspect(data)}`);
     const [updated] = (await this.knex("sidequest_jobs")
       .where({ id: job.id })
       .update(data)
@@ -207,7 +208,7 @@ export abstract class SQLBackend implements Backend {
 
     if (!updated) throw new Error("Cannot update job, not found.");
 
-    logger("Backend").debug(`Job updated successfully: ${JSON.stringify(updated)}`);
+    logger("Backend").debug(`Job updated successfully: ${inspect(updated)}`);
 
     return safeParseJobData(updated);
   }

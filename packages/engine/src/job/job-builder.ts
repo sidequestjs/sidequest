@@ -14,6 +14,7 @@ import {
   UniquenessFactory,
 } from "@sidequest/core";
 import nodeCron, { ScheduledTask } from "node-cron";
+import { inspect } from "node:util";
 import { JOB_BUILDER_FALLBACK } from "./constants";
 
 /**
@@ -211,8 +212,8 @@ export class JobBuilder<T extends JobClassType> {
     const jobData = await this.build(...args);
 
     logger("JobBuilder").debug(
-      `Enqueuing job ${jobData.class} with args: ${JSON.stringify(args)}
-      and constructor args: ${JSON.stringify(this.constructorArgs)}`,
+      `Enqueuing job ${jobData.class} with args: ${inspect(args)}
+      and constructor args: ${inspect(this.constructorArgs)}`,
     );
     return this.backend.createNewJob(jobData);
   }
@@ -250,8 +251,8 @@ export class JobBuilder<T extends JobClassType> {
     Object.freeze(jobData);
 
     logger("JobBuilder").debug(
-      `Scheduling job ${jobData.class} with cron: "${cronExpression}", args: ${JSON.stringify(args)}, ` +
-        `constructor args: ${JSON.stringify(this.constructorArgs)}`,
+      `Scheduling job ${jobData.class} with cron: "${cronExpression}", args: ${inspect(args)}, ` +
+        `constructor args: ${inspect(this.constructorArgs)}`,
     );
 
     return nodeCron.schedule(
@@ -259,7 +260,7 @@ export class JobBuilder<T extends JobClassType> {
       async () => {
         const newJobData: NewJobData = Object.assign({}, jobData);
         logger("JobBuilder").debug(
-          `Cron triggered for job ${newJobData.class} at ${newJobData.available_at!.toISOString()} with args: ${JSON.stringify(args)}`,
+          `Cron triggered for job ${newJobData.class} at ${newJobData.available_at!.toISOString()} with args: ${inspect(args)}`,
         );
         return this.backend.createNewJob(jobData);
       },
