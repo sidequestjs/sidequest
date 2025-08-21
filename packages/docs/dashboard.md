@@ -36,6 +36,29 @@ await Sidequest.start();
 console.log("Dashboard available at http://localhost:8678");
 ```
 
+### Attaching to an Existing Server
+
+If you have an existing HTTP server, you can attach the dashboard to it:
+
+```typescript
+import { Sidequest } from "sidequest";
+import express from "express";
+
+const app = express();
+const server = app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+
+await Sidequest.start({
+  dashboard: {
+    server, // Attach to existing server
+    customRoute: "/sidequest", // Custom route prefix (optional)
+  },
+});
+
+console.log("Dashboard available at http://localhost:3000/sidequest");
+```
+
 ### Custom Configuration
 
 Configure dashboard settings during Sidequest startup:
@@ -56,12 +79,14 @@ await Sidequest.start({
 
 ### Configuration Options
 
-| Option          | Type      | Default     | Description                                |
-| --------------- | --------- | ----------- | ------------------------------------------ |
-| `enabled`       | `boolean` | `true`      | Enable or disable the dashboard completely |
-| `port`          | `number`  | `8678`      | Port number for the dashboard server       |
-| `auth.user`     | `string`  | `undefined` | Username for basic authentication          |
-| `auth.password` | `string`  | `undefined` | Password for basic authentication          |
+| Option          | Type          | Default     | Description                                                                               |
+| --------------- | ------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `enabled`       | `boolean`     | `true`      | Enable or disable the dashboard completely                                                |
+| `port`          | `number`      | `8678`      | Port number for the dashboard server                                                      |
+| `auth.user`     | `string`      | `undefined` | Username for basic authentication                                                         |
+| `auth.password` | `string`      | `undefined` | Password for basic authentication                                                         |
+| `server`        | `node:Server` | `undefined` | Existing HTTP server instance to attach the Dashboard to. Ignores port if set.            |
+| `customRoute`   | `string`      | `undefined` | Custom route prefix for the dashboard (e.g., `/dashboard`). Only when `server` is defined |
 
 ### Security Configuration
 
