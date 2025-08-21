@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/mysql-backend",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "@sidequest/mysql-backend is a MySQL backend for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",
