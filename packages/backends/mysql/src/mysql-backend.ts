@@ -13,6 +13,7 @@ import {
 import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sidequest/core";
 import createKnex, { Knex } from "knex";
 import path from "path";
+import { inspect } from "util";
 
 const defaultKnexConfig = {
   client: "mysql2",
@@ -44,7 +45,7 @@ export default class MysqlBackend extends SQLBackend {
       ...queueConfig,
     };
 
-    logger("Backend").debug(`Inserting new queue config: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Inserting new queue config: ${inspect(data)}`);
     const result = await this.knex.transaction(async (trx) => {
       const [insertedId] = await trx("sidequest_queues").insert(data);
 
@@ -54,7 +55,7 @@ export default class MysqlBackend extends SQLBackend {
 
       return inserted;
     });
-    logger("Backend").debug(`Queue inserted successfully: ${JSON.stringify(result)}`);
+    logger("Backend").debug(`Queue inserted successfully: ${inspect(result)}`);
 
     return result;
   }
@@ -65,7 +66,7 @@ export default class MysqlBackend extends SQLBackend {
     }
 
     const { id, ...updates } = queueData;
-    logger("Backend").debug(`Updating queue: ${JSON.stringify(queueData)}`);
+    logger("Backend").debug(`Updating queue: ${inspect(queueData)}`);
 
     if (!id) throw new Error("Queue id is required for update.");
 
@@ -79,7 +80,7 @@ export default class MysqlBackend extends SQLBackend {
       return updated;
     });
 
-    logger("Backend").debug(`Queue updated successfully: ${JSON.stringify(result)}`);
+    logger("Backend").debug(`Queue updated successfully: ${inspect(result)}`);
     return result;
   }
 
@@ -99,7 +100,7 @@ export default class MysqlBackend extends SQLBackend {
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : JOB_FALLBACK.uniqueness_config,
       inserted_at: new Date(),
     };
-    logger("Backend").debug(`Creating new job: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Creating new job: ${inspect(data)}`);
 
     try {
       const insertedJob = await this.knex.transaction(async (trx) => {
@@ -109,7 +110,7 @@ export default class MysqlBackend extends SQLBackend {
 
         if (!inserted) throw new Error("Failed to create job.");
 
-        logger("Backend").debug(`Job created successfully: ${JSON.stringify(inserted)}`);
+        logger("Backend").debug(`Job created successfully: ${inspect(inserted)}`);
         return safeParseJobData(inserted);
       });
 
@@ -136,7 +137,7 @@ export default class MysqlBackend extends SQLBackend {
       errors: job.errors ? JSON.stringify(job.errors) : job.errors,
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
-    logger("Backend").debug(`Updating job: ${JSON.stringify(data)}`);
+    logger("Backend").debug(`Updating job: ${inspect(data)}`);
 
     const updatedJob = await this.knex.transaction(async (trx) => {
       await trx("sidequest_jobs").where({ id: job.id }).update(data);
@@ -148,7 +149,7 @@ export default class MysqlBackend extends SQLBackend {
       return safeParseJobData(updated);
     });
 
-    logger("Backend").debug(`Job updated successfully: ${JSON.stringify(updatedJob)}`);
+    logger("Backend").debug(`Job updated successfully: ${inspect(updatedJob)}`);
     return updatedJob;
   }
 

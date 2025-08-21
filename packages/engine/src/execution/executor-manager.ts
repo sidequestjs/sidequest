@@ -9,6 +9,7 @@ import {
   SnoozeTransition,
 } from "@sidequest/core";
 import EventEmitter from "events";
+import { inspect } from "util";
 import { NonNullableEngineConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
 import { RunnerPool } from "../shared-runner";
@@ -131,7 +132,7 @@ export class ExecutorManager {
       const result = await runPromise;
 
       isRunning = false;
-      logger("Executor Manager").debug(`Job ${job.id} completed with result: ${JSON.stringify(result)}`);
+      logger("Executor Manager").debug(`Job ${job.id} completed with result: ${inspect(result)}`);
       const transition = JobTransitionFactory.create(result);
       await JobTransitioner.apply(this.backend, job, transition);
     } catch (error: unknown) {
