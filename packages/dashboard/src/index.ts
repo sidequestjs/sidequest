@@ -4,7 +4,7 @@ import express from "express";
 import basicAuth from "express-basic-auth";
 import expressLayouts from "express-ejs-layouts";
 import morgan from "morgan";
-import { Server } from "node:http";
+import { IncomingMessage, Server, ServerResponse } from "node:http";
 import path from "node:path";
 import { DashboardConfig } from "./config";
 import { createDashboardRouter } from "./resources/dashboard";
@@ -67,6 +67,22 @@ export class SidequestDashboard {
    * @private
    */
   private customRoute?: string;
+
+  /**
+   * Reference to the custom request handler function when attached to a server.
+   * Used for cleanup when the dashboard is closed.
+   *
+   * @private
+   */
+  private customRequestHandler?: (req: IncomingMessage, res: ServerResponse) => void;
+
+  /**
+   * Reference to the original request listeners from the target server.
+   * Used to restore them when the dashboard is detached.
+   *
+   * @private
+   */
+  private originalRequestListeners?: ((...args: unknown[]) => void)[];
 
   constructor() {
     this.app = express();
@@ -279,6 +295,7 @@ export class SidequestDashboard {
    * - Intercepts requests at the HTTP server level before they reach the framework
    * - Only handles requests that match the dashboard's base path
    * - Passes through all other requests to the original server handlers
+   * - Stores references to listeners for proper cleanup during `close()`
    *
    * @throws If no target server is provided in the configuration
    */
@@ -292,12 +309,12 @@ export class SidequestDashboard {
       throw new Error("No target server provided to attach the dashboard");
     }
 
-    // Store the original request listener
-    const originalListeners = targetServer.listeners("request");
+    // Store the original request listeners for cleanup
+    this.originalRequestListeners = targetServer.listeners("request") as ((...args: unknown[]) => void)[];
     targetServer.removeAllListeners("request");
 
-    // Create a new request handler that intercepts dashboard routes
-    targetServer.on("request", (req, res) => {
+    // Create and store the custom request handler for cleanup
+    this.customRequestHandler = (req, res) => {
       const url = req.url ?? "";
 
       // Check if the request is for the dashboard
@@ -310,14 +327,17 @@ export class SidequestDashboard {
         this.app!(req, res);
       } else {
         // Pass the request to the original handlers
-        for (const listener of originalListeners) {
+        for (const listener of this.originalRequestListeners!) {
           if (typeof listener === "function") {
             listener.call(targetServer, req, res);
             break; // Only call the first listener to avoid duplicate processing
           }
         }
       }
-    });
+    };
+
+    // Attach the custom request handler
+    targetServer.on("request", this.customRequestHandler);
 
     logger("Dashboard").info(`Dashboard attached to existing HTTP server at "${customRoute}"`);
   }
@@ -348,14 +368,36 @@ export class SidequestDashboard {
    * and cleaning up associated resources.
    *
    * - Awaits the closure of the backend if it exists.
-   * - Closes the server and logs a message when stopped.
-   * - Resets backend, server, config, and app properties to `undefined`.
+   * - If attached to an external server, removes the custom request handler and restores original listeners.
+   * - If running its own server, closes the server and logs a message when stopped.
+   * - Resets all properties to `undefined` for garbage collection.
    * - Logs a debug message indicating resources have been cleaned up.
    *
    * @returns {Promise<void>} Resolves when all resources have been closed and cleaned up.
    */
   async close() {
     await this.backend?.close();
+
+    // If attached to an external server, clean up listeners
+    if (this.config?.server && this.customRequestHandler) {
+      const targetServer = this.config.server;
+
+      logger("Dashboard").debug("Detaching dashboard from external server");
+
+      // Remove our custom request handler
+      targetServer.removeListener("request", this.customRequestHandler);
+
+      // Restore original listeners
+      if (this.originalRequestListeners) {
+        for (const listener of this.originalRequestListeners) {
+          targetServer.on("request", listener);
+        }
+      }
+
+      logger("Dashboard").info("Dashboard detached from external server");
+    }
+
+    // If running its own server, close it
     if (this.server) {
       await new Promise<void>((resolve) => {
         this.server?.close(() => {
@@ -365,10 +407,15 @@ export class SidequestDashboard {
       });
     }
 
+    // Clean up all references
     this.backend = undefined;
     this.server = undefined;
     this.config = undefined;
     this.app = undefined;
+    this.customRequestHandler = undefined;
+    this.originalRequestListeners = undefined;
+    this.customRoute = undefined;
+
     logger("Dashboard").debug("Dashboard resources cleaned up");
   }
 }
