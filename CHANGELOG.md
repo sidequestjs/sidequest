@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/sidequestjs/sidequest/compare/v1.5.0...v1.5.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* fix unknown type on backend config ([#73](https://github.com/sidequestjs/sidequest/issues/73)) ([f45b440](https://github.com/sidequestjs/sidequest/commit/f45b4405037ee35e13bf2d8427928005fbc4a28b))
+
 # [1.5.0](https://github.com/sidequestjs/sidequest/compare/v1.4.3...v1.5.0) (2025-08-16)
 
 

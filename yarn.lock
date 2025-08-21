@@ -11421,6 +11421,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sidequest@workspace:packages/sidequest"
   dependencies:
+    "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
     "@sidequest/dashboard": "workspace:*"
     "@sidequest/engine": "workspace:*"

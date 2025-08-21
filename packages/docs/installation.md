@@ -8,6 +8,10 @@ description: Installation instructions for Sidequest.js
 
 To get started with Sidequest.js, you need to install the main package along with the backend driver of your choice. Below are the installation instructions for different package managers.
 
+::: warning
+Make sure you are using Node.js >= 22.6.0. Also, [Sidequest does not run with Bun](https://github.com/sidequestjs/sidequest/issues/72).
+:::
+
 ## Main Package (Required)
 
 To get started with Sidequest, first install the main package:

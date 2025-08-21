@@ -37,6 +37,8 @@ npm install sidequest
 yarn add sidequest
 ```
 
+Make sure you are using Node.js >= 22.6.0. Also, [Sidequest does not run with Bun yet](https://github.com/sidequestjs/sidequest/issues/72).
+
 To keep the application minimal, the main package does _not_ include the backend drivers. Thus you need to install only the driver you will use:
 
 **PostgreSQL (recommended)**

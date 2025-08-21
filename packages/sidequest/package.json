@@ -1,6 +1,6 @@
 {
   "name": "sidequest",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Sidequest is a modern, scalable background job processor for Node.js applications.",
   "keywords": [
     "nodejs",
@@ -44,6 +44,7 @@
     "test:ci": "npx vitest run"
   },
   "dependencies": {
+    "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "@sidequest/dashboard": "workspace:*",
     "@sidequest/engine": "workspace:*"

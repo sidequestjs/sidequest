@@ -1,12 +1,9 @@
 import { JobClassType, logger } from "@sidequest/core";
-import { DashboardConfig, SidequestDashboard } from "@sidequest/dashboard";
-import { Engine, EngineConfig } from "@sidequest/engine";
+import { SidequestDashboard } from "@sidequest/dashboard";
+import { Engine } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
-
-export type SidequestConfig = EngineConfig & {
-  dashboard?: Omit<DashboardConfig, "backendConfig">;
-};
+import { KnownDrivers, SidequestConfig, SidequestEngineConfig } from "./types";
 
 /**
  * Main entry point for the Sidequest job processing system.
@@ -78,7 +75,7 @@ export class Sidequest {
    * });
    * ```
    */
-  static async configure(config?: EngineConfig) {
+  static async configure<TDriver extends string = KnownDrivers>(config?: SidequestEngineConfig<TDriver>) {
     const _config = await this.engine.configure(config);
     const backend = this.engine.getBackend();
     this.job.setBackend(backend);
@@ -105,7 +102,7 @@ export class Sidequest {
    * });
    * ```
    */
-  static async start(config?: SidequestConfig) {
+  static async start<TDriver extends string = KnownDrivers>(config?: SidequestConfig<TDriver>) {
     try {
       const engineConfig = await this.configure(config);
 
