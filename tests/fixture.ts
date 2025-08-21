@@ -1,3 +1,4 @@
+import { unlinkSync } from "fs";
 import { test as baseTest } from "vitest";
 import { Backend } from "../packages/backends/backend/src";
 import { Engine, NonNullableEngineConfig } from "../packages/engine/src";
@@ -13,7 +14,7 @@ export const sidequestTest = baseTest.extend<SidequestTestFixture>({
   engine: async ({}, use) => {
     const engine = new Engine();
     await engine.configure({
-      backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      backend: { driver: "@sidequest/sqlite-backend", config: "./sidequest.sqlite" },
     });
 
     await use(engine);
@@ -31,6 +32,7 @@ export const sidequestTest = baseTest.extend<SidequestTestFixture>({
 
     try {
       await backend.truncate();
+      unlinkSync("./sidequest.sqlite");
     } catch {
       // noop
     }
