@@ -1,3 +1,11 @@
+## [1.5.2](https://github.com/sidequestjs/sidequest/compare/v1.5.1...v1.5.2) (2025-08-21)
+
+
+### Bug Fixes
+
+* fix flaky integration test ([#81](https://github.com/sidequestjs/sidequest/issues/81)) ([a828bd4](https://github.com/sidequestjs/sidequest/commit/a828bd4363b4bcba7d347f584a44965335e214f1))
+* replace JSON.stringify with util.inspect for logging ([#79](https://github.com/sidequestjs/sidequest/issues/79)) ([2704907](https://github.com/sidequestjs/sidequest/commit/2704907dd200dc9fc91fc2df3905c51a712784c9))
+
 ## [1.5.1](https://github.com/sidequestjs/sidequest/compare/v1.5.0...v1.5.1) (2025-08-21)
 
 

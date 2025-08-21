@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/postgres-backend",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "@sidequest/postgres-backend is a PostgreSQL backend for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",
