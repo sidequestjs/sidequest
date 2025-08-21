@@ -49,6 +49,26 @@ await Sidequest.start({
 });
 ```
 
+**Using Knex Configuration Object:**
+
+```typescript
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  backend: {
+    driver: "@sidequest/postgres-backend",
+    config: {
+      connection: "postgres://user:password@localhost:5432/mydb",
+      pool: {
+        min: 2,
+        max: 10,
+      },
+      searchPath: ["sidequest", "public"],
+    },
+  },
+});
+```
+
 **Advantages:**
 
 - **Excellent concurrency**: Advanced locking mechanisms prevent job conflicts
@@ -348,6 +368,10 @@ export class MyCustomBackend implements Backend {
 
   async countJobs(timeRange?: { from?: Date; to?: Date }): Promise<JobCounts> {
     // Count jobs by state
+  }
+
+  async countJobsByQueues(): Promise<Record<string, JobCounts>>; {
+    // Count jobs by queue
   }
 
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
