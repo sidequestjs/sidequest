@@ -22,7 +22,7 @@ export class MainWorker {
   async runWorker(sidequestConfig: EngineConfig) {
     if (!this.shuttingDown) {
       try {
-        const nonNullConfig = await this.engine.configure(sidequestConfig);
+        const nonNullConfig = await this.engine.configure({ ...sidequestConfig, skipMigration: true });
         this.backend = this.engine.getBackend()!;
 
         this.dispatcher = new Dispatcher(

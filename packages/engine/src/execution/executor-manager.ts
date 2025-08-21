@@ -155,12 +155,17 @@ export class ExecutorManager {
    * Destroys the runner pool and releases resources.
    */
   async destroy(): Promise<void> {
-    await new Promise<void>((resolve) => {
+    await new Promise<void>((resolve, reject) => {
       const checkJobs = async () => {
         if (this.totalActiveWorkers() === 0) {
           logger("ExecutorManager").info("All active jobs finished. Destroying runner pool.");
-          await this.runnerPool.destroy();
-          resolve();
+          try {
+            await this.runnerPool.destroy();
+            resolve();
+          } catch (error) {
+            logger("ExecutorManager").error("Error while destroying runner pool:", error);
+            reject(error as Error);
+          }
         } else {
           logger("ExecutorManager").info(`Waiting for ${this.totalActiveWorkers()} active jobs to finish...`);
           setTimeout(() => void checkJobs(), 1000);
