@@ -27,10 +27,15 @@ export function createDashboardRouter(backend: Backend) {
     const { range = "12m" } = req.query;
     const from = new Date(Date.now() - rangeToMs(range as string));
     const jobs = await backend.countJobs({ from });
+    const jobsNoTimeLimit = await backend.countJobs();
 
     res.render("pages/index", {
       title: "Sidequest Dashboard",
-      stats: jobs,
+      stats: {
+        ...jobs,
+        waiting: jobsNoTimeLimit.waiting,
+        running: jobsNoTimeLimit.running,
+      },
     });
   });
 

@@ -139,6 +139,11 @@ export class LazyBackend implements Backend {
     return this.backend!.countJobs(timeRange);
   }
 
+  async countJobsByQueues(): Promise<Record<string, JobCounts>> {
+    await this.init();
+    return this.backend!.countJobsByQueues();
+  }
+
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
     await this.init();
     return this.backend!.countJobsOverTime(timeRange);

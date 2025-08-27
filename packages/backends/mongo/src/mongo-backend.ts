@@ -280,6 +280,62 @@ export default class MongoBackend implements Backend {
     return counts;
   }
 
+  async countJobsByQueues(): Promise<Record<string, JobCounts>> {
+    await this.ensureConnected();
+
+    // Get all queue names from the queues collection and any queues that might only exist in jobs
+    const queuesFromTable = await this.queues.distinct("name");
+    const queuesFromJobs = await this.jobs.distinct("queue");
+
+    const queueSet = new Set<string>();
+    queuesFromTable.forEach((queue: string) => queueSet.add(queue));
+    queuesFromJobs.forEach((queue: string) => queueSet.add(queue));
+
+    // Initialize result with zeroed JobCounts for every queue
+    const result: Record<string, JobCounts> = {};
+    queueSet.forEach((queue) => {
+      result[queue] = {
+        total: 0,
+        waiting: 0,
+        claimed: 0,
+        running: 0,
+        completed: 0,
+        failed: 0,
+        canceled: 0,
+      };
+    });
+
+    // Aggregate jobs by queue and state
+    const pipeline = [
+      {
+        $group: {
+          _id: {
+            queue: "$queue",
+            state: "$state",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ];
+
+    const results = (await this.jobs.aggregate(pipeline).toArray()) as {
+      _id: { queue: string; state: JobState };
+      count: number;
+    }[];
+
+    // Fill counts into the initialized result
+    results.forEach((row) => {
+      const { queue, state } = row._id;
+      const count = row.count;
+      if (result[queue]) {
+        result[queue][state] = (result[queue][state] ?? 0) + count;
+        result[queue].total += count;
+      }
+    });
+
+    return result;
+  }
+
   async countJobsOverTime(timeRange: string): Promise<({ timestamp: Date } & JobCounts)[]> {
     await this.ensureConnected();
 

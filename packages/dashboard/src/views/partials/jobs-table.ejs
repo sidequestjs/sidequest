@@ -41,6 +41,9 @@
         <% if (!['canceled', 'failed', 'completed'].includes(job.state)){ %>
           <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/cancel" hx-push-url="false" hx-target="this"><i data-feather="x" class="w-4 h-4"></i>Cancel</button>
         <% } %>
+        <% if (['canceled', 'failed', 'completed'].includes(job.state)){ %>
+          <button type="button" class="btn btn-sm" hx-patch="/jobs/<%= job.id %>/rerun" hx-push-url="false" hx-target="this"><i data-feather="refresh-ccw" class="w-4 h-4"></i>Rerun</button>
+        <% } %>
       </td>
     </tr>
     <% }) %>

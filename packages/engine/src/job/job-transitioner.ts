@@ -1,5 +1,6 @@
 import { Backend } from "@sidequest/backend";
 import { JobData, JobTransition, logger, UniquenessFactory } from "@sidequest/core";
+import { inspect } from "util";
 
 /**
  * Handles applying job transitions and updating jobs in the backend.
@@ -29,7 +30,7 @@ export class JobTransitioner {
       const uniqueness = UniquenessFactory.create(newData.uniqueness_config);
       newData.unique_digest = uniqueness.digest(jobData);
     }
-    logger("JobTransitioner").debug(`Updating with new job data: ${JSON.stringify(newData)}`);
+    logger("JobTransitioner").debug(`Updating with new job data: ${inspect(newData)}`);
     return backend.updateJob(newData);
   }
 }

@@ -2,6 +2,7 @@ import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE
 import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { cpus } from "os";
+import { inspect } from "util";
 import { DEFAULT_WORKER_PATH } from "./constants";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
@@ -148,7 +149,7 @@ export class Engine {
       throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
     }
 
-    logger("Engine").debug(`Configuring Sidequest engine: ${JSON.stringify(this.config)}`);
+    logger("Engine").debug(`Configuring Sidequest engine: ${inspect(this.config)}`);
 
     if (this.config.logger) {
       configureLogger(this.config.logger);
@@ -245,7 +246,11 @@ export class Engine {
         this.mainWorker.send({ type: "shutdown" });
         await promise;
       }
-      await this.backend?.close();
+      try {
+        await this.backend?.close();
+      } catch (error) {
+        logger("Engine").error("Error closing backend:", error);
+      }
       this.config = undefined;
       this.backend = undefined;
       this.mainWorker = undefined;

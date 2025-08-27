@@ -1,3 +1,32 @@
+# [1.6.0](https://github.com/sidequestjs/sidequest/compare/v1.5.2...v1.6.0) (2025-08-21)
+
+
+### Features
+
+* add rerun button for canceled, failed, or completed jobs in jobs table ([#83](https://github.com/sidequestjs/sidequest/issues/83)) ([d1a89a0](https://github.com/sidequestjs/sidequest/commit/d1a89a01be4f176065f7c5a654e81f4db03a5db9))
+
+## [1.5.2](https://github.com/sidequestjs/sidequest/compare/v1.5.1...v1.5.2) (2025-08-21)
+
+
+### Bug Fixes
+
+* fix flaky integration test ([#81](https://github.com/sidequestjs/sidequest/issues/81)) ([a828bd4](https://github.com/sidequestjs/sidequest/commit/a828bd4363b4bcba7d347f584a44965335e214f1))
+* replace JSON.stringify with util.inspect for logging ([#79](https://github.com/sidequestjs/sidequest/issues/79)) ([2704907](https://github.com/sidequestjs/sidequest/commit/2704907dd200dc9fc91fc2df3905c51a712784c9))
+
+## [1.5.1](https://github.com/sidequestjs/sidequest/compare/v1.5.0...v1.5.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* fix unknown type on backend config ([#73](https://github.com/sidequestjs/sidequest/issues/73)) ([f45b440](https://github.com/sidequestjs/sidequest/commit/f45b4405037ee35e13bf2d8427928005fbc4a28b))
+
+# [1.5.0](https://github.com/sidequestjs/sidequest/compare/v1.4.3...v1.5.0) (2025-08-16)
+
+
+### Features
+
+* Add `countJobsByQueues` to backend implementations and fixed 2 minor bugs ([#70](https://github.com/sidequestjs/sidequest/issues/70)) ([7a22053](https://github.com/sidequestjs/sidequest/commit/7a2205366fcb063e2bb2dc947b3097508b0a893e))
+
 ## [1.4.3](https://github.com/sidequestjs/sidequest/compare/v1.4.2...v1.4.3) (2025-08-11)
 
 

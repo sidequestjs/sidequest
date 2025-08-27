@@ -22,7 +22,7 @@ export class MainWorker {
   async runWorker(sidequestConfig: EngineConfig) {
     if (!this.shuttingDown) {
       try {
-        const nonNullConfig = await this.engine.configure(sidequestConfig);
+        const nonNullConfig = await this.engine.configure({ ...sidequestConfig, skipMigration: true });
         this.backend = this.engine.getBackend()!;
 
         this.dispatcher = new Dispatcher(
@@ -54,8 +54,11 @@ export class MainWorker {
   async shutdown() {
     if (!this.shuttingDown) {
       this.shuttingDown = true;
+      logger("Worker").debug("Shutting down dispatcher");
       await this.dispatcher?.stop();
+      logger("Worker").debug("Shutting down engine");
       await this.engine.close();
+      logger("Worker").debug("Main worker completely shut down");
     }
   }
 
