@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/sidequestjs/sidequest/compare/v1.6.0...v1.6.1) (2025-08-27)
+
+
+### Bug Fixes
+
+* constructor args ([#90](https://github.com/sidequestjs/sidequest/issues/90)) ([28eae93](https://github.com/sidequestjs/sidequest/commit/28eae936205c67fe5b79fed3e9848cc7e8e53317))
+
 # [1.6.0](https://github.com/sidequestjs/sidequest/compare/v1.5.2...v1.6.0) (2025-08-21)
 
 
