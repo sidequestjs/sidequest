@@ -35,7 +35,7 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
     return { __is_job_transition__: true, type: "failed", error: errorData };
   }
 
-  const job: Job = new JobClass(jobData.constructor_args);
+  const job: Job = new JobClass(...jobData.constructor_args);
   job.injectJobData(jobData);
 
   logger("Runner").debug(`Executing job class "${jobData.class}" with args:`, jobData.args);
