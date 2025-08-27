@@ -82,10 +82,9 @@ async function refreshGraph() {
 
   // Check if we have existing data and this is a time progression
   if (jobsTimeline.data.labels.length > 0 && labels.length === jobsTimeline.data.labels.length) {
-    // Check if this is just a time shift (same data, shifted one position)
-    const isTimeShift =
-      arraysEqual(jobsTimeline.data.datasets[0].data.slice(1), newCompleted.slice(0, -1)) &&
-      arraysEqual(jobsTimeline.data.datasets[1].data.slice(1), newFailed.slice(0, -1));
+    // Check if this is just a time shift by comparing labels
+    // If current labels [1:] match new labels [:-1], it's a time shift
+    const isTimeShift = arraysEqual(jobsTimeline.data.labels.slice(1), labels.slice(0, -1));
 
     if (isTimeShift) {
       // Shift the timeline: remove first elements and add new ones at the end
