@@ -16,7 +16,7 @@ For the complete documentation, visit [docs.sidequestjs.com](https://docs.sidequ
 ## ✨ Features
 
 - 🚀 **High Performance** - Worker threads for non-blocking job processing
-- 🗄️ **Multiple Backends** - SQLite, PostgreSQL, MySQL support out of the box
+- 🗄️ **Multiple Backends** - PostgreSQL, MySQL, SQLite, MongoDB support out of the box
 - ✅ **ESM and CJS support** - Fully compatible with modern JavaScript
 - 📝 **Support for Typescript** - Supports TypeScript jobs by default if you are using [Node.js >= 24](https://nodejs.org/api/typescript.html#modules-typescript)
 - 📊 **Web Dashboard** - Beautiful, responsive dashboard for monitoring jobs and queues
@@ -50,6 +50,16 @@ yarn add @sidequest/postgres-backend
 ```
 
 <details>
+  <summary>MySQL</summary>
+  
+```bash
+npm install @sidequest/mysql-backend
+# or
+yarn add @sidequest/mysql-backend
+```
+</details>
+
+<details>
   <summary>SQLite (default - not recommended for production)</summary>
 
 ```bash
@@ -61,12 +71,12 @@ yarn add @sidequest/sqlite-backend
 </details>
 
 <details>
-  <summary>MySQL</summary>
+  <summary>MongoDB</summary>
   
 ```bash
-npm install @sidequest/mysql-backend
+npm install @sidequest/mongo-backend
 # or
-yarn add @sidequest/mysql-backend
+yarn add @sidequest/mongo-backend
 ```
 </details>
 
