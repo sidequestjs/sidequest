@@ -2,6 +2,7 @@ import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { FailedResult, JobData } from "@sidequest/core";
 import { vi } from "vitest";
 import { DummyJob } from "../test-jobs/dummy-job";
+import { DummyJobWithArgs } from "../test-jobs/dummy-job-with-args";
 import { importSidequest } from "../utils/import";
 import run, { injectSidequestConfig } from "./runner";
 
@@ -58,6 +59,32 @@ describe("runner.ts", () => {
 
     // Clean up the spy
     injectJobDataSpy.mockRestore();
+  });
+
+  sidequestTest("runs a job passing the constructor args", async ({ backend, config }) => {
+    const job = new DummyJobWithArgs();
+    await job.ready();
+    jobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: ["foo", "bar"],
+      state: "waiting",
+    });
+
+    let arg1: string, arg2: string;
+    vi.spyOn(DummyJobWithArgs.prototype, "perform").mockImplementation(function (this: DummyJobWithArgs) {
+      arg1 = this.arg1 as string;
+      arg2 = this.arg2 as string;
+      return Promise.resolve(this.complete("done"));
+    });
+
+    await run({ jobData, config });
+
+    expect(arg1!).toEqual("foo");
+    expect(arg2!).toEqual("bar");
   });
 });
 
