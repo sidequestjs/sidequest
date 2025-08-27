@@ -93,9 +93,11 @@ async function refreshGraph() {
 
       jobsTimeline.data.datasets[0].data.shift();
       jobsTimeline.data.datasets[0].data.push(newCompleted[newCompleted.length - 1]);
+      jobsTimeline.data.datasets[0].data[newCompleted.length - 2] = newCompleted[newCompleted.length - 2];
 
       jobsTimeline.data.datasets[1].data.shift();
       jobsTimeline.data.datasets[1].data.push(newFailed[newFailed.length - 1]);
+      jobsTimeline.data.datasets[1].data[newFailed.length - 2] = newFailed[newFailed.length - 2];
 
       jobsTimeline.update("default"); // Use default animation for smooth left shift
       return;
