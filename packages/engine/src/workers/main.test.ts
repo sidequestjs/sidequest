@@ -8,7 +8,7 @@ import { cleanupFinishedJobs } from "../routines/cleanup-finished-job";
 import { releaseStaleJobs } from "../routines/release-stale-jobs";
 import { MainWorker } from "./main";
 
-const runMock = vi.fn();
+const runMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
   RunnerPool: vi.fn(() => ({
@@ -51,6 +51,7 @@ describe("main.ts", () => {
   let worker: MainWorker;
 
   beforeEach<SidequestTestFixture>(async ({ backend, config }) => {
+    await backend.migrate();
     worker = new MainWorker();
     for (const queue of queues) {
       await grantQueueConfig(backend, queue);

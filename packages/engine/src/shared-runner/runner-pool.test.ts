@@ -45,8 +45,8 @@ describe("RunnerPool", () => {
     expect(piscinaMockInstance.run).toHaveBeenCalledWith({ jobData, config }, { signal: emiter });
   });
 
-  sidequestTest("should call pool.destroy", async () => {
-    await pool.destroy();
+  sidequestTest("should call pool.destroy", () => {
+    pool.destroy();
     expect(piscinaMockInstance.destroy).toHaveBeenCalled();
   });
 });

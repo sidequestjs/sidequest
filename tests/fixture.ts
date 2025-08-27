@@ -13,10 +13,20 @@ export const sidequestTest = baseTest.extend<SidequestTestFixture>({
   engine: async ({}, use) => {
     const engine = new Engine();
     await engine.configure({
-      backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      backend: { driver: "@sidequest/sqlite-backend", config: "./sidequest.sqlite" },
     });
 
     await use(engine);
+
+    // We have to cleanup the backend here because if we cleanup in the backend fixture,
+    // it won't be called when only the engine fixture is called directly.
+    // This is a workaround for the fact that the backend fixture is not always used directly,
+    // but the engine fixture is always used when only the backend is used directly.
+    try {
+      await engine.getBackend()?.truncate();
+    } catch {
+      // noop
+    }
 
     await engine.close();
   },
@@ -28,12 +38,6 @@ export const sidequestTest = baseTest.extend<SidequestTestFixture>({
     }
 
     await use(backend);
-
-    try {
-      await backend.truncate();
-    } catch {
-      // noop
-    }
   },
 
   config: async ({ engine }, use) => {
