@@ -77,10 +77,46 @@ async function refreshGraph() {
     labels.push(label);
   }
 
+  const newCompleted = graph.map((entry) => entry.completed);
+  const newFailed = graph.map((entry) => entry.failed);
+
+  // Check if we have existing data and this is a time progression
+  if (jobsTimeline.data.labels.length > 0 && labels.length === jobsTimeline.data.labels.length) {
+    // Check if this is just a time shift (same data, shifted one position)
+    const isTimeShift =
+      arraysEqual(jobsTimeline.data.datasets[0].data.slice(1), newCompleted.slice(0, -1)) &&
+      arraysEqual(jobsTimeline.data.datasets[1].data.slice(1), newFailed.slice(0, -1));
+
+    if (isTimeShift) {
+      // Shift the timeline: remove first elements and add new ones at the end
+      jobsTimeline.data.labels.shift();
+      jobsTimeline.data.labels.push(labels[labels.length - 1]);
+
+      jobsTimeline.data.datasets[0].data.shift();
+      jobsTimeline.data.datasets[0].data.push(newCompleted[newCompleted.length - 1]);
+
+      jobsTimeline.data.datasets[1].data.shift();
+      jobsTimeline.data.datasets[1].data.push(newFailed[newFailed.length - 1]);
+
+      jobsTimeline.update("default"); // Use default animation for smooth left shift
+      return;
+    }
+  }
+
+  // For initial load or when data structure changes, replace everything
   jobsTimeline.data.labels = labels;
-  jobsTimeline.data.datasets[0].data = graph.map((entry) => entry.completed);
-  jobsTimeline.data.datasets[1].data = graph.map((entry) => entry.failed);
-  jobsTimeline.update();
+  jobsTimeline.data.datasets[0].data = newCompleted;
+  jobsTimeline.data.datasets[1].data = newFailed;
+  jobsTimeline.update("default");
+}
+
+// Helper function to compare arrays
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 refreshGraph();
 
