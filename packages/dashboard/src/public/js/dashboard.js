@@ -63,7 +63,7 @@ async function refreshGraph() {
   const graph = await res.json();
   const timestamps = graph.map((entry) => entry.timestamp);
 
-  const labels = [];
+  const newLabels = [];
   for (const timestamp of timestamps) {
     const bucketTime = new Date(timestamp);
     let label;
@@ -74,22 +74,22 @@ async function refreshGraph() {
       label = bucketTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
-    labels.push(label);
+    newLabels.push(label);
   }
 
   const newCompleted = graph.map((entry) => entry.completed);
   const newFailed = graph.map((entry) => entry.failed);
 
   // Check if we have existing data and this is a time progression
-  if (jobsTimeline.data.labels.length > 0 && labels.length === jobsTimeline.data.labels.length) {
+  if (jobsTimeline.data.labels.length > 0 && newLabels.length === jobsTimeline.data.labels.length) {
     // Check if this is just a time shift by comparing labels
-    // If current labels [1:] match new labels [:-1], it's a time shift
-    const isTimeShift = arraysEqual(jobsTimeline.data.labels.slice(1), labels.slice(0, -1));
+    const isTimeShift =
+      jobsTimeline.data.labels[jobsTimeline.data.labels.length - 1] !== newLabels[newLabels.length - 1];
 
     if (isTimeShift) {
       // Shift the timeline: remove first elements and add new ones at the end
       jobsTimeline.data.labels.shift();
-      jobsTimeline.data.labels.push(labels[labels.length - 1]);
+      jobsTimeline.data.labels.push(newLabels[newLabels.length - 1]);
 
       jobsTimeline.data.datasets[0].data.shift();
       jobsTimeline.data.datasets[0].data.push(newCompleted[newCompleted.length - 1]);
@@ -105,7 +105,7 @@ async function refreshGraph() {
   }
 
   // For initial load or when data structure changes, replace everything
-  jobsTimeline.data.labels = labels;
+  jobsTimeline.data.labels = newLabels;
   jobsTimeline.data.datasets[0].data = newCompleted;
   jobsTimeline.data.datasets[1].data = newFailed;
   jobsTimeline.update("default");
