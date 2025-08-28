@@ -13,6 +13,8 @@
 
 For the complete documentation, visit [docs.sidequestjs.com](https://docs.sidequestjs.com).
 
+For a comprehensive FAQ, visit [docs.sidequestjs.com/faq](https://docs.sidequestjs.com/faq).
+
 ## ✨ Features
 
 - 🚀 **High Performance** - Worker threads for non-blocking job processing

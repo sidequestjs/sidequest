@@ -117,6 +117,7 @@ export default defineConfig({
       { text: "🌐 Dashboard", link: "/dashboard" },
       { text: "🧑‍💻 Development", link: "/development" },
       { text: "⚒️ Examples", link: "/examples" },
+      { text: "🆘 FAQ", link: "/faq" },
     ],
 
     socialLinks: [{ icon: "github", link: "https://github.com/sidequestjs/sidequest" }],
@@ -126,6 +127,10 @@ export default defineConfig({
     footer: {
       message: "Released under the LGPL-3.0 License.",
       copyright: "Copyright © 2025 Lucas Merencia and Giovani Guizzo",
+    },
+
+    search: {
+      provider: "local",
     },
   },
 });

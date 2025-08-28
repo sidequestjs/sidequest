@@ -73,10 +73,22 @@ We welcome contributions from everyone. This guide will help you get started.
    yarn build
    ```
 
-3. **Run tests**:
+3. **Start DBs for tests**:
+
+   ```bash
+   yarn db:all
+   ```
+
+4. **Run tests**:
 
    ```bash
    yarn test:all
+   ```
+
+5. **Run in development mode**:
+
+   ```bash
+   yarn dev
    ```
 
 For CLI development, install globally:
