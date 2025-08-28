@@ -132,7 +132,7 @@ More info: [.schedule](/engine/enqueue#schedule-cronexpression-string-args-unkno
 
 ## Can I run TypeScript jobs directly?
 
-Yes, but only if you are using [Node.js >= 24](https://nodejs.org/api/typescript.html#modules-typescript) which has native support for TypeScript. If you are using an older version of Node.js, you will need to compile your TypeScript jobs to JavaScript before running them with Sidequest.
+Yes, but only if you are using [Node.js >= v23.6.0](https://nodejs.org/en/learn/typescript/run-natively) which has native support for TypeScript. If you are using an older version of Node.js, you will need to compile your TypeScript jobs to JavaScript before running them with Sidequest.
 
 ## Is Sidequest.js free to use?
 
