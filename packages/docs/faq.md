@@ -130,6 +130,10 @@ Scheduled jobs (crons) are not persisted in the database, even though the jobs t
 
 More info: [.schedule](/engine/enqueue#schedule-cronexpression-string-args-unknown)
 
+## Can I run TypeScript jobs directly?
+
+Yes, but only if you are using [Node.js >= 24](https://nodejs.org/api/typescript.html#modules-typescript) which has native support for TypeScript. If you are using an older version of Node.js, you will need to compile your TypeScript jobs to JavaScript before running them with Sidequest.
+
 ## Is Sidequest.js free to use?
 
 Yes, Sidequest.js is 100% free and open-source under the LGPL-3.0 license.
