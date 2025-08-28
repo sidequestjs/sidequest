@@ -16,13 +16,13 @@ Sidequest is an open-source, modern, scalable distributed background job process
 
 Each queue is a separate logical channel, with its own concurrency, priority, and state configuration.
 
-More info: [Queues Documentation](/queues)
+More info: [Queues Documentation](/queues/index.md)
 
 ## What is a Job?
 
 A job in Sidequest.js is a unit of work that can be executed asynchronously. Jobs are stored in a backend (database) and processed by workers in a queue-based system.
 
-More info: [Jobs Documentation](/jobs)
+More info: [Jobs Documentation](/jobs/index.md)
 
 ## Can I use Sidequest without a dashboard?
 
@@ -42,7 +42,7 @@ More info: [Dashboard Documentation](/dashboard)
 
 Yes, you can start Sidequest without processing jobs by using `Sidequest.configure(...)`. This will enable you to enqueue jobs without starting any workers.
 
-More info: [Engine Documentation](/engine)
+More info: [Engine Documentation](/engine/index.md)
 
 ## Can I start only the Dashboard?
 
