@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/core",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "@sidequest/core is the core package of SideQuest, a distributed background job queue for Node.js and TypeScript applications.",
   "keywords": [
     "nodejs",

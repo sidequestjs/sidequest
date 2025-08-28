@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/sidequestjs/sidequest/compare/v1.6.1...v1.6.2) (2025-08-28)
+
+
+### Bug Fixes
+
+* fixed chart animation ([#92](https://github.com/sidequestjs/sidequest/issues/92)) ([81a29b2](https://github.com/sidequestjs/sidequest/commit/81a29b20d0ce45c4e5e1fa79c5f72a8478b9d538))
+
 ## [1.6.1](https://github.com/sidequestjs/sidequest/compare/v1.6.0...v1.6.1) (2025-08-27)
 
 
