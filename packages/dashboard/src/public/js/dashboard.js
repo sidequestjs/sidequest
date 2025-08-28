@@ -63,7 +63,7 @@ async function refreshGraph() {
   const graph = await res.json();
   const timestamps = graph.map((entry) => entry.timestamp);
 
-  const labels = [];
+  const newLabels = [];
   for (const timestamp of timestamps) {
     const bucketTime = new Date(timestamp);
     let label;
@@ -74,13 +74,50 @@ async function refreshGraph() {
       label = bucketTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
-    labels.push(label);
+    newLabels.push(label);
   }
 
-  jobsTimeline.data.labels = labels;
-  jobsTimeline.data.datasets[0].data = graph.map((entry) => entry.completed);
-  jobsTimeline.data.datasets[1].data = graph.map((entry) => entry.failed);
-  jobsTimeline.update();
+  const newCompleted = graph.map((entry) => entry.completed);
+  const newFailed = graph.map((entry) => entry.failed);
+
+  // Check if we have existing data and this is a time progression
+  if (jobsTimeline.data.labels.length > 0 && newLabels.length === jobsTimeline.data.labels.length) {
+    // Check if this is just a time shift by comparing labels
+    const isTimeShift =
+      jobsTimeline.data.labels[jobsTimeline.data.labels.length - 1] !== newLabels[newLabels.length - 1];
+
+    if (isTimeShift) {
+      // Shift the timeline: remove first elements and add new ones at the end
+      jobsTimeline.data.labels.shift();
+      jobsTimeline.data.labels.push(newLabels[newLabels.length - 1]);
+
+      jobsTimeline.data.datasets[0].data.shift();
+      jobsTimeline.data.datasets[0].data.push(newCompleted[newCompleted.length - 1]);
+      jobsTimeline.data.datasets[0].data[newCompleted.length - 2] = newCompleted[newCompleted.length - 2];
+
+      jobsTimeline.data.datasets[1].data.shift();
+      jobsTimeline.data.datasets[1].data.push(newFailed[newFailed.length - 1]);
+      jobsTimeline.data.datasets[1].data[newFailed.length - 2] = newFailed[newFailed.length - 2];
+
+      jobsTimeline.update("default"); // Use default animation for smooth left shift
+      return;
+    }
+  }
+
+  // For initial load or when data structure changes, replace everything
+  jobsTimeline.data.labels = newLabels;
+  jobsTimeline.data.datasets[0].data = newCompleted;
+  jobsTimeline.data.datasets[1].data = newFailed;
+  jobsTimeline.update("default");
+}
+
+// Helper function to compare arrays
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 refreshGraph();
 
