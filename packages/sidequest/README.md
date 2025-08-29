@@ -11,12 +11,14 @@
 
 For the complete documentation, visit [docs.sidequestjs.com](https://docs.sidequestjs.com).
 
+For a comprehensive FAQ, visit [docs.sidequestjs.com/faq](https://docs.sidequestjs.com/faq).
+
 ## ✨ Features
 
 - 🚀 **High Performance** - Worker threads for non-blocking job processing
 - 🗄️ **Multiple Backends** - SQLite, PostgreSQL, MySQL support out of the box
 - ✅ **ESM and CJS support** - Fully compatible with modern JavaScript
-- 📝 **Support for Typescript** - Supports TypeScript jobs by default if you are using [Node.js >= 24](https://nodejs.org/api/typescript.html#modules-typescript)
+- 📝 **Support for Typescript** - Supports TypeScript jobs by default if you are using [Node.js >= v23.6.0](https://nodejs.org/en/learn/typescript/run-natively)
 - 📊 **Web Dashboard** - Beautiful, responsive dashboard for monitoring jobs and queues
 - 🎯 **Queue Management** - Multiple queues with configurable workers and priorities
 - 🫀 **Job Lifecycle Management** - Configurable retry with exponential backoff, snooze, and fail mechanisms

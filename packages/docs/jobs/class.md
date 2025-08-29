@@ -64,7 +64,7 @@ Sidequest automatically detects the file path of your job class using stack trac
 - The class must be exported (named or default export)
 - Script files must be compiled to JavaScript if using TypeScript
   ::: tip
-  If you are using Node.js >= 24, you can run TypeScript jobs directly without pre-compiling them to JavaScript.
+  If you are using [Node.js >= v23.6.0](https://nodejs.org/en/learn/typescript/run-natively), you can run TypeScript jobs directly without pre-compiling them to JavaScript.
   :::
 - The file must be accessible at runtime by the Sidequest engine
   ::: warning
