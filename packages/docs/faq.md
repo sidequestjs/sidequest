@@ -79,7 +79,7 @@ More info: [Backend Documentation](/engine/backends)
 
 ## How does Sidequest load my job script?
 
-Sidequest.js uses dynamic imports to load your job scripts. By specifying the job's type during `Sidequest.build`, Sidequest will automatically fin the script and load it.
+Sidequest.js uses dynamic imports to load your job scripts. By specifying the job's type during `Sidequest.build`, Sidequest will automatically find the script and load it.
 
 More info: [Job Script Detection](/jobs/class#job-script-detection)
 
