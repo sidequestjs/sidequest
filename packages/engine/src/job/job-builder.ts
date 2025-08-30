@@ -15,6 +15,7 @@ import {
 } from "@sidequest/core";
 import nodeCron, { ScheduledTask } from "node-cron";
 import { inspect } from "node:util";
+import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { JOB_BUILDER_FALLBACK } from "./constants";
 
 /**
@@ -182,7 +183,7 @@ export class JobBuilder<T extends JobClassType> {
       // If manual resolution is enabled, we skip automatic script resolution.
       // The user is responsible for ensuring the job class is properly exported
       // in the `sidequest.jobs.js` file.
-      Object.assign(job, { script: "manual-resolution" });
+      Object.assign(job, { script: MANUAL_SCRIPT_TAG });
     }
 
     if (!job.script) {

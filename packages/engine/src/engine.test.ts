@@ -611,7 +611,7 @@ describe("Engine", () => {
       const jobBuilder = engine.build(DummyJob);
       const job = await jobBuilder.enqueue();
 
-      expect(job.script).toBe("manual-resolution");
+      expect(job.script).toBe(MANUAL_SCRIPT_TAG);
 
       await engine.close();
     });
@@ -634,7 +634,7 @@ describe("Engine", () => {
         .timeout(customTimeout)
         .enqueue();
 
-      expect(job.script).toBe("manual-resolution");
+      expect(job.script).toBe(MANUAL_SCRIPT_TAG);
       expect(job.queue).toBe(customQueue);
       expect(job.max_attempts).toBe(customMaxAttempts);
       expect(job.timeout).toBe(customTimeout);
@@ -651,7 +651,7 @@ describe("Engine", () => {
 
       const job1 = await engine.build(DummyJob).unique(true).enqueue();
 
-      expect(job1.script).toBe("manual-resolution");
+      expect(job1.script).toBe(MANUAL_SCRIPT_TAG);
       expect(job1.unique_digest).toBeTruthy();
       expect(job1.uniqueness_config).toEqual({
         type: "alive-job",
@@ -673,7 +673,7 @@ describe("Engine", () => {
 
       const job = await engine.build(DummyJob).enqueue();
 
-      expect(job.script).not.toBe("manual-resolution");
+      expect(job.script).not.toBe(MANUAL_SCRIPT_TAG);
       expect(job.script).toMatch(/dummy-job\.js$/);
 
       await engine.close();
@@ -689,7 +689,7 @@ describe("Engine", () => {
       });
 
       const job1 = await engine.build(DummyJob).enqueue();
-      expect(job1.script).not.toBe("manual-resolution");
+      expect(job1.script).not.toBe(MANUAL_SCRIPT_TAG);
 
       // Close and reconfigure with manual resolution
       await engine.close();
@@ -699,7 +699,7 @@ describe("Engine", () => {
       });
 
       const job2 = await engine.build(DummyJob).enqueue();
-      expect(job2.script).toBe("manual-resolution");
+      expect(job2.script).toBe(MANUAL_SCRIPT_TAG);
 
       await engine.close();
     });

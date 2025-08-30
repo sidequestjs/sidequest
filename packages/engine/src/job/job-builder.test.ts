@@ -2,6 +2,7 @@ import { sidequestTest } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
 import { JobData, JobState, UniquenessFactory } from "@sidequest/core";
 import nodeCron from "node-cron";
+import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { JobBuilder } from "./job-builder";
 
@@ -379,7 +380,7 @@ describe("JobBuilder", () => {
         expect.objectContaining({
           queue: "default",
           class: "DummyJob",
-          script: "manual-resolution",
+          script: MANUAL_SCRIPT_TAG,
           args: [],
           constructor_args: [],
           state: "waiting",
@@ -413,7 +414,7 @@ describe("JobBuilder", () => {
         expect.objectContaining({
           queue: "manual-queue",
           class: "DummyJob",
-          script: "manual-resolution",
+          script: MANUAL_SCRIPT_TAG,
           args: ["run-arg"],
           constructor_args: ["constructor-arg"],
           state: "waiting",
@@ -470,7 +471,7 @@ describe("JobBuilder", () => {
       expect(createNewJobMock).toHaveBeenCalledWith(
         expect.objectContaining({
           class: "DummyJob",
-          script: "manual-resolution",
+          script: MANUAL_SCRIPT_TAG,
           args: ["scheduled-arg"],
         }),
       );
@@ -487,8 +488,8 @@ describe("JobBuilder", () => {
       });
 
       expect(jobs.length).toBe(2);
-      expect(jobs[0].script).toBe("manual-resolution");
-      expect(jobs[1].script).toBe("manual-resolution");
+      expect(jobs[0].script).toBe(MANUAL_SCRIPT_TAG);
+      expect(jobs[1].script).toBe(MANUAL_SCRIPT_TAG);
     });
 
     sidequestTest("should respect uniqueness constraints when manualJobResolution is true", async ({ backend }) => {
@@ -502,7 +503,7 @@ describe("JobBuilder", () => {
       });
 
       expect(jobs.length).toBe(1);
-      expect(jobs[0].script).toBe("manual-resolution");
+      expect(jobs[0].script).toBe(MANUAL_SCRIPT_TAG);
     });
   });
 });

@@ -18,7 +18,7 @@ vi.mock("./manual-loader", () => ({
   findSidequestJobsScriptInParentDirs: vi.fn(),
 }));
 
-import { findSidequestJobsScriptInParentDirs } from "./manual-loader";
+import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
 
 vi.mock("../utils/import", () => ({
   importSidequest: vi.fn(),
@@ -119,7 +119,7 @@ describe("runner.ts with manual resolution", () => {
     // Create job data with manual-resolution script
     jobData = await backend.createNewJob({
       class: job.className,
-      script: "manual-resolution",
+      script: MANUAL_SCRIPT_TAG,
       args: [],
       attempt: 0,
       queue: "default",

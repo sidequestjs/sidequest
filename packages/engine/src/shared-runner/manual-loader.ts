@@ -3,6 +3,12 @@ import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 /**
+ * Tag used to indicate that a job script should be resolved manually
+ * by searching the filesystem rather than importing directly.
+ */
+export const MANUAL_SCRIPT_TAG = "manual-resolution";
+
+/**
  * Finds a file by searching in the current directory and walking up through parent directories.
  *
  * @param fileName - The name of the file to search for. Defaults to "sidequest.jobs.js"

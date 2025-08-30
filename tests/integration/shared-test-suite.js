@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { MANUAL_SCRIPT_TAG } from "sidequest";
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 const backend = {
@@ -583,7 +584,7 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         const jobBuilder = Sidequest.build(SuccessJob);
         const jobData = await jobBuilder.enqueue("manual resolution test");
 
-        expect(jobData.script).toBe("manual-resolution");
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
         expect(jobData.class).toBe("SuccessJob");
 
         // Wait for job to be processed
@@ -607,7 +608,7 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         const jobBuilder = Sidequest.build(SuccessJob);
         const jobData = await jobBuilder.with("constructor-arg1", "constructor-arg2").enqueue("test-arg1", "test-arg2");
 
-        expect(jobData.script).toBe("manual-resolution");
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
         expect(jobData.constructor_args).toEqual(["constructor-arg1", "constructor-arg2"]);
         expect(jobData.args).toEqual(["test-arg1", "test-arg2"]);
 
@@ -633,7 +634,7 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         const jobData = await jobBuilder.enqueue("automatic resolution test");
 
         // Should use the actual script path, not manual-resolution
-        expect(jobData.script).not.toBe("manual-resolution");
+        expect(jobData.script).not.toBe(MANUAL_SCRIPT_TAG);
         expect(jobData.script).toMatch(/test-jobs\.c?js$/);
 
         // Wait for job to be processed
