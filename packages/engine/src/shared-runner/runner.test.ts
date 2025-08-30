@@ -16,6 +16,7 @@ vi.mock("../utils/import", () => ({
 // Mock the manual loader to control which file it returns
 vi.mock("./manual-loader", () => ({
   findSidequestJobsScriptInParentDirs: vi.fn(),
+  MANUAL_SCRIPT_TAG: "manual-resolution",
 }));
 
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";

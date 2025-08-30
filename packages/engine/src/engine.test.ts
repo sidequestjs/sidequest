@@ -1,6 +1,7 @@
 import { sidequestTest } from "@/tests/fixture";
 import { describe, expect, vi } from "vitest";
 import { Engine } from "./engine";
+import { MANUAL_SCRIPT_TAG } from "./shared-runner";
 import { DummyJob } from "./test-jobs/dummy-job";
 
 // Mock child_process globally to avoid worker fork issues in tests

@@ -57,6 +57,10 @@ export default defineConfig({
             link: "/recurring",
           },
           {
+            text: "Manual Job Resolution",
+            link: "/manual-resolution",
+          },
+          {
             text: "Logging",
             link: "/logging",
           },
