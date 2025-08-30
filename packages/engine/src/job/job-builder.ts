@@ -177,7 +177,7 @@ export class JobBuilder<T extends JobClassType> {
     const job = new this.JobClass(...this.constructorArgs!);
 
     if (!this.manualJobResolution) {
-      // This resolves the job script path using Exception handling.
+      // This resolves the job script path using exception handling.
       await job.ready();
     } else {
       // If manual resolution is enabled, we skip automatic script resolution.

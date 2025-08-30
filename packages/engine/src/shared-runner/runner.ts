@@ -17,11 +17,7 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
     logger("Runner").debug(`Importing job script "${jobData.script}"`);
 
     let scriptUrl;
-    if (!config?.manualJobResolution && jobData.script !== MANUAL_SCRIPT_TAG) {
-      logger("Runner").debug("Manual job resolution is disabled; importing specified job script.");
-      // Convert relative path to absolute file URL for dynamic import
-      scriptUrl = resolveScriptPath(jobData.script);
-    } else {
+    if (config?.manualJobResolution || jobData.script === MANUAL_SCRIPT_TAG) {
       logger("Runner").debug("Manual job resolution is enabled; importing 'manual-resolution' job script.");
       try {
         // When manual job resolution is enabled, import from the manual-resolution script
@@ -32,6 +28,10 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
         const errorData = toErrorData(error as Error);
         return { __is_job_transition__: true, type: "failed", error: errorData };
       }
+    } else {
+      logger("Runner").debug("Manual job resolution is disabled; importing specified job script.");
+      // Convert relative path to absolute file URL for dynamic import
+      scriptUrl = resolveScriptPath(jobData.script);
     }
 
     script = (await import(scriptUrl)) as Record<string, JobClassType>;
