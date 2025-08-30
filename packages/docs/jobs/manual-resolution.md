@@ -217,6 +217,11 @@ describe("Manual Job Resolution", () => {
 });
 ```
 
+### 5. Keep the Registry Updated
+
+Regularly update `sidequest.jobs.js` as you add or remove job classes to ensure all jobs are available for resolution.
+If you move a job class to a different file, remember to update the import path in `sidequest.jobs.js`.
+
 ## Troubleshooting
 
 ### Common Issues
