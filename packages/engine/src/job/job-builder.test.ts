@@ -371,4 +371,138 @@ describe("JobBuilder", () => {
       await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
     });
   });
+
+  describe("manualJobResolution", () => {
+    sidequestTest("enqueues a job with manual job resolution enabled", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob, undefined, true).enqueue();
+      expect(jobData).toEqual(
+        expect.objectContaining({
+          queue: "default",
+          class: "DummyJob",
+          script: "manual-resolution",
+          args: [],
+          constructor_args: [],
+          state: "waiting",
+          available_at: expect.any(Date) as Date,
+          inserted_at: expect.any(Date) as Date,
+          attempted_at: null,
+          completed_at: null,
+          failed_at: null,
+          canceled_at: null,
+          claimed_at: null,
+          claimed_by: null,
+          attempt: 0,
+          max_attempts: 5,
+          timeout: null,
+        }),
+      );
+    });
+
+    sidequestTest("works with all builder methods when manualJobResolution is true", async ({ backend }) => {
+      const futureDate = new Date(Date.now() + 60_000);
+      const jobData = await new JobBuilder(backend, DummyJob, undefined, true)
+        .queue("manual-queue")
+        .timeout(30000)
+        .maxAttempts(3)
+        .availableAt(futureDate)
+        .unique(true)
+        .with("constructor-arg")
+        .enqueue("run-arg");
+
+      expect(jobData).toEqual(
+        expect.objectContaining({
+          queue: "manual-queue",
+          class: "DummyJob",
+          script: "manual-resolution",
+          args: ["run-arg"],
+          constructor_args: ["constructor-arg"],
+          state: "waiting",
+          timeout: 30000,
+          max_attempts: 3,
+          unique_digest: expect.any(String) as string,
+        }),
+      );
+      expect(new Date(jobData.available_at as unknown as string).getTime()).toBeCloseTo(futureDate.getTime(), -2);
+    });
+
+    sidequestTest("should not call job.ready() when manualJobResolution is true", async ({ backend }) => {
+      const readySpy = vi.fn();
+
+      // Create a mock job class to spy on ready method
+      class MockJob extends DummyJob {
+        ready = readySpy;
+      }
+
+      await new JobBuilder(backend, MockJob, undefined, true).enqueue();
+
+      expect(readySpy).not.toHaveBeenCalled();
+    });
+
+    sidequestTest("should call job.ready() when manualJobResolution is false (default)", async ({ backend }) => {
+      const readySpy = vi.fn().mockResolvedValue(undefined);
+
+      // Create a mock job class to spy on ready method
+      class MockJob extends DummyJob {
+        ready = readySpy;
+        script = "auto-resolved-script.js";
+      }
+
+      await new JobBuilder(backend, MockJob, undefined, false).enqueue();
+
+      expect(readySpy).toHaveBeenCalledOnce();
+    });
+
+    sidequestTest("should work with schedule when manualJobResolution is true", async () => {
+      const cronExpression = "0 0 * * *";
+      const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+      const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+
+      const jobBuilder = new JobBuilder(backendMock, DummyJob, undefined, true);
+      await jobBuilder.schedule(cronExpression, "scheduled-arg");
+
+      expect(nodeCron.validate).toHaveBeenCalledWith(cronExpression);
+      expect(nodeCron.schedule).toHaveBeenCalled();
+
+      const [, callback] = scheduleMock.mock.calls[0] as [string, (...args: unknown[]) => unknown, unknown?];
+
+      await callback();
+
+      expect(createNewJobMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          class: "DummyJob",
+          script: "manual-resolution",
+          args: ["scheduled-arg"],
+        }),
+      );
+    });
+
+    sidequestTest("should enqueue multiple jobs when manualJobResolution is true", async ({ backend }) => {
+      const jobBuilder = new JobBuilder(backend, DummyJob, undefined, true);
+
+      await jobBuilder.enqueue("first");
+      await jobBuilder.enqueue("second");
+
+      const jobs = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobs.length).toBe(2);
+      expect(jobs[0].script).toBe("manual-resolution");
+      expect(jobs[1].script).toBe("manual-resolution");
+    });
+
+    sidequestTest("should respect uniqueness constraints when manualJobResolution is true", async ({ backend }) => {
+      const jobBuilder = new JobBuilder(backend, DummyJob, undefined, true);
+
+      await jobBuilder.unique(true).enqueue("unique-test");
+      await expect(jobBuilder.unique(true).enqueue("unique-test")).rejects.toThrow();
+
+      const jobs = await backend.listJobs({
+        jobClass: DummyJob.name,
+      });
+
+      expect(jobs.length).toBe(1);
+      expect(jobs[0].script).toBe("manual-resolution");
+    });
+  });
 });
