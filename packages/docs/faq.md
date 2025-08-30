@@ -85,7 +85,7 @@ More info: [Job Script Detection](/jobs/class#job-script-detection)
 
 ## How do I avoid the automatic job script detection?
 
-If you want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/jobs/manual-resolution/) feature.
+If you want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/jobs/manual-resolution.md) feature.
 By adding a `sidequest.jobs.js` file that exports all your job classes, you can avoid the chain of `../../../` relative paths.
 
 ## Can I run a function directly as a job?
