@@ -82,7 +82,7 @@ Sidequest searches for the `sidequest.jobs.js` file using the following strategy
 3. **Root Directory**: Stops when it reaches the file system root
 4. **Error Handling**: Throws an error if no file is found
 
-When a worker starts with `manualJobResolution = true` in its config OR finds a job with `script: "sidequest.jobs.js"`, it uses this file to resolve the job class.
+When a worker finds a job with `script: "sidequest.jobs.js"`, it uses this file to resolve the job class.
 In cases where multiple projects are running with Sidequest enabled and you are enqueueing jobs with manual resolution activated, ensure each project has its own `sidequest.jobs.js` in its root or parent directory.
 
 For example, if you have two projects:
