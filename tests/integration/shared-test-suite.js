@@ -633,7 +633,7 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         const jobBuilder = Sidequest.build(SuccessJob);
         const jobData = await jobBuilder.enqueue("automatic resolution test");
 
-        // Should use the actual script path, not manual-resolution
+        // Should use the actual script path, not sidequest.jobs.js
         expect(jobData.script).not.toBe(MANUAL_SCRIPT_TAG);
         expect(jobData.script).toMatch(/test-jobs\.c?js$/);
 

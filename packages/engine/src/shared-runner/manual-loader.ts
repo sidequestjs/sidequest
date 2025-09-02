@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
  * Tag used to indicate that a job script should be resolved manually
  * by searching the filesystem rather than importing directly.
  */
-export const MANUAL_SCRIPT_TAG = "manual-resolution";
+export const MANUAL_SCRIPT_TAG = "sidequest.jobs.js";
 
 /**
  * Finds a file by searching in the current directory and walking up through parent directories.

@@ -16,7 +16,7 @@ vi.mock("../utils/import", () => ({
 // Mock the manual loader to control which file it returns
 vi.mock("./manual-loader", () => ({
   findSidequestJobsScriptInParentDirs: vi.fn(),
-  MANUAL_SCRIPT_TAG: "manual-resolution",
+  MANUAL_SCRIPT_TAG: "sidequest.jobs.js",
 }));
 
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
@@ -117,7 +117,7 @@ describe("runner.ts with manual resolution", () => {
     testId = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     sidequestJobsPath = join(projectRoot, `sidequest.jobs.${testId}.js`);
 
-    // Create job data with manual-resolution script
+    // Create job data with sidequest.jobs.js script
     jobData = await backend.createNewJob({
       class: job.className,
       script: MANUAL_SCRIPT_TAG,
