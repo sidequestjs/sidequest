@@ -17,7 +17,7 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
     logger("Runner").debug(`Importing job script "${jobData.script}"`);
 
     let scriptUrl;
-    if (config?.manualJobResolution || jobData.script === MANUAL_SCRIPT_TAG) {
+    if (jobData.script === MANUAL_SCRIPT_TAG) {
       logger("Runner").debug("Manual job resolution is enabled; importing 'sidequest.jobs.js' job script.");
       try {
         // When manual job resolution is enabled, import from the sidequest.jobs.js script
