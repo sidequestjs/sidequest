@@ -1,6 +1,7 @@
 import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPath, toErrorData } from "@sidequest/core";
 import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
+import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
 
 /**
  * Runs a job by dynamically importing its script and executing the specified class.
@@ -15,8 +16,23 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
   try {
     logger("Runner").debug(`Importing job script "${jobData.script}"`);
 
-    // Convert relative path to absolute file URL for dynamic import
-    const scriptUrl = resolveScriptPath(jobData.script);
+    let scriptUrl;
+    if (jobData.script === MANUAL_SCRIPT_TAG) {
+      logger("Runner").debug("Manual job resolution is enabled; importing 'sidequest.jobs.js' job script.");
+      try {
+        // When manual job resolution is enabled, import from the sidequest.jobs.js script
+        scriptUrl = findSidequestJobsScriptInParentDirs();
+      } catch (error) {
+        const errorMessage = `Failed to locate 'sidequest.jobs.js' for manual job resolution: ${error instanceof Error ? error.message : String(error)}`;
+        logger("Runner").error(errorMessage);
+        const errorData = toErrorData(error as Error);
+        return { __is_job_transition__: true, type: "failed", error: errorData };
+      }
+    } else {
+      logger("Runner").debug("Manual job resolution is disabled; importing specified job script.");
+      // Convert relative path to absolute file URL for dynamic import
+      scriptUrl = resolveScriptPath(jobData.script);
+    }
 
     script = (await import(scriptUrl)) as Record<string, JobClassType>;
     logger("Runner").debug(`Successfully imported job script "${jobData.script}"`);

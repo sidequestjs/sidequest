@@ -1,6 +1,7 @@
 import { sidequestTest } from "@/tests/fixture";
 import { describe, expect, vi } from "vitest";
 import { Engine } from "./engine";
+import { MANUAL_SCRIPT_TAG } from "./shared-runner";
 import { DummyJob } from "./test-jobs/dummy-job";
 
 // Mock child_process globally to avoid worker fork issues in tests
@@ -73,6 +74,8 @@ describe("Engine", () => {
           priority: 5,
           state: "paused",
         },
+        idleWorkerTimeout: 600,
+        manualJobResolution: true,
       });
 
       expect(config.backend.config).toBe(":memory:");
@@ -98,6 +101,8 @@ describe("Engine", () => {
       expect(config.queueDefaults.concurrency).toBe(10);
       expect(config.queueDefaults.priority).toBe(5);
       expect(config.queueDefaults.state).toBe("paused");
+      expect(config.idleWorkerTimeout).toBe(600);
+      expect(config.manualJobResolution).toBe(true);
 
       await engine.close();
     });
@@ -554,6 +559,148 @@ describe("Engine", () => {
       });
 
       expect(config3.maxConcurrentJobs).toBe(20); // Should be new value
+
+      await engine.close();
+    });
+  });
+
+  describe("manualJobResolution", () => {
+    sidequestTest("should configure engine with manualJobResolution enabled", async () => {
+      const engine = new Engine();
+      const config = await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      expect(config.manualJobResolution).toBe(true);
+
+      await engine.close();
+    });
+
+    sidequestTest("should have manualJobResolution default to false", async () => {
+      const engine = new Engine();
+      const config = await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+      });
+
+      expect(config.manualJobResolution).toBe(false);
+
+      await engine.close();
+    });
+
+    sidequestTest("should start engine with manualJobResolution enabled", async () => {
+      const engine = new Engine();
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      const config = engine.getConfig();
+      expect(config!.manualJobResolution).toBe(true);
+
+      await engine.close();
+    });
+
+    sidequestTest("should build jobs with manual resolution when enabled", async () => {
+      const engine = new Engine();
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      const jobBuilder = engine.build(DummyJob);
+      const job = await jobBuilder.enqueue();
+
+      expect(job.script).toBe(MANUAL_SCRIPT_TAG);
+
+      await engine.close();
+    });
+
+    sidequestTest("should allow job builder customization when manualJobResolution is true", async () => {
+      const engine = new Engine();
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      const customQueue = "manual-custom-queue";
+      const customMaxAttempts = 8;
+      const customTimeout = 45000;
+
+      const job = await engine
+        .build(DummyJob)
+        .queue(customQueue)
+        .maxAttempts(customMaxAttempts)
+        .timeout(customTimeout)
+        .enqueue();
+
+      expect(job.script).toBe(MANUAL_SCRIPT_TAG);
+      expect(job.queue).toBe(customQueue);
+      expect(job.max_attempts).toBe(customMaxAttempts);
+      expect(job.timeout).toBe(customTimeout);
+
+      await engine.close();
+    });
+
+    sidequestTest("should handle job uniqueness when manualJobResolution is true", async () => {
+      const engine = new Engine();
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      const job1 = await engine.build(DummyJob).unique(true).enqueue();
+
+      expect(job1.script).toBe(MANUAL_SCRIPT_TAG);
+      expect(job1.unique_digest).toBeTruthy();
+      expect(job1.uniqueness_config).toEqual({
+        type: "alive-job",
+        withArgs: false,
+      });
+
+      // Should not be able to enqueue duplicate
+      await expect(engine.build(DummyJob).unique(true).enqueue()).rejects.toThrow();
+
+      await engine.close();
+    });
+
+    sidequestTest("should not interfere with normal job resolution when manualJobResolution is false", async () => {
+      const engine = new Engine();
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: false, // explicitly set to false
+      });
+
+      const job = await engine.build(DummyJob).enqueue();
+
+      expect(job.script).not.toBe(MANUAL_SCRIPT_TAG);
+      expect(job.script).toMatch(/dummy-job\.js$/);
+
+      await engine.close();
+    });
+
+    sidequestTest("should switch to manual resolution after reconfiguration", async () => {
+      const engine = new Engine();
+
+      // First configure without manual resolution
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: false,
+      });
+
+      const job1 = await engine.build(DummyJob).enqueue();
+      expect(job1.script).not.toBe(MANUAL_SCRIPT_TAG);
+
+      // Close and reconfigure with manual resolution
+      await engine.close();
+      await engine.configure({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        manualJobResolution: true,
+      });
+
+      const job2 = await engine.build(DummyJob).enqueue();
+      expect(job2.script).toBe(MANUAL_SCRIPT_TAG);
 
       await engine.close();
     });

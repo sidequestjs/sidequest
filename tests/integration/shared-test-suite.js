@@ -1,4 +1,8 @@
-import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+import { existsSync } from "node:fs";
+import { unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { MANUAL_SCRIPT_TAG } from "sidequest";
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 const backend = {
   driver: "@sidequest/postgres-backend",
@@ -542,6 +546,105 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
           const newJob = await Sidequest.job.get(newJobData.id);
           return oldJob?.state === "completed" && newJob?.state === "completed";
         }, 5000);
+      });
+    });
+
+    describe(`[${moduleType}] Manual Job Resolution`, () => {
+      const projectRoot = path.resolve(process.cwd());
+      const manualJobsPath = path.join(projectRoot, "sidequest.jobs.js");
+
+      beforeAll(async () => {
+        const manualJobsContent = `
+import { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } from "./tests/integration/jobs/test-jobs.js";
+
+export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
+        `;
+        await writeFile(manualJobsPath, manualJobsContent);
+      });
+
+      afterAll(async () => {
+        // Clean up the test file
+        try {
+          if (existsSync(manualJobsPath)) {
+            await unlink(manualJobsPath);
+          }
+        } catch {
+          // Ignore cleanup errors
+        }
+      });
+
+      test(`[${moduleType}] should execute jobs with manual resolution enabled`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+          manualJobResolution: true,
+        });
+
+        const jobBuilder = Sidequest.build(SuccessJob);
+        const jobData = await jobBuilder.enqueue("manual resolution test");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
+        expect(jobData.class).toBe("SuccessJob");
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should handle jobs with constructor arguments in manual resolution`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+          manualJobResolution: true,
+        });
+
+        const jobBuilder = Sidequest.build(SuccessJob);
+        const jobData = await jobBuilder.with("constructor-arg1", "constructor-arg2").enqueue("test-arg1", "test-arg2");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
+        expect(jobData.constructor_args).toEqual(["constructor-arg1", "constructor-arg2"]);
+        expect(jobData.args).toEqual(["test-arg1", "test-arg2"]);
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should fall back to automatic resolution when manualJobResolution is false`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+          manualJobResolution: false, // Explicitly disable manual resolution
+        });
+
+        const jobBuilder = Sidequest.build(SuccessJob);
+        const jobData = await jobBuilder.enqueue("automatic resolution test");
+
+        // Should use the actual script path, not sidequest.jobs.js
+        expect(jobData.script).not.toBe(MANUAL_SCRIPT_TAG);
+        expect(jobData.script).toMatch(/test-jobs\.c?js$/);
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
       });
     });
   });

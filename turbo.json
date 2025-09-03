@@ -12,7 +12,8 @@
       "cache": false
     },
     "test:ci": {
-      "env": ["POSTGRES_URL", "MYSQL_URL", "MONGODB_URL"]
+      "env": ["POSTGRES_URL", "MYSQL_URL", "MONGODB_URL"],
+      "dependsOn": ["^test:ci"]
     }
   }
 }

@@ -15,6 +15,7 @@ import {
 } from "@sidequest/core";
 import nodeCron, { ScheduledTask } from "node-cron";
 import { inspect } from "node:util";
+import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { JOB_BUILDER_FALLBACK } from "./constants";
 
 /**
@@ -77,6 +78,7 @@ export class JobBuilder<T extends JobClassType> {
     private backend: Backend,
     private JobClass: T,
     private defaults?: JobBuilderDefaults,
+    private manualJobResolution = false,
   ) {
     this.queue(this.defaults?.queue ?? JOB_BUILDER_FALLBACK.queue!);
     this.maxAttempts(this.defaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!);
@@ -174,7 +176,15 @@ export class JobBuilder<T extends JobClassType> {
   private async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
-    await job.ready();
+    if (!this.manualJobResolution) {
+      // This resolves the job script path using exception handling.
+      await job.ready();
+    } else {
+      // If manual resolution is enabled, we skip automatic script resolution.
+      // The user is responsible for ensuring the job class is properly exported
+      // in the `sidequest.jobs.js` file.
+      Object.assign(job, { script: MANUAL_SCRIPT_TAG });
+    }
 
     if (!job.script) {
       throw new Error(`Error on starting job ${job.className} could not detect source file.`);

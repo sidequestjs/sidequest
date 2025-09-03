@@ -74,6 +74,8 @@ Sidequest automatically detects the file path of your job class using stack trac
 
 By using this strategy, you do not need to manually specify the job script path when enqueuing jobs. Sidequest will automatically resolve it based on the class definition. If you are using TypeScript, this also allows Sidequest.js to provide type safety for the jobs when enqueueing them.
 
+However, if you still want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/jobs/manual-resolution.md) feature.
+
 ## Job Data Properties
 
 During the job execution, jobs can access various properties that provide context about the job execution. These properties come from the database and follow the JobData interface, as explained in the [Job Metadata Section](/jobs/#job-metadata). For convenience, here is the interface definition:

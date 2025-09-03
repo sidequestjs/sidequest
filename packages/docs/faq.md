@@ -83,6 +83,11 @@ Sidequest.js uses dynamic imports to load your job scripts. By specifying the jo
 
 More info: [Job Script Detection](/jobs/class#job-script-detection)
 
+## How do I avoid the automatic job script detection?
+
+If you want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/jobs/manual-resolution.md) feature.
+By adding a `sidequest.jobs.js` file that exports all your job classes, you can avoid the chain of `../../../` relative paths.
+
 ## Can I run a function directly as a job?
 
 No. Sidequest requires you to create a job class that extends the `Job` base class. This ensures that your job has the necessary structure and methods to be processed correctly.

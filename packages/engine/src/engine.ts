@@ -57,6 +57,19 @@ export interface EngineConfig {
    * @see {@link QueueDefaults} for more details
    */
   queueDefaults?: QueueDefaults;
+
+  /**
+   * If true, job scripts will NOT be automatically resolved by the engine.
+   * In this case, you need to create a `sidequest.jobs.js` file at the root of your project
+   * (and at the root of any other project that uses Sidequest, like a worker) that imports and
+   * exports all job classes.
+   *
+   * This allows you to control exactly which job classes are available to Sidequest,
+   * and can also solve issues with module resolution in certain environments.
+   *
+   * Defaults to `false`.
+   */
+  manualJobResolution?: boolean;
 }
 
 /**
@@ -143,6 +156,7 @@ export class Engine {
         priority: config?.queueDefaults?.priority ?? QUEUE_FALLBACK.priority,
         state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state,
       },
+      manualJobResolution: config?.manualJobResolution ?? false,
     };
 
     if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
@@ -275,11 +289,16 @@ export class Engine {
       throw new Error("Engine is shutting down, cannot build job.");
     }
     logger("Engine").debug(`Building job for class: ${JobClass.name}`);
-    return new JobBuilder(this.backend, JobClass, {
-      ...this.config.jobDefaults,
-      // We need to do this check again because available at is a getter. It needs to be set at job creation time.
-      // If not set, it will use the fallback value which is outdated from config.
-      availableAt: this.config.jobDefaults.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
-    });
+    return new JobBuilder(
+      this.backend,
+      JobClass,
+      {
+        ...this.config.jobDefaults,
+        // We need to do this check again because available at is a getter. It needs to be set at job creation time.
+        // If not set, it will use the fallback value which is outdated from config.
+        availableAt: this.config.jobDefaults.availableAt ?? JOB_BUILDER_FALLBACK.availableAt!,
+      },
+      this.config.manualJobResolution,
+    );
   }
 }
