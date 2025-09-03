@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/engine",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "@sidequest/engine is the core engine of SideQuest, a distributed background job processing system for Node.js and TypeScript.",
   "keywords": [
     "nodejs",

@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/backend-test",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "@sidequest/backend-test is a test suite for backend implementations of Sidequest, a Node.js library for managing background jobs and distributed queues.",
   "keywords": [
     "nodejs",

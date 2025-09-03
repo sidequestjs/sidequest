@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/sidequestjs/sidequest/compare/v1.6.2...v1.7.0) (2025-09-03)
+
+
+### Features
+
+* manual (sidequest.jobs.js) job resolution ([#94](https://github.com/sidequestjs/sidequest/issues/94)) ([c173dea](https://github.com/sidequestjs/sidequest/commit/c173dea0dcfb7a071b03b692fcb1dd55e0bf84d3))
+
 ## [1.6.2](https://github.com/sidequestjs/sidequest/compare/v1.6.1...v1.6.2) (2025-08-28)
 
 
