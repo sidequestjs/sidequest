@@ -63,22 +63,22 @@ export interface JobBuilderDefaults {
  * @template T The job class type.
  */
 export class JobBuilder<T extends JobClassType> {
-  private constructorArgs?: ConstructorParameters<T>;
-  private queueName?: string;
-  private jobTimeout?: number;
-  private uniquenessConfig?: UniquenessConfig;
-  private jobMaxAttempts?: number;
-  private jobAvailableAt?: Date;
+  protected constructorArgs?: ConstructorParameters<T>;
+  protected queueName?: string;
+  protected jobTimeout?: number;
+  protected uniquenessConfig?: UniquenessConfig;
+  protected jobMaxAttempts?: number;
+  protected jobAvailableAt?: Date;
 
   /**
    * Creates a new JobBuilder for the given job class.
    * @param JobClass The job class constructor.
    */
   constructor(
-    private backend: Backend,
-    private JobClass: T,
-    private defaults?: JobBuilderDefaults,
-    private manualJobResolution = false,
+    protected backend: Backend,
+    protected JobClass: T,
+    protected defaults?: JobBuilderDefaults,
+    protected manualJobResolution = false,
   ) {
     this.queue(this.defaults?.queue ?? JOB_BUILDER_FALLBACK.queue!);
     this.maxAttempts(this.defaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!);
@@ -173,7 +173,7 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
-  private async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
+  protected async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
     if (!this.manualJobResolution) {
