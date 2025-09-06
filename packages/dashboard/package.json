@@ -48,15 +48,15 @@
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
     "express-ejs-layouts": "^2.5.1",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
-    "@types/feather-icons": "^4",
-    "@types/morgan": "^1",
+    "@types/feather-icons": "^4.29.4",
+    "@types/morgan": "^1.9.10",
     "chart.js": "^4.5.0",
-    "daisyui": "^5.0.43",
+    "daisyui": "^5.1.7",
     "feather-icons": "^4.29.2",
-    "htmx.org": "^2.0.4"
+    "htmx.org": "^2.0.6"
   }
 }

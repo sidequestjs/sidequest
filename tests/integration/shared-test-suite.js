@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { MANUAL_SCRIPT_TAG } from "sidequest";
+import { MANUAL_SCRIPT_TAG, ScheduledJobRegistry } from "sidequest";
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 const backend = {
@@ -27,6 +27,9 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     });
 
     afterEach(async () => {
+      // We stop all scheduled jobs before to ensure no job is inserted after truncate
+      await ScheduledJobRegistry.stopAll();
+      // Actually clean the DB state
       await Sidequest.getBackend()?.truncate();
       // Always stop Sidequest after each test
       await Sidequest.stop();
@@ -546,6 +549,117 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
           const newJob = await Sidequest.job.get(newJobData.id);
           return oldJob?.state === "completed" && newJob?.state === "completed";
         }, 5000);
+      });
+    });
+
+    describe(`[${moduleType}] Scheduled Jobs`, () => {
+      test(`[${moduleType}] should schedule jobs to run at specified intervals`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+        });
+
+        // Initially no jobs should be enqueued
+        let jobs = await Sidequest.job.list();
+        expect(jobs.length).toBe(0);
+
+        // Schedule a job to run every second
+        await Sidequest.build(SuccessJob).schedule("*/1 * * * * *", "scheduled-test");
+
+        // Wait for the two scheduled executions
+        await vi.waitUntil(async () => {
+          const currentJobs = await Sidequest.job.list();
+          return currentJobs.length === 2 && currentJobs.every((job) => job.state === "completed");
+        }, 5000);
+      });
+
+      test(`[${moduleType}] should stop scheduled jobs when Sidequest is stopped`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+        });
+
+        // Schedule a job to run every second
+        await Sidequest.build(SuccessJob).schedule("*/1 * * * * *", "stop-test");
+
+        // Wait for the first scheduled job to be executed
+        await vi.waitUntil(async () => {
+          const currentJobs = await Sidequest.job.list();
+          return currentJobs.length > 0 && currentJobs[0].state === "completed";
+        }, 5000);
+
+        // Stop Sidequest (should stop all scheduled jobs)
+        await Sidequest.stop();
+
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+        });
+
+        // I know this is a bad practice but cron jobs are hard to test reliably
+        // especially with database backends where time can be slightly off
+        // So we'll just wait a bit longer than the schedule interval to ensure no new jobs are created
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Wait 1.5 seconds
+
+        // No new jobs should be created because scheduled jobs were stopped
+        jobs = await Sidequest.job.list();
+        expect(jobs.length).toBe(1); // Still only the original job
+      });
+
+      test(`[${moduleType}] should handle multiple scheduled jobs independently`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "default" }],
+          logger,
+        });
+
+        // Schedule two different jobs with different intervals
+        await Sidequest.build(SuccessJob).schedule("*/1 * * * * *", "job-1");
+        await Sidequest.build(SuccessJob).schedule("*/2 * * * * *", "job-2");
+
+        let currentJobs;
+        await vi.waitUntil(async () => {
+          currentJobs = await Sidequest.job.list();
+          return currentJobs.length === 3 && currentJobs.every((job) => job.state === "completed");
+        }, 5000);
+
+        const job1Executions = currentJobs.filter((job) => job.args[0] === "job-1");
+        const job2Executions = currentJobs.filter((job) => job.args[0] === "job-2");
+
+        expect(job1Executions.length).toBe(2);
+        expect(job2Executions.length).toBe(1);
+      });
+
+      test(`[${moduleType}] should handle scheduled jobs with different queues`, async () => {
+        await Sidequest.start({
+          backend,
+          queues: [{ name: "scheduled-queue-1" }, { name: "scheduled-queue-2" }],
+          logger,
+        });
+
+        // Schedule jobs in different queues
+        await Sidequest.build(SuccessJob).queue("scheduled-queue-1").schedule("*/1 * * * * *", "queue-1-job");
+        await Sidequest.build(SuccessJob).queue("scheduled-queue-2").schedule("*/1 * * * * *", "queue-2-job");
+
+        // Wait for both scheduled jobs to be executed
+        let currentJobs;
+        await vi.waitUntil(async () => {
+          currentJobs = await Sidequest.job.list();
+          return currentJobs.length === 2 && currentJobs.every((job) => job.state === "completed");
+        }, 5000);
+
+        expect(currentJobs.length).toBe(2);
+
+        const queue1Jobs = currentJobs.filter((job) => job.queue === "scheduled-queue-1");
+        const queue2Jobs = currentJobs.filter((job) => job.queue === "scheduled-queue-2");
+
+        expect(queue1Jobs.length).toBe(1);
+        expect(queue2Jobs.length).toBe(1);
+        expect(queue1Jobs[0].args).toEqual(["queue-1-job"]);
+        expect(queue2Jobs[0].args).toEqual(["queue-2-job"]);
       });
     });
 

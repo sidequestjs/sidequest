@@ -39,6 +39,6 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "commander": "^14.0.0",
-    "inquirer": "^12.7.0"
+    "inquirer": "^12.9.4"
   }
 }

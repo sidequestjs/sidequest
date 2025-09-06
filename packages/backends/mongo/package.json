@@ -45,7 +45,7 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
-    "mongodb": "^6.17.0"
+    "mongodb": "^6.19.0"
   },
   "devDependencies": {
     "@sidequest/backend-test": "workspace:*"

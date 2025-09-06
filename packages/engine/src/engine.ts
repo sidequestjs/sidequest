@@ -5,6 +5,7 @@ import { cpus } from "os";
 import { inspect } from "util";
 import { DEFAULT_WORKER_PATH } from "./constants";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
+import { ScheduledJobRegistry } from "./job/cron-registry";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
@@ -253,6 +254,10 @@ export class Engine {
     if (!this.shuttingDown) {
       this.shuttingDown = true;
       logger("Engine").debug("Closing Sidequest engine...");
+
+      // Stop all scheduled cron jobs first
+      await ScheduledJobRegistry.stopAll();
+
       if (this.mainWorker) {
         const promise = new Promise((resolve) => {
           this.mainWorker!.on("exit", resolve);
