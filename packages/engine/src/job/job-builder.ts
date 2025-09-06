@@ -17,6 +17,7 @@ import nodeCron, { ScheduledTask } from "node-cron";
 import { inspect } from "node:util";
 import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { JOB_BUILDER_FALLBACK } from "./constants";
+import { ScheduledJobRegistry } from "./cron-registry";
 
 /**
  * Configuration for job uniqueness constraints.
@@ -237,10 +238,11 @@ export class JobBuilder<T extends JobClassType> {
    * @remarks
    * - The schedule is **not persisted** to any database. It will be lost if the process restarts and must be re-registered at startup.
    * - You must call this method during application initialization to ensure the job is scheduled correctly.
-   * - Uses node-cron’s `noOverlap: true` option to prevent concurrent executions.
+   * - Uses node-cron's `noOverlap: true` option to prevent concurrent executions.
+   * - The scheduled task is registered with the CronRegistry for proper cleanup during shutdown.
    *
    * @param cronExpression - A valid cron expression (node-cron compatible) that defines when the job should be enqueued.
-   * @param args - Arguments to be passed to the job’s `run` method on each scheduled execution.
+   * @param args - Arguments to be passed to the job's `run` method on each scheduled execution.
    *
    * @returns The underlying `ScheduledTask` instance created by node-cron.
    *
@@ -265,7 +267,7 @@ export class JobBuilder<T extends JobClassType> {
         `constructor args: ${inspect(this.constructorArgs)}`,
     );
 
-    return nodeCron.schedule(
+    const scheduledTask = nodeCron.schedule(
       cronExpression,
       async () => {
         const newJobData: NewJobData = Object.assign({}, jobData);
@@ -276,5 +278,10 @@ export class JobBuilder<T extends JobClassType> {
       },
       { noOverlap: true },
     );
+
+    // Register the scheduled task with the ScheduledJobRegistry for proper later cleanup
+    ScheduledJobRegistry.register(scheduledTask);
+
+    return scheduledTask;
   }
 }
