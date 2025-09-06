@@ -33,6 +33,8 @@ export const JOB_FALLBACK: Required<
     | "canceled_at"
     | "claimed_at"
     | "claimed_by"
+    | "backoff_strategy"
+    | "retry_delay"
   >
 > = {
   args: [],
@@ -52,6 +54,8 @@ export const JOB_FALLBACK: Required<
   canceled_at: null,
   claimed_at: null,
   claimed_by: null,
+  backoff_strategy: "exponential",
+  retry_delay: null,
 };
 
 /**

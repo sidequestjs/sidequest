@@ -141,5 +141,17 @@ export interface JobData {
    * Configuration object for job uniqueness, or null if not set.
    */
   uniqueness_config: UniquenessConfig | null;
+
+  /**
+   * Delay before retrying a failed job, in milliseconds. Null if not set.
+   */
+  retry_delay: number | null;
+
+  /**
+   * Strategy used for calculating backoff delays between retries.
+   * - "exponential": Delays increase exponentially with each attempt.
+   * - "fixed": Delays remain constant for each attempt.
+   */
+  backoff_strategy: "exponential" | "fixed";
 }
 // #endregion JobData

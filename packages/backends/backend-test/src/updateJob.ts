@@ -105,6 +105,8 @@ export default function defineUpdateJobTestSuite() {
         result: "test_result",
         script: "test2.js",
         state: "canceled",
+        backoff_strategy: "fixed",
+        retry_delay: 5000,
       };
       const updatedJob = await backend.updateJob(newData);
       expect(updatedJob).toMatchObject(newData);
