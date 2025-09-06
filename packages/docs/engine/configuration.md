@@ -172,36 +172,36 @@ await Sidequest.start({
 
 ### Configuration Options
 
-| Option                           | Description                                                                  | Default                     |
-| -------------------------------- | ---------------------------------------------------------------------------- | --------------------------- |
-| `backend.driver`                 | Backend driver package name (SQLite, Postgres, MySQL, MongoDB)               | `@sidequest/sqlite-backend` |
-| `backend.config`                 | Backend-specific connection string or configuration object                   | `./sidequest.sqlite`        |
-| `queues`                         | Array of queue configurations with name, concurrency, priority, and state    | `[]`                        |
-| `maxConcurrentJobs`              | Maximum number of jobs processed simultaneously across all queues            | `10`                        |
-| `minThreads`                     | Minimum number of worker threads to use                                      | Number of CPU cores         |
-| `maxThreads`                     | Maximum number of worker threads to use                                      | `minThreads * 2`            |
-| `idleWorkerTimeout`              | Timeout (milliseconds) for idle workers before they are terminated           | `10000` (10 seconds)        |
-| `skipMigration`                  | Whether to skip database migration on startup                                | `false`                     |
-| `releaseStaleJobsIntervalMin`    | Frequency (minutes) for releasing stale jobs. Set to `false` to disable      | `60`                        |
-| `releaseStaleJobsMaxStaleMs`     | Maximum age (milliseconds) for a running job to be considered stale          | `600000` (10 minutes)       |
-| `releaseStaleJobsMaxClaimedMs`   | Maximum age (milliseconds) for a claimed job to be considered stale          | `60000` (1 minute)          |
-| `cleanupFinishedJobsIntervalMin` | Frequency (minutes) for cleaning up finished jobs. Set to `false` to disable | `60`                        |
-| `cleanupFinishedJobsOlderThan`   | Age (milliseconds) after which finished jobs are deleted                     | `2592000000` (30 days)      |
-| `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                         | `info`                      |
-| `logger.json`                    | Whether to output logs in JSON format                                        | `false`                     |
-| `gracefulShutdown`               | Whether to enable graceful shutdown handling                                 | `true`                      |
-| `jobDefaults.queue`              | Default queue name for new jobs                                              | `default`                   |
-| `jobDefaults.timeout`            | Default timeout (milliseconds) for job execution                             | none                        |
-| `jobDefaults.maxAttempts`        | Default maximum retry attempts for failed jobs                               | `5`                         |
-| `jobDefaults.availableAt`        | Default delay before job becomes available for execution                     | Current time (immediate)    |
-| `jobDefaults.uniqueness`         | Default uniqueness constraint for jobs                                       | `false` (no uniqueness)     |
-| `queueDefaults.concurrency`      | Default concurrency limit for auto-created queues                            | `10`                        |
-| `queueDefaults.priority`         | Default priority for auto-created queues                                     | `0`                         |
-| `queueDefaults.state`            | Default state for auto-created queues (`active` or `paused`)                 | `active`                    |
-| `dashboard.enabled`              | Enable or disable the dashboard UI                                           | `true`                      |
-| `dashboard.port`                 | Port where the dashboard runs                                                | `8678`                      |
-| `dashboard.auth.user`            | Username for dashboard basic authentication                                  | Not set (no auth)           |
-| `dashboard.auth.password`        | Password for dashboard basic authentication                                  | Not set (no auth)           |
+| Option                           | Description                                                                                                        | Default                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| `backend.driver`                 | Backend driver package name (SQLite, Postgres, MySQL, MongoDB)                                                     | `@sidequest/sqlite-backend` |
+| `backend.config`                 | Backend-specific connection string or [Knex configuration object](https://knexjs.org/guide/#configuration-options) | `./sidequest.sqlite`        |
+| `queues`                         | Array of queue configurations with name, concurrency, priority, and state                                          | `[]`                        |
+| `maxConcurrentJobs`              | Maximum number of jobs processed simultaneously across all queues                                                  | `10`                        |
+| `minThreads`                     | Minimum number of worker threads to use                                                                            | Number of CPU cores         |
+| `maxThreads`                     | Maximum number of worker threads to use                                                                            | `minThreads * 2`            |
+| `idleWorkerTimeout`              | Timeout (milliseconds) for idle workers before they are terminated                                                 | `10000` (10 seconds)        |
+| `skipMigration`                  | Whether to skip database migration on startup                                                                      | `false`                     |
+| `releaseStaleJobsIntervalMin`    | Frequency (minutes) for releasing stale jobs. Set to `false` to disable                                            | `60`                        |
+| `releaseStaleJobsMaxStaleMs`     | Maximum age (milliseconds) for a running job to be considered stale                                                | `600000` (10 minutes)       |
+| `releaseStaleJobsMaxClaimedMs`   | Maximum age (milliseconds) for a claimed job to be considered stale                                                | `60000` (1 minute)          |
+| `cleanupFinishedJobsIntervalMin` | Frequency (minutes) for cleaning up finished jobs. Set to `false` to disable                                       | `60`                        |
+| `cleanupFinishedJobsOlderThan`   | Age (milliseconds) after which finished jobs are deleted                                                           | `2592000000` (30 days)      |
+| `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                                                               | `info`                      |
+| `logger.json`                    | Whether to output logs in JSON format                                                                              | `false`                     |
+| `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                       | `true`                      |
+| `jobDefaults.queue`              | Default queue name for new jobs                                                                                    | `default`                   |
+| `jobDefaults.timeout`            | Default timeout (milliseconds) for job execution                                                                   | none                        |
+| `jobDefaults.maxAttempts`        | Default maximum retry attempts for failed jobs                                                                     | `5`                         |
+| `jobDefaults.availableAt`        | Default delay before job becomes available for execution                                                           | Current time (immediate)    |
+| `jobDefaults.uniqueness`         | Default uniqueness constraint for jobs                                                                             | `false` (no uniqueness)     |
+| `queueDefaults.concurrency`      | Default concurrency limit for auto-created queues                                                                  | `10`                        |
+| `queueDefaults.priority`         | Default priority for auto-created queues                                                                           | `0`                         |
+| `queueDefaults.state`            | Default state for auto-created queues (`active` or `paused`)                                                       | `active`                    |
+| `dashboard.enabled`              | Enable or disable the dashboard UI                                                                                 | `true`                      |
+| `dashboard.port`                 | Port where the dashboard runs                                                                                      | `8678`                      |
+| `dashboard.auth.user`            | Username for dashboard basic authentication                                                                        | Not set (no auth)           |
+| `dashboard.auth.password`        | Password for dashboard basic authentication                                                                        | Not set (no auth)           |
 
 ::: danger
 If `auth` is not configured and `dashboard: true` is enabled in production, the dashboard will be publicly accessible. This is a security risk and **not recommended**.

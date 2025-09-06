@@ -100,6 +100,24 @@ await Sidequest.start({
 });
 ```
 
+**Using Knex Configuration Object:**
+
+```typescript
+import { Sidequest } from "sidequest";
+
+await Sidequest.start({
+  backend: {
+    driver: "@sidequest/sqlite-backend",
+    config: {
+      client: "sqlite3", // or 'better-sqlite3'
+      connection: {
+        filename: "./mydb.sqlite", // or ':memory:'
+      },
+    },
+  },
+});
+```
+
 **Connection Examples:**
 
 ```typescript
