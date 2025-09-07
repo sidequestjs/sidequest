@@ -144,6 +144,8 @@ export interface JobData {
 
   /**
    * Delay before retrying a failed job, in milliseconds. Null if not set.
+   *
+   * If "backoff_strategy" is "exponential", this value is used as the base delay for calculating exponential backoff.
    */
   retry_delay: number | null;
 
