@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/dashboard",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "@sidequest/dashboard is the web dashboard for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",
