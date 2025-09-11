@@ -135,6 +135,8 @@ export abstract class SQLBackend implements Backend {
       unique_digest: job.unique_digest ?? JOB_FALLBACK.unique_digest,
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : JOB_FALLBACK.uniqueness_config,
       inserted_at: new Date(),
+      backoff_strategy: job.backoff_strategy ?? JOB_FALLBACK.backoff_strategy,
+      retry_delay: job.retry_delay ?? JOB_FALLBACK.retry_delay,
     };
     logger("Backend").debug(`Creating new job: ${inspect(data)}`);
 
