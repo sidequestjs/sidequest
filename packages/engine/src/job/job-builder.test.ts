@@ -109,6 +109,36 @@ describe("JobBuilder", () => {
     expect(jobData[0].timeout).toBe(100);
   });
 
+  sidequestTest("should enqueue job with custom retryDelay", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).retryDelay(2000).enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+    expect(jobData[0].retry_delay).toBe(2000);
+  });
+
+  sidequestTest("should enqueue job with fixed backoffStrategy", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).backoffStrategy("fixed").enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+    expect(jobData[0].backoff_strategy).toBe("fixed");
+  });
+
+  sidequestTest("should enqueue job with exponential backoffStrategy", async ({ backend }) => {
+    await new JobBuilder(backend, DummyJob).backoffStrategy("exponential").enqueue();
+    const jobData = await backend.listJobs({
+      jobClass: DummyJob.name,
+    });
+
+    expect(jobData.length).toBe(1);
+    expect(jobData[0].backoff_strategy).toBe("exponential");
+  });
+
   sidequestTest("should be able to enqueue duplicated jobs", async ({ backend }) => {
     await new JobBuilder(backend, DummyJob).enqueue();
     await new JobBuilder(backend, DummyJob).enqueue();
@@ -242,6 +272,16 @@ describe("JobBuilder", () => {
       const jobData = await new JobBuilder(backend, DummyJob).enqueue();
       expect(jobData.unique_digest).toBeNull(); // uniqueness is false by default, so no digest
     });
+
+    sidequestTest("uses default retryDelay when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
+      expect(jobData.retry_delay).toEqual(1000); // default from JOB_BUILDER_FALLBACK
+    });
+
+    sidequestTest("uses default backoffStrategy when no defaults provided", async ({ backend }) => {
+      const jobData = await new JobBuilder(backend, DummyJob).enqueue();
+      expect(jobData.backoff_strategy).toEqual("exponential"); // default from JOB_FALLBACK
+    });
   });
 
   describe("constructor defaults with custom values", () => {
@@ -286,6 +326,24 @@ describe("JobBuilder", () => {
       const defaults = { uniqueness: { period: "hour" as const } };
       const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
+    });
+
+    sidequestTest("uses custom retryDelay default", async ({ backend }) => {
+      const defaults = { retryDelay: 5000 };
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
+      expect(jobData.retry_delay).toEqual(5000);
+    });
+
+    sidequestTest("uses custom backoffStrategy default (fixed)", async ({ backend }) => {
+      const defaults = { backoffStrategy: "fixed" as const };
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
+      expect(jobData.backoff_strategy).toEqual("fixed");
+    });
+
+    sidequestTest("uses custom backoffStrategy default (exponential)", async ({ backend }) => {
+      const defaults = { backoffStrategy: "exponential" as const };
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).enqueue();
+      expect(jobData.backoff_strategy).toEqual("exponential");
     });
   });
 
@@ -335,6 +393,30 @@ describe("JobBuilder", () => {
         .enqueue();
       expect(jobData.unique_digest).toBeTruthy(); // uniqueness is enabled, so digest should exist
     });
+
+    sidequestTest("retryDelay() method overrides default retryDelay", async ({ backend }) => {
+      const defaults = { retryDelay: 2000 };
+      const jobData = await new JobBuilder(backend, DummyJob, defaults).retryDelay(8000).enqueue();
+      expect(jobData.retry_delay).toEqual(8000);
+    });
+
+    sidequestTest(
+      "backoffStrategy() method overrides default backoffStrategy (exponential to fixed)",
+      async ({ backend }) => {
+        const defaults = { backoffStrategy: "exponential" as const };
+        const jobData = await new JobBuilder(backend, DummyJob, defaults).backoffStrategy("fixed").enqueue();
+        expect(jobData.backoff_strategy).toEqual("fixed");
+      },
+    );
+
+    sidequestTest(
+      "backoffStrategy() method overrides default backoffStrategy (fixed to exponential)",
+      async ({ backend }) => {
+        const defaults = { backoffStrategy: "fixed" as const };
+        const jobData = await new JobBuilder(backend, DummyJob, defaults).backoffStrategy("exponential").enqueue();
+        expect(jobData.backoff_strategy).toEqual("exponential");
+      },
+    );
   });
 
   describe("schedule", () => {
@@ -410,6 +492,8 @@ describe("JobBuilder", () => {
         .maxAttempts(3)
         .availableAt(futureDate)
         .unique(true)
+        .retryDelay(3000)
+        .backoffStrategy("fixed")
         .with("constructor-arg")
         .enqueue("run-arg");
 
@@ -423,6 +507,8 @@ describe("JobBuilder", () => {
           state: "waiting",
           timeout: 30000,
           max_attempts: 3,
+          retry_delay: 3000,
+          backoff_strategy: "fixed",
           unique_digest: expect.any(String) as string,
         }),
       );
@@ -462,7 +548,7 @@ describe("JobBuilder", () => {
       const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
 
       const jobBuilder = new JobBuilder(backendMock, DummyJob, undefined, true);
-      await jobBuilder.schedule(cronExpression, "scheduled-arg");
+      await jobBuilder.retryDelay(2500).backoffStrategy("fixed").schedule(cronExpression, "scheduled-arg");
 
       expect(nodeCron.validate).toHaveBeenCalledWith(cronExpression);
       expect(nodeCron.schedule).toHaveBeenCalled();
@@ -476,6 +562,8 @@ describe("JobBuilder", () => {
           class: "DummyJob",
           script: MANUAL_SCRIPT_TAG,
           args: ["scheduled-arg"],
+          retry_delay: 2500,
+          backoff_strategy: "fixed",
         }),
       );
     });

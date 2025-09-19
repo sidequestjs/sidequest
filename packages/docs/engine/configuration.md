@@ -190,18 +190,8 @@ await Sidequest.start({
 | `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                                                               | `info`                      |
 | `logger.json`                    | Whether to output logs in JSON format                                                                              | `false`                     |
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                       | `true`                      |
-| `jobDefaults.queue`              | Default queue name for new jobs                                                                                    | `default`                   |
-| `jobDefaults.timeout`            | Default timeout (milliseconds) for job execution                                                                   | none                        |
-| `jobDefaults.maxAttempts`        | Default maximum retry attempts for failed jobs                                                                     | `5`                         |
-| `jobDefaults.availableAt`        | Default delay before job becomes available for execution                                                           | Current time (immediate)    |
-| `jobDefaults.uniqueness`         | Default uniqueness constraint for jobs                                                                             | `false` (no uniqueness)     |
-| `queueDefaults.concurrency`      | Default concurrency limit for auto-created queues                                                                  | `10`                        |
-| `queueDefaults.priority`         | Default priority for auto-created queues                                                                           | `0`                         |
-| `queueDefaults.state`            | Default state for auto-created queues (`active` or `paused`)                                                       | `active`                    |
-| `dashboard.enabled`              | Enable or disable the dashboard UI                                                                                 | `true`                      |
-| `dashboard.port`                 | Port where the dashboard runs                                                                                      | `8678`                      |
-| `dashboard.auth.user`            | Username for dashboard basic authentication                                                                        | Not set (no auth)           |
-| `dashboard.auth.password`        | Password for dashboard basic authentication                                                                        | Not set (no auth)           |
+| `jobDefaults`                    | Default values for new jobs. Used while enqueueing                                                                 | `undefined`                 |
+| `queueDefaults`                  | Default values for auto-created queues                                                                             | `undefined`                 |
 
 ::: danger
 If `auth` is not configured and `dashboard: true` is enabled in production, the dashboard will be publicly accessible. This is a security risk and **not recommended**.

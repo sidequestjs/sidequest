@@ -61,6 +61,8 @@ Each job has several metadata fields that provide information about its state an
 - **`errors`**: Array of error information from failed attempts
 - **`unique_digest`**: Unique identifier for the job based on its class and arguments (if uniqueness is configured)
 - **`uniqueness_config`**: Configuration for job uniqueness (if applicable)
+- **`retryDelay`**: Delay in milliseconds before retrying a failed job
+- **`backoffStrategy`**: Strategy used for calculating retry delays (fixed or exponential)
 
 ## Job Results and Errors
 

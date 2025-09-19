@@ -13,15 +13,21 @@ const logger = {
   level: "info",
 };
 
+const defaultConfig = {
+  backend,
+  logger,
+  jobDefaults: {
+    retryDelay: 0,
+    backoffStrategy: "fixed",
+  },
+};
+
 export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") {
   const { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } = jobs;
 
   describe(`[${moduleType}] Sidequest Integration Tests`, () => {
     beforeAll(async () => {
-      await Sidequest.configure({
-        backend,
-        logger,
-      });
+      await Sidequest.configure(defaultConfig);
       await Sidequest.getBackend()?.truncate();
       await Sidequest.stop();
     });
@@ -38,9 +44,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Basic Job Execution`, () => {
       test(`[${moduleType}] should start Sidequest and execute a simple job`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobBuilder = Sidequest.build(EnqueueFromWithinJob);
@@ -59,9 +64,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should start Sidequest and execute a job that enqueues another job`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobBuilder = Sidequest.build(SuccessJob);
@@ -83,9 +87,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should enqueue multiple jobs and execute them all`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default", concurrency: 2 }],
-          logger,
         });
 
         const jobs = await Promise.all([
@@ -114,12 +117,11 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should handle jobs with different queues`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [
             { name: "high-priority", priority: 10 },
             { name: "low-priority", priority: 1 },
           ],
-          logger,
         });
 
         const highPriorityJob = await Sidequest.build(SuccessJob).queue("high-priority").enqueue("High Priority");
@@ -147,9 +149,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Job Retries`, () => {
       test(`[${moduleType}] should retry failed jobs automatically`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(RetryJob).maxAttempts(3).enqueue("retry-test");
@@ -166,9 +167,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should mark job as failed after max attempts`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(FailingJob).maxAttempts(2).enqueue("always-fails");
@@ -185,9 +185,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should respect retry delay`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const startTime = Date.now();
@@ -211,9 +210,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Job Timeouts`, () => {
       test(`[${moduleType}] should timeout jobs that exceed configured timeout`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -233,9 +231,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should complete jobs that finish within timeout`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -251,9 +248,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should retry timed out jobs if max attempts allows`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob)
@@ -272,9 +268,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Job Cancellation`, () => {
       test(`[${moduleType}] should cancel waiting jobs`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default", concurrency: 1 }], // No workers to keep job waiting
-          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -294,9 +289,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should handle cancellation of non-existent jobs`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         await expect(Sidequest.job.cancel(99999)).rejects.toThrow();
@@ -304,9 +298,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should mark running jobs as canceled and stop immediately`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(TimeoutJob).enqueue(1000000);
@@ -321,9 +314,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Job Snoozing`, () => {
       test(`[${moduleType}] should snooze jobs externally using Sidequest.job.snooze`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default", concurrency: 1 }], // No workers initially
-          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -343,9 +335,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should reject negative snooze delays`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -359,9 +350,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Job Management`, () => {
       test(`[${moduleType}] should run jobs immediately using Sidequest.job.run`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default", concurrency: 1 }], // No workers
-          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -381,9 +371,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should get job statistics`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         // Enqueue multiple jobs
@@ -410,9 +399,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should list jobs with filters`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         await Sidequest.build(SuccessJob).enqueue("list-test-1");
@@ -434,9 +422,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Queue Management`, () => {
       test(`[${moduleType}] should pause and resume queues`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "pausable" }],
-          logger,
         });
 
         // Pause the queue
@@ -458,9 +445,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should get queue statistics`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "stats-queue" }],
-          logger,
         });
 
         await Sidequest.build(SuccessJob).queue("stats-queue").enqueue("queue-stats-test");
@@ -475,12 +461,11 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Complex Scenarios`, () => {
       test(`[${moduleType}] should handle mixed job types with different configurations`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [
             { name: "fast", concurrency: 3 },
             { name: "slow", concurrency: 1 },
           ],
-          logger,
         });
 
         const jobs = await Promise.all([
@@ -500,10 +485,9 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
       test(`[${moduleType}] should handle high concurrency scenarios`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default", concurrency: 5 }],
           maxConcurrentJobs: 10,
-          logger,
         });
 
         // Enqueue many jobs
@@ -523,9 +507,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
       test(`[${moduleType}] should properly handle engine shutdown and restart`, async () => {
         // First session
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         const jobData = await Sidequest.build(SuccessJob)
@@ -535,9 +518,8 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
         // Second session (simulating restart)
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
         });
 
         // Should be able to enqueue new jobs
@@ -689,9 +671,8 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
 
       test(`[${moduleType}] should execute jobs with manual resolution enabled`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
           manualJobResolution: true,
         });
 
@@ -713,9 +694,8 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
 
       test(`[${moduleType}] should handle jobs with constructor arguments in manual resolution`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
           manualJobResolution: true,
         });
 
@@ -738,9 +718,8 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
 
       test(`[${moduleType}] should fall back to automatic resolution when manualJobResolution is false`, async () => {
         await Sidequest.start({
-          backend,
+          ...defaultConfig,
           queues: [{ name: "default" }],
-          logger,
           manualJobResolution: false, // Explicitly disable manual resolution
         });
 

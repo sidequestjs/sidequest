@@ -4,7 +4,18 @@ import { JobData, JobState, QueueConfig } from "@sidequest/core";
  * Data required to create a new job.
  */
 export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "constructor_args"> &
-  Partial<Pick<JobData, "max_attempts" | "available_at" | "timeout" | "unique_digest" | "uniqueness_config">> & {
+  Partial<
+    Pick<
+      JobData,
+      | "max_attempts"
+      | "available_at"
+      | "timeout"
+      | "unique_digest"
+      | "uniqueness_config"
+      | "retry_delay"
+      | "backoff_strategy"
+    >
+  > & {
     /** The job state, always 'waiting' for new jobs. */
     state: "waiting";
     /** The attempt number, always 0 for new jobs. */

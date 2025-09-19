@@ -119,6 +119,61 @@ await Sidequest.build(CriticalJob)
 - Failed jobs are automatically retried with exponential backoff
 - Jobs that exceed max attempts are marked as "failed" and are not retried again
 
+### `.retryDelay(milliseconds: number)`
+
+Sets the base delay in milliseconds before retrying a failed job. The actual delay depends on the backoff strategy:
+
+- **Fixed backoff**: Uses this exact delay for all retries
+- **Exponential backoff**: Uses this as the base delay, multiplying by 2^(attempt-1)
+
+```typescript
+await Sidequest.build(EmailJob)
+  .retryDelay(5000) // 5 seconds base delay
+  .backoffStrategy("fixed") // Always wait exactly 5 seconds
+  .enqueue(...args);
+
+await Sidequest.build(ApiJob)
+  .retryDelay(1000) // 1 second base delay
+  .backoffStrategy("exponential") // 1s, 2s, 4s, 8s, etc.
+  .enqueue(...args);
+```
+
+**Default:** `1000` (1 second)
+
+### `.backoffStrategy(strategy: "fixed" | "exponential")`
+
+Controls how retry delays are calculated when a job fails and needs to be retried:
+
+**Fixed Strategy:**
+
+- Uses the same delay for all retry attempts
+- Predictable timing for retries
+- Good for rate-limited APIs or consistent service issues
+
+**Exponential Strategy:**
+
+- Delays increase exponentially with each attempt: base × 2^(attempt-1) \* jitter
+- Helps avoid overwhelming failing services
+- Recommended for most use cases
+
+```typescript
+// Fixed backoff - always wait 3 seconds between retries
+await Sidequest.build(EmailJob)
+  .retryDelay(3000)
+  .backoffStrategy("fixed")
+  .maxAttempts(4) // Retries at: 3s, 3s, 3s
+  .enqueue(...args);
+
+// Exponential backoff - increasing delays
+await Sidequest.build(ApiJob)
+  .retryDelay(1000)
+  .backoffStrategy("exponential")
+  .maxAttempts(5) // Retries at: 1s, 2s, 4s, 8s
+  .enqueue(...args);
+```
+
+**Default:** `"exponential"`
+
 ### `.availableAt(date: Date)`
 
 Schedules the job to become available for processing at a specific time. This is useful for delayed job execution.
@@ -316,6 +371,8 @@ await Sidequest.build(EmailJob)
   .queue("emails")
   .timeout(30000)
   .maxAttempts(3)
+  .retryDelay(2000) // 2 second base delay
+  .backoffStrategy("exponential") // 2s, 4s retry delays
   .unique({ withArgs: true }) // Unique per recipient and content
   .enqueue("user@example.com", "Welcome!", "Thanks for signing up!");
 
@@ -324,6 +381,8 @@ await Sidequest.build(PasswordResetJob)
   .queue("critical")
   .timeout(15000)
   .maxAttempts(5)
+  .retryDelay(1000) // 1 second base delay
+  .backoffStrategy("fixed") // Consistent 1s delays for predictable timing
   .unique({
     withArgs: true,
     period: "hour", // Max one per email per hour
@@ -335,6 +394,8 @@ await Sidequest.build(WeeklyReportJob)
   .queue("reports")
   .timeout(5 * 60 * 1000) // 5 minutes
   .maxAttempts(2)
+  .retryDelay(30000) // 30 second delay for heavy operations
+  .backoffStrategy("exponential")
   .availableAt(getNextSunday()) // Custom scheduling function
   .unique({
     period: "week", // One per week maximum
@@ -346,6 +407,8 @@ await Sidequest.build(CustomApiJob)
   .with("api-key", "us-east-1") // Constructor args
   .queue("api-calls")
   .timeout(60000)
+  .retryDelay(5000) // 5 second delays for external API calls
+  .backoffStrategy("fixed") // Predictable timing for API rate limits
   .unique(false) // Allow multiple concurrent API calls
   .enqueue("GET", "/users", { page: 1 }); // Run method args
 ```
