@@ -18,6 +18,7 @@ import nodeCron, { ScheduledTask } from "node-cron";
 import { inspect } from "node:util";
 import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { JOB_BUILDER_FALLBACK } from "./constants";
+import { ScheduledJobRegistry } from "./cron-registry";
 
 /**
  * Configuration for job uniqueness constraints.
@@ -68,24 +69,24 @@ export interface JobBuilderDefaults {
  * @template T The job class type.
  */
 export class JobBuilder<T extends JobClassType> {
-  private constructorArgs?: ConstructorParameters<T>;
-  private queueName?: string;
-  private jobTimeout?: number;
-  private uniquenessConfig?: UniquenessConfig;
-  private jobMaxAttempts?: number;
-  private jobAvailableAt?: Date;
-  private jobRetryDelay?: number;
-  private jobBackoffStrategy?: BackoffStrategy;
+  protected constructorArgs?: ConstructorParameters<T>;
+  protected queueName?: string;
+  protected jobTimeout?: number;
+  protected uniquenessConfig?: UniquenessConfig;
+  protected jobMaxAttempts?: number;
+  protected jobAvailableAt?: Date;
+  protected jobRetryDelay?: number;
+  protected jobBackoffStrategy?: BackoffStrategy;
 
   /**
    * Creates a new JobBuilder for the given job class.
    * @param JobClass The job class constructor.
    */
   constructor(
-    private backend: Backend,
-    private JobClass: T,
-    private defaults?: JobBuilderDefaults,
-    private manualJobResolution = false,
+    protected backend: Backend,
+    protected JobClass: T,
+    protected defaults?: JobBuilderDefaults,
+    protected manualJobResolution = false,
   ) {
     this.queue(this.defaults?.queue ?? JOB_BUILDER_FALLBACK.queue!);
     this.maxAttempts(this.defaults?.maxAttempts ?? JOB_BUILDER_FALLBACK.maxAttempts!);
@@ -208,7 +209,7 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
-  private async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
+  protected async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
     if (!this.manualJobResolution) {
@@ -274,10 +275,11 @@ export class JobBuilder<T extends JobClassType> {
    * @remarks
    * - The schedule is **not persisted** to any database. It will be lost if the process restarts and must be re-registered at startup.
    * - You must call this method during application initialization to ensure the job is scheduled correctly.
-   * - Uses node-cron’s `noOverlap: true` option to prevent concurrent executions.
+   * - Uses node-cron's `noOverlap: true` option to prevent concurrent executions.
+   * - The scheduled task is registered with the CronRegistry for proper cleanup during shutdown.
    *
    * @param cronExpression - A valid cron expression (node-cron compatible) that defines when the job should be enqueued.
-   * @param args - Arguments to be passed to the job’s `run` method on each scheduled execution.
+   * @param args - Arguments to be passed to the job's `run` method on each scheduled execution.
    *
    * @returns The underlying `ScheduledTask` instance created by node-cron.
    *
@@ -302,7 +304,7 @@ export class JobBuilder<T extends JobClassType> {
         `constructor args: ${inspect(this.constructorArgs)}`,
     );
 
-    return nodeCron.schedule(
+    const scheduledTask = nodeCron.schedule(
       cronExpression,
       async () => {
         const newJobData: NewJobData = Object.assign({}, jobData);
@@ -313,5 +315,10 @@ export class JobBuilder<T extends JobClassType> {
       },
       { noOverlap: true },
     );
+
+    // Register the scheduled task with the ScheduledJobRegistry for proper later cleanup
+    ScheduledJobRegistry.register(scheduledTask);
+
+    return scheduledTask;
   }
 }

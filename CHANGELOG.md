@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/sidequestjs/sidequest/compare/v1.7.0...v1.7.1) (2025-09-10)
+
+
+### Bug Fixes
+
+* scheduled jobs not stopping with Sidequest ([#100](https://github.com/sidequestjs/sidequest/issues/100)) ([129ee4e](https://github.com/sidequestjs/sidequest/commit/129ee4e6466a743d2a4f08a6ed55be0ae50bddb9))
+
 # [1.7.0](https://github.com/sidequestjs/sidequest/compare/v1.6.2...v1.7.0) (2025-09-03)
 
 

@@ -9,7 +9,10 @@ import { JobBuilder } from "./job-builder";
 vi.mock("node-cron", () => ({
   default: {
     validate: vi.fn(() => true),
-    schedule: vi.fn(),
+    schedule: vi.fn(() => ({
+      id: "mocked-schedule-id",
+      stop: vi.fn(),
+    })),
   },
 }));
 
