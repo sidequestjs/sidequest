@@ -39,6 +39,8 @@ export default function defineCreateNewJobTestSuite() {
       expect(insertedJob.timeout).toBe(null);
       expect(insertedJob.unique_digest).toBe(null);
       expect(insertedJob.uniqueness_config).toBe(null);
+      expect(insertedJob.retry_delay).toBe(null);
+      expect(insertedJob.backoff_strategy).toBe("exponential");
     });
 
     it("should insert a new job with all optionals", async () => {
@@ -62,6 +64,8 @@ export default function defineCreateNewJobTestSuite() {
         uniqueness_config: {
           type: "alive",
         },
+        backoff_strategy: "fixed",
+        retry_delay: 15,
       };
 
       const insertedJob = await backend.createNewJob(job);
@@ -87,6 +91,8 @@ export default function defineCreateNewJobTestSuite() {
       expect(insertedJob.timeout).toBe(10);
       expect(insertedJob.unique_digest).toBe("test");
       expect(insertedJob.uniqueness_config).toMatchObject({ type: "alive" });
+      expect(insertedJob.retry_delay).toBe(15);
+      expect(insertedJob.backoff_strategy).toBe("fixed");
     });
 
     it("should not insert two jobs with the same unique digest", async () => {

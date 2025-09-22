@@ -3,6 +3,7 @@ import {
   AliveJobConfig,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type AliveJobUniqueness,
+  BackoffStrategy,
   FixedWindowConfig,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type FixedWindowUniqueness,
@@ -57,6 +58,10 @@ export interface JobBuilderDefaults {
   maxAttempts?: number;
   /** Default available at date for jobs built with the JobBuilder */
   availableAt?: Date;
+  /** Default retry delay in milliseconds for jobs built with the JobBuilder */
+  retryDelay?: number;
+  /** Default backoff strategy for jobs built with the JobBuilder */
+  backoffStrategy?: BackoffStrategy;
 }
 
 /**
@@ -70,6 +75,8 @@ export class JobBuilder<T extends JobClassType> {
   protected uniquenessConfig?: UniquenessConfig;
   protected jobMaxAttempts?: number;
   protected jobAvailableAt?: Date;
+  protected jobRetryDelay?: number;
+  protected jobBackoffStrategy?: BackoffStrategy;
 
   /**
    * Creates a new JobBuilder for the given job class.
@@ -87,6 +94,8 @@ export class JobBuilder<T extends JobClassType> {
     this.timeout(this.defaults?.timeout ?? JOB_BUILDER_FALLBACK.timeout!);
     this.unique(this.defaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!);
     this.with(...(JOB_BUILDER_FALLBACK.constructorArgs as unknown as ConstructorParameters<T>));
+    this.retryDelay(this.defaults?.retryDelay ?? JOB_BUILDER_FALLBACK.retryDelay!);
+    this.backoffStrategy(this.defaults?.backoffStrategy ?? JOB_BUILDER_FALLBACK.backoffStrategy!);
   }
 
   /**
@@ -174,6 +183,32 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
+  /**
+   * Delay before retrying a failed job, in milliseconds.
+   *
+   * If "backoff_strategy" is "exponential", this value is used as the base delay for calculating exponential backoff.
+   *
+   * @param value The retry delay in milliseconds.
+   * @returns This builder instance.
+   */
+  retryDelay(value: number): this {
+    this.jobRetryDelay = value;
+    return this;
+  }
+
+  /**
+   * Strategy used for calculating backoff delays between retries.
+   * - "exponential": Delays increase exponentially with each attempt.
+   * - "fixed": Delays remain constant for each attempt.
+   *
+   * @param value The backoff strategy.
+   * @returns This builder instance.
+   */
+  backoffStrategy(value: BackoffStrategy): this {
+    this.jobBackoffStrategy = value;
+    return this;
+  }
+
   protected async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
@@ -199,10 +234,12 @@ export class JobBuilder<T extends JobClassType> {
       args,
       constructor_args: this.constructorArgs!,
       attempt: 0,
-      max_attempts: this.jobMaxAttempts!,
-      available_at: this.jobAvailableAt!,
-      timeout: this.jobTimeout!,
-      uniqueness_config: this.uniquenessConfig!,
+      max_attempts: this.jobMaxAttempts,
+      available_at: this.jobAvailableAt,
+      timeout: this.jobTimeout,
+      uniqueness_config: this.uniquenessConfig,
+      retry_delay: this.jobRetryDelay,
+      backoff_strategy: this.jobBackoffStrategy,
     };
 
     if (this.uniquenessConfig) {

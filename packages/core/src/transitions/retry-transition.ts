@@ -42,7 +42,13 @@ export class RetryTransition extends JobTransition {
     logger("Core").error(this.reason);
     const reason = toErrorData(this.reason);
 
-    const delay = this.delay ?? this.calculateBackoff(job.attempt);
+    // We use the provided delay (priority), or the job's retry_delay (next priority), or default to 1000ms
+    let delay: number = this.delay ?? job.retry_delay ?? 1000;
+    // If the job uses exponential backoff, we use the base delay to compute it
+    if (job.backoff_strategy === "exponential") {
+      logger("Core").debug(`Calculating exponential backoff for job #${job.id} - ${job.class}`);
+      delay = this.calculateBackoff(job.attempt, delay);
+    }
     logger("Core").info(`Retrying failed job #${job.id} - ${job.class} in ${delay}ms`);
 
     const errData = {

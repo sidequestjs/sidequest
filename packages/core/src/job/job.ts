@@ -2,7 +2,7 @@ import { access } from "fs/promises";
 import path from "path";
 import { pathToFileURL } from "url";
 import { logger } from "../logger";
-import { ErrorData, JobData, JobState } from "../schema";
+import { BackoffStrategy, ErrorData, JobData, JobState } from "../schema";
 import { toErrorData } from "../tools";
 import { CompletedResult, FailedResult, isJobResult, JobResult, RetryResult, SnoozeResult } from "../transitions";
 import { UniquenessConfig } from "../uniquiness";
@@ -75,6 +75,8 @@ export abstract class Job implements JobData {
   readonly claimed_by!: string | null;
   readonly unique_digest!: string | null;
   readonly uniqueness_config!: UniquenessConfig | null;
+  readonly backoff_strategy!: BackoffStrategy;
+  readonly retry_delay!: number | null;
 
   /**
    * Initializes the job and resolves its script path.

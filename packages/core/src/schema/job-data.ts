@@ -19,6 +19,14 @@ export type JobState =
   | "completed" // Finished successfully
   | "canceled"; // Manually canceled
 
+/**
+ * Defines the strategy for calculating backoff delays between job retry attempts.
+ *
+ * - `"exponential"`: Delays increase exponentially with each attempt, often with added jitter to prevent thundering herd problems.
+ * - `"fixed"`: Delays remain constant for each attempt, providing a predictable retry interval.
+ */
+export type BackoffStrategy = "exponential" | "fixed";
+
 // #region JobData
 /**
  * Represents the data structure for a job in the queue system.
@@ -141,5 +149,19 @@ export interface JobData {
    * Configuration object for job uniqueness, or null if not set.
    */
   uniqueness_config: UniquenessConfig | null;
+
+  /**
+   * Delay before retrying a failed job, in milliseconds. Null if not set.
+   *
+   * If "backoff_strategy" is "exponential", this value is used as the base delay for calculating exponential backoff.
+   */
+  retry_delay: number | null;
+
+  /**
+   * Strategy used for calculating backoff delays between retries.
+   * - "exponential": Delays increase exponentially with each attempt.
+   * - "fixed": Delays remain constant for each attempt.
+   */
+  backoff_strategy: BackoffStrategy;
 }
 // #endregion JobData
