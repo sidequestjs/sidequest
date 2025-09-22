@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/backend",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "@sidequest/backend is the backend package of SideQuest, a distributed job queue for Node.js and TypeScript.",
   "keywords": [
     "nodejs",

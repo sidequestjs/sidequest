@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/sidequestjs/sidequest/compare/v1.7.1...v1.8.0) (2025-09-22)
+
+
+### Features
+
+* add retry delay and backoff strategy to job data and related tests ([#102](https://github.com/sidequestjs/sidequest/issues/102)) ([664fe5a](https://github.com/sidequestjs/sidequest/commit/664fe5a3163518362803446db9e83fe4671c9d49))
+
 ## [1.7.1](https://github.com/sidequestjs/sidequest/compare/v1.7.0...v1.7.1) (2025-09-10)
 
 
