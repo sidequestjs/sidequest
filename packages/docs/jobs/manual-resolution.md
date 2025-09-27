@@ -27,9 +27,9 @@ When you see `sidequest.jobs.js` as the job script, it indicates that the job cl
 
 When manual job resolution is enabled:
 
-1. **Job Enqueuing**: Jobs are enqueued with `script: "sidequest.jobs.js"` instead of specific file paths
-2. **Job Execution**: The runner looks for a `sidequest.jobs.js` file in the current directory or any parent directory
-3. **Class Resolution**: Job classes are imported from the central registry file instead of individual script files
+1. **Config Override (optional)**: If `paths.start` is set, Sidequest loads that file directly.
+2. **Job Execution (default search)**: Otherwise, the runner looks for a `sidequest.jobs.js` file in the current directory or any parent directory.
+3. **Class Resolution**: Job classes are imported from the central registry file instead of individual script files.
 
 ## Setting Up Manual Job Resolution
 
@@ -45,6 +45,10 @@ await Sidequest.start({
   backend: { driver: "@sidequest/sqlite-backend" },
   queues: [{ name: "default" }],
   manualJobResolution: true, // Enable manual job resolution
+
+  // Optional: explicitly point to your compiled registry file
+  // Useful when the file lives in dist/build or a non-standard location
+  // paths: { start: "./dist/sidequest.jobs.js" },
 });
 ```
 
@@ -73,10 +77,25 @@ await Sidequest.build(EmailJob).enqueue("user@example.com", "Welcome!", "Hello w
 await Sidequest.build(ProcessImageJob).with(imageProcessor).enqueue("/path/to/image.jpg");
 ```
 
+### Step 4: Using a Custom Jobs File Path
+
+If your registry file is emitted to a non-standard location (e.g. `dist/`), set `paths.start`:
+
+```typescript
+await Sidequest.start({
+  backend: { driver: "@sidequest/postgres-backend", config: "postgres://..." },
+  manualJobResolution: true,
+  paths: {
+    start: "./dist/sidequest.jobs.js", // direct path to the registry file
+  },
+});
+```
+
 ## File Discovery
 
 Sidequest searches for the `sidequest.jobs.js` file using the following strategy:
 
+0. **Explicit Override**: If `paths.start` is provided, use that file directly.
 1. **Current Working Directory**: Starts from `process.cwd()`
 2. **Parent Traversal**: Walks up the directory tree checking each parent directory
 3. **Root Directory**: Stops when it reaches the file system root
@@ -226,6 +245,12 @@ If you move a job class to a different file, remember to update the import path 
 
 ### Common Issues
 
+#### Start Path Override Not Found
+
+```text
+Error: Start path override "./dist/sidequest.jobs.js" not found
+```
+
 #### File Not Found Error
 
 ```text
@@ -277,3 +302,5 @@ await Sidequest.start({
 2. **Enable Manual Resolution**: Set `manualJobResolution: true` in your engine config
 3. **Test Thoroughly**: Verify all jobs can be enqueued and executed
 4. **Update Deployment**: Ensure the registry file is included in your deployment artifacts and any worker that uses Sidequest
+
+**Tip:** If your CI/CD emits the registry file to a build folder, set `paths.start` to that compiled file so workers don’t rely on source-tree layout.

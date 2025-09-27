@@ -131,6 +131,23 @@ import { EmailJob } from "./jobs/EmailJob.js";
 await Sidequest.build(EmailJob).enqueue("user@example.com", "Welcome!", "Thanks for signing up!");
 ```
 
+### 4. Manual Job Resolution (optional)
+
+By default, Sidequest automatically resolves job classes from their file paths.  
+If you prefer a central registry (e.g. `sidequest.jobs.js`) or need to load jobs from a custom build directory, enable **manual job resolution**:
+
+```ts
+await Sidequest.start({
+  backend: { driver: "@sidequest/postgres-backend" },
+  manualJobResolution: true,
+  paths: {
+    start: "./dist/sidequest.jobs.js", // optional override
+  },
+});
+```
+
+See the full guide: [Manual Job Resolution docs](https://github.com/sidequestjs/sidequest/blob/master/packages/docs/jobs/manual-resolution.md).
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
