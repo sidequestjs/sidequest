@@ -28,7 +28,18 @@ export const MANUAL_SCRIPT_TAG = "sidequest.jobs.js";
  * const packageFile = findFileInParentDirs("package.json", "/some/project/dir");
  * ```
  */
-export function findSidequestJobsScriptInParentDirs(fileName = "sidequest.jobs.js", startDir = process.cwd()): string {
+export function findSidequestJobsScriptInParentDirs(
+  fileName = "sidequest.jobs.js",
+  startDir = process.cwd(),
+  startPath?,
+): string {
+  if (startPath) {
+    const resolved = resolve(process.cwd(), startPath);
+    if (existsSync(resolved)) {
+      return pathToFileURL(resolved).href;
+    }
+    throw new Error(`Start path override "${startPath}" not found`);
+  }
   if (!fileName.trim()) {
     throw new Error("fileName must be a non-empty string");
   }

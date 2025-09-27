@@ -253,4 +253,24 @@ describe("findSidequestJobsScriptInParentDirs", () => {
       expect(result).toBe(pathToFileURL(filePath).href);
     });
   });
+
+  describe("startPath override", () => {
+    it("should resolve file directly from startPath when provided", () => {
+      const fileName = "custom.jobs.js";
+      const filePath = join(tempDir, fileName);
+      writeFileSync(filePath, "export default {};");
+
+      const result = findSidequestJobsScriptInParentDirs("sidequest.jobs.js", tempDir, filePath);
+
+      expect(result).toBe(pathToFileURL(filePath).href);
+    });
+
+    it("should throw if startPath does not exist", () => {
+      const invalidPath = join(tempDir, "missing.jobs.js");
+
+      expect(() => {
+        findSidequestJobsScriptInParentDirs("sidequest.jobs.js", tempDir, invalidPath);
+      }).toThrow(`Start path override "${invalidPath}" not found`);
+    });
+  });
 });

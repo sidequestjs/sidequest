@@ -71,6 +71,37 @@ export interface EngineConfig {
    * Defaults to `false`.
    */
   manualJobResolution?: boolean;
+
+  /**
+   * Optional configuration for custom file system paths.
+   */
+  paths?: {
+    /**
+     * Override path for the `sidequest.jobs.js` (or `.ts`) entry file used in
+     * manual job resolution mode.
+     *
+     * By default, Sidequest will search upward from `process.cwd()` to locate
+     * a `sidequest.jobs.js` file. If this property is set, Sidequest will use
+     * the provided path directly instead of searching.
+     *
+     * This is useful when:
+     * - The jobs file is transpiled into a build directory (e.g., `build/sidequest.jobs.js`)
+     * - You want Sidequest to load jobs from a non-standard location
+     * - Your project has multiple job registries
+     *
+     * @example
+     * ```ts
+     * await Sidequest.start({
+     *   backend: { driver: "@sidequest/sqlite-backend", config: "./sidequest.sqlite" },
+     *   manualJobResolution: true,
+     *   paths: {
+     *     start: "./build/sidequest.jobs.js",
+     *   },
+     * });
+     * ```
+     */
+    start?: string;
+  };
 }
 
 /**
@@ -158,6 +189,9 @@ export class Engine {
         state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state,
       },
       manualJobResolution: config?.manualJobResolution ?? false,
+      paths: config?.paths ?? {
+        start: "sidequest.jobs.js",
+      },
     };
 
     if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {

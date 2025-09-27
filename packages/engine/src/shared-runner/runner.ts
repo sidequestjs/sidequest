@@ -21,7 +21,7 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
       logger("Runner").debug("Manual job resolution is enabled; importing 'sidequest.jobs.js' job script.");
       try {
         // When manual job resolution is enabled, import from the sidequest.jobs.js script
-        scriptUrl = findSidequestJobsScriptInParentDirs();
+        scriptUrl = findSidequestJobsScriptInParentDirs("sidequest.jobs.js", process.cwd(), config?.paths?.start);
       } catch (error) {
         const errorMessage = `Failed to locate 'sidequest.jobs.js' for manual job resolution: ${error instanceof Error ? error.message : String(error)}`;
         logger("Runner").error(errorMessage);
