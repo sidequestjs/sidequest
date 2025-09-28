@@ -31,7 +31,7 @@ export const MANUAL_SCRIPT_TAG = "sidequest.jobs.js";
 export function findSidequestJobsScriptInParentDirs(
   fileName = "sidequest.jobs.js",
   startDir = process.cwd(),
-  startPath?,
+  startPath?: string,
 ): string {
   if (startPath) {
     const resolved = resolve(process.cwd(), startPath);
