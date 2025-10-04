@@ -38,20 +38,6 @@ export class ParameterizedJob extends DummyJob {
 }
 
 describe("Engine", () => {
-  beforeAll(() => {
-    // Ensure MANUAL_SCRIPT_TAG file exists for tests that rely on it
-    writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
-  });
-
-  afterAll(() => {
-    // Clean up the MANUAL_SCRIPT_TAG file after tests
-    try {
-      rmSync(MANUAL_SCRIPT_TAG);
-    } catch {
-      // Ignore errors if file doesn't exist
-    }
-  });
-
   describe("validateConfig", () => {
     sidequestTest("should throw error when maxConcurrentJobs is negative", async () => {
       const engine = new Engine();
@@ -162,6 +148,8 @@ describe("Engine", () => {
       const engine = new Engine();
       const customAvailableAt = new Date("2025-01-01");
 
+      writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
+
       const config = await engine.configure({
         backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
         queues: [{ name: "test-queue", concurrency: 5 }],
@@ -218,6 +206,7 @@ describe("Engine", () => {
       expect(config.idleWorkerTimeout).toBe(600);
       expect(config.manualJobResolution).toBe(true);
 
+      rmSync(MANUAL_SCRIPT_TAG);
       await engine.close();
     });
 
@@ -679,6 +668,20 @@ describe("Engine", () => {
   });
 
   describe("manualJobResolution", () => {
+    beforeAll(() => {
+      // Ensure MANUAL_SCRIPT_TAG file exists for tests that rely on it
+      writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
+    });
+
+    afterAll(() => {
+      // Clean up the MANUAL_SCRIPT_TAG file after tests
+      try {
+        rmSync(MANUAL_SCRIPT_TAG);
+      } catch {
+        // Ignore errors if file doesn't exist
+      }
+    });
+
     sidequestTest("should configure engine with manualJobResolution enabled", async () => {
       const engine = new Engine();
       const config = await engine.configure({
