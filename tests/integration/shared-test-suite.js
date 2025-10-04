@@ -805,7 +805,7 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         expect(processedJob?.state).toBe("completed");
       });
 
-      test.only(`[${moduleType}] should handle different job types with custom jobsFilePath`, async () => {
+      test(`[${moduleType}] should handle different job types with custom jobsFilePath`, async () => {
         await Sidequest.start({
           ...defaultConfig,
           queues: [{ name: "default" }],

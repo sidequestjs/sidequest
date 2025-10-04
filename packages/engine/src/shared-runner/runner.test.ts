@@ -14,10 +14,14 @@ vi.mock("../utils/import", () => ({
 }));
 
 // Mock the manual loader to control which file it returns
-vi.mock("./manual-loader", () => ({
-  findSidequestJobsScriptInParentDirs: vi.fn(),
-  MANUAL_SCRIPT_TAG: "sidequest.jobs.js",
-}));
+vi.mock("./manual-loader", async (importOriginal) => {
+  const originalModule = await importOriginal<typeof import("./manual-loader")>();
+  return {
+    findSidequestJobsScriptInParentDirs: vi.fn(),
+    resolveScriptPath: originalModule.resolveScriptPath,
+    MANUAL_SCRIPT_TAG: "sidequest.jobs.js",
+  };
+});
 
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
 
@@ -214,7 +218,7 @@ export default { DummyJob };
     const result = (await run({ jobData, config: configWithManualResolution })) as FailedResult;
 
     expect(result.type).toEqual("failed");
-    expect(result.error.message).toMatch(/does not exist/);
+    expect(result.error.message).toMatch(/Unable to resolve script path/);
   });
 
   sidequestTest("fails when job class is not exported in sidequest.jobs.js", async ({ config }) => {
