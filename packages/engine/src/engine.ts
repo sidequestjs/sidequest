@@ -198,6 +198,22 @@ export class Engine {
     return this.config;
   }
 
+  /**
+   * Validates the engine configuration settings.
+   *
+   * This method also resolves the jobs file path to a file URL if manual job resolution is enabled.
+   *
+   * @throws {Error} When `maxConcurrentJobs` is defined but less than 1
+   * @throws {Error} When `manualJobResolution` is enabled but the specified `jobsFilePath` does not exist
+   * @throws {Error} When `manualJobResolution` is enabled but no jobs script can be found in parent directories
+   *
+   * @remarks
+   * - Ensures `maxConcurrentJobs` is at least 1 if specified
+   * - When `manualJobResolution` is enabled, validates that either:
+   *   - A valid `jobsFilePath` exists and resolves it to an absolute URL
+   *   - A sidequest jobs script can be found in parent directories
+   * - Logs the resolved jobs file path when using manual job resolution
+   */
   validateConfig() {
     if (this.config!.maxConcurrentJobs !== undefined && this.config!.maxConcurrentJobs < 1) {
       throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);

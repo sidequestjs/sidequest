@@ -28,7 +28,7 @@ When you see `sidequest.jobs.js` as the job script, it indicates that the job cl
 When manual job resolution is enabled:
 
 1. **Job Enqueuing**: Jobs are enqueued with `script: "sidequest.jobs.js"` instead of specific file paths
-2. **Job Execution**: The runner looks for a `sidequest.jobs.js` file in the current directory or any parent directory
+2. **Job Execution**: The runner looks for a `sidequest.jobs.js` file in the current directory or any parent directory. If the `jobsFilePath` configuration is set, it uses that path instead.
 3. **Class Resolution**: Job classes are imported from the central registry file instead of individual script files
 
 ## Setting Up Manual Job Resolution
@@ -45,12 +45,13 @@ await Sidequest.start({
   backend: { driver: "@sidequest/sqlite-backend" },
   queues: [{ name: "default" }],
   manualJobResolution: true, // Enable manual job resolution
+  jobsFilePath: "./sidequest.jobs.js", // Optional: specify custom path. If not set, defaults to searching for sidequest.jobs.js in parent dirs
 });
 ```
 
 ### Step 2: Create the Job Registry
 
-Create a `sidequest.jobs.js` file in your project root (or any parent directory):
+Create a `sidequest.jobs.js` file in your project root (or any parent directory), or where you specified in `jobsFilePath`:
 
 ```javascript
 // sidequest.jobs.js
@@ -74,6 +75,8 @@ await Sidequest.build(ProcessImageJob).with(imageProcessor).enqueue("/path/to/im
 ```
 
 ## File Discovery
+
+### Finding `sidequest.jobs.js` when `jobsFilePath` is not set
 
 Sidequest searches for the `sidequest.jobs.js` file using the following strategy:
 
@@ -125,6 +128,24 @@ For example:
 
 In this case, since `sidequest.jobs.js` is at the `My Projects/` level, both worker projects can find it when they start up.
 If this file exports all job classes used by both projects, everything will work seamlessly.
+
+### Finding `sidequest.jobs.js` when `jobsFilePath` is set
+
+If you set the `jobsFilePath` configuration option, Sidequest will use that exact path to locate the `sidequest.jobs.js` file.
+This is useful if you want to place the file in a non-standard location or have multiple job registries for different environments.
+
+If you provide an absolute path or file URL, Sidequest will use that directly.
+However, if you provide a relative path, it will be resolved relative to the file that called `Sidequest.start` or `Sidequest.configure`.
+
+For example, if you provide `jobsFilePath: "./config/sidequest.jobs.js"` in your main application file which is located at `/app/src/server.js`, Sidequest will look for the jobs file at `/app/src/config/sidequest.jobs.js`.
+
+```text
+/app/
+└── src/
+    ├── server.js
+    └── config/
+        └── sidequest.jobs.js
+```
 
 ## Best Practices
 
