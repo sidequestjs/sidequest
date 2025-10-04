@@ -18,7 +18,7 @@ const defaultKnexConfig = {
  * Represents a backend implementation for SQLite databases using Knex.
  *
  * This class extends the `SQLBackend` and configures a Knex instance
- * for SQLite3, specifying the database file path, migration directory,
+ * for better-sqlite3, specifying the database file path, migration directory,
  * migration table name, and file extension for migration files.
  *
  * @example
