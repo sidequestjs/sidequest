@@ -167,6 +167,31 @@ export default { DummyJob };
     });
   });
 
+  sidequestTest("runs a job with manual resolution enabled and custom path", async ({ config }) => {
+    // Create sidequest.jobs.js with unique name
+    const jobsFileContent = `
+import { DummyJob } from "./packages/engine/src/test-jobs/dummy-job.js";
+
+export { DummyJob };
+export default { DummyJob };
+    `;
+    await writeFile(sidequestJobsPath, jobsFileContent);
+
+    // Mock the function to return our unique file
+    mockedFindSidequestJobsScript.mockReturnValue(`file://${sidequestJobsPath.replace(/\\/g, "/")}`);
+
+    // Enable manual job resolution
+    const configWithManualResolution = { ...config, manualJobResolution: true, jobsFilePath: sidequestJobsPath };
+
+    const result = await run({ jobData, config: configWithManualResolution });
+
+    expect(result).toEqual({
+      __is_job_transition__: true,
+      type: "completed",
+      result: "dummy job",
+    });
+  });
+
   sidequestTest("fails when sidequest.jobs.js file is not found", async ({ config }) => {
     // Mock the function to throw an error
     mockedFindSidequestJobsScript.mockImplementation(() => {
@@ -180,6 +205,16 @@ export default { DummyJob };
 
     expect(result.type).toEqual("failed");
     expect(result.error.message).toMatch(/not found in.*or any parent directory/);
+  });
+
+  sidequestTest("fails when sidequest.jobs.js file is not found in custom path", async ({ config }) => {
+    // Enable manual job resolution
+    const configWithManualResolution = { ...config, manualJobResolution: true, jobsFilePath: "./non-existing" };
+
+    const result = (await run({ jobData, config: configWithManualResolution })) as FailedResult;
+
+    expect(result.type).toEqual("failed");
+    expect(result.error.message).toMatch(/does not exist/);
   });
 
   sidequestTest("fails when job class is not exported in sidequest.jobs.js", async ({ config }) => {

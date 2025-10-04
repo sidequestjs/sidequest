@@ -2,6 +2,7 @@ import { sidequestTest } from "@/tests/fixture";
 import { rmSync, unlinkSync, writeFileSync } from "fs";
 import { platform } from "os";
 import { resolve } from "path";
+import { pathToFileURL } from "url";
 import { describe, expect, vi } from "vitest";
 import { Engine } from "./engine";
 import { MANUAL_SCRIPT_TAG } from "./shared-runner";
@@ -111,7 +112,7 @@ describe("Engine", () => {
         });
 
         expect(config.manualJobResolution).toBe(true);
-        expect(config.jobsFilePath).toBe("./sidequest.jobs.js");
+        expect(config.jobsFilePath).toBe(pathToFileURL(fileLocation).href);
       } finally {
         // Clean up the temporary file
         unlinkSync(fileLocation);
@@ -134,7 +135,7 @@ describe("Engine", () => {
         });
 
         expect(config.manualJobResolution).toBe(true);
-        expect(config.jobsFilePath).toBe("../sidequest.jobs.js");
+        expect(config.jobsFilePath).toBe(pathToFileURL(fileLocation).href);
       } finally {
         // Clean up the temporary file
         unlinkSync(fileLocation);

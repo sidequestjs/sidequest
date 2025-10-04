@@ -83,6 +83,9 @@ export interface EngineConfig {
    * This is useful if your `sidequest.jobs.js` file is located in a non-standard location
    * or if you want to explicitly specify its path.
    *
+   * This option will be resolved and changed at configuration time, and if the file does not exist,
+   * an error will be thrown.
+   *
    * IMPORTANT: if a relative path is provided, it will be resolved relative to the file calling the engine or
    * `Sidequest.configure()`, NOT the current working directory.
    *
@@ -206,6 +209,8 @@ export class Engine {
         if (!existsSync(fileURLToPath(scriptUrl))) {
           throw new Error(`The specified jobsFilePath does not exist. Resolved to: ${scriptUrl}`);
         }
+        logger("Engine").info(`Using manual jobs file at: ${this.config!.jobsFilePath}`);
+        this.config!.jobsFilePath = scriptUrl;
       } else {
         // This should throw an error if not found
         findSidequestJobsScriptInParentDirs();
