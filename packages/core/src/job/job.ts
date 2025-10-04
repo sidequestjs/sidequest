@@ -255,16 +255,16 @@ async function buildPath(className: string) {
   const filePaths = parseStackTrace(err);
 
   for (const filePath of filePaths) {
-    const hasExported = await hasClassExported(filePath!, className);
+    const hasExported = await hasClassExported(filePath, className);
     if (hasExported) {
-      const relativePath = path.relative(import.meta.dirname, filePath!);
+      const relativePath = path.relative(import.meta.dirname, filePath);
       logger("Job").debug(`${filePath} exports class ${className}, relative path: ${relativePath}`);
       return relativePath.replaceAll("\\", "/");
     }
   }
 
   if (filePaths.length > 0) {
-    const relativePath = path.relative(import.meta.dirname, filePaths[0]!);
+    const relativePath = path.relative(import.meta.dirname, filePaths[0]);
     logger("Job").debug(`No class ${className} found in stack, returning first file path: ${relativePath}`);
     return relativePath.replaceAll("\\", "/");
   }
@@ -285,11 +285,11 @@ async function buildPath(className: string) {
  *
  * @example
  * ```typescript
- * const scriptUrl = resolveScriptPath("../../../examples/hello-job.js");
+ * const scriptUrl = resolveScriptPathForJob("../../../examples/hello-job.js");
  * const module = await import(scriptUrl);
  * ```
  */
-export function resolveScriptPath(relativePath: string): string {
+export function resolveScriptPathForJob(relativePath: string): string {
   // If it's already a file URL, return as-is
   if (relativePath.startsWith("file://")) {
     return relativePath;
