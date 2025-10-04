@@ -5,7 +5,7 @@ import { hostname } from "os";
 import path from "path";
 
 const defaultKnexConfig = {
-  client: "sqlite3",
+  client: "better-sqlite3",
   useNullAsDefault: true,
   migrations: {
     directory: path.join(import.meta.dirname, "..", "migrations"),
