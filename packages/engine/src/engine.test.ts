@@ -45,7 +45,11 @@ describe("Engine", () => {
 
   afterAll(() => {
     // Clean up the MANUAL_SCRIPT_TAG file after tests
-    rmSync(MANUAL_SCRIPT_TAG);
+    try {
+      rmSync(MANUAL_SCRIPT_TAG);
+    } catch {
+      // Ignore errors if file doesn't exist
+    }
   });
 
   describe("validateConfig", () => {
