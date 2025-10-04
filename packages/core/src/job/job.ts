@@ -4,6 +4,7 @@ import { pathToFileURL } from "url";
 import { logger } from "../logger";
 import { BackoffStrategy, ErrorData, JobData, JobState } from "../schema";
 import { toErrorData } from "../tools";
+import { parseStackTrace } from "../tools/stack-parser";
 import { CompletedResult, FailedResult, isJobResult, JobResult, RetryResult, SnoozeResult } from "../transitions";
 import { UniquenessConfig } from "../uniquiness";
 
@@ -250,18 +251,8 @@ export abstract class Job implements JobData {
  */
 async function buildPath(className: string) {
   const err = new Error();
-  let stackLines = err.stack?.split("\n") ?? [];
-  stackLines = stackLines.slice(1);
-  logger("Job").debug(`Resolving script file path. Stack lines: ${stackLines.join("\n")}`);
-  const filePaths = stackLines
-    .map((line) => {
-      const match = /(file:\/\/)?(((\/?)(\w:))?([/\\].+)):\d+:\d+/.exec(line);
-      if (match) {
-        return `${match[5] ?? ""}${match[6].replaceAll("\\", "/")}`;
-      }
-      return null;
-    })
-    .filter(Boolean);
+  logger("Job").debug(`Resolving script file path. Stack lines: ${err.stack}`);
+  const filePaths = parseStackTrace(err);
 
   for (const filePath of filePaths) {
     const hasExported = await hasClassExported(filePath!, className);

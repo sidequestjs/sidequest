@@ -1,4 +1,7 @@
 import { sidequestTest } from "@/tests/fixture";
+import { rmSync, unlinkSync, writeFileSync } from "fs";
+import { platform } from "os";
+import { resolve } from "path";
 import { describe, expect, vi } from "vitest";
 import { Engine } from "./engine";
 import { MANUAL_SCRIPT_TAG } from "./shared-runner";
@@ -34,6 +37,112 @@ export class ParameterizedJob extends DummyJob {
 }
 
 describe("Engine", () => {
+  beforeAll(() => {
+    // Ensure MANUAL_SCRIPT_TAG file exists for tests that rely on it
+    writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
+  });
+
+  afterAll(() => {
+    // Clean up the MANUAL_SCRIPT_TAG file after tests
+    rmSync(MANUAL_SCRIPT_TAG);
+  });
+
+  describe("validateConfig", () => {
+    sidequestTest("should throw error when maxConcurrentJobs is negative", async () => {
+      const engine = new Engine();
+
+      await expect(() =>
+        engine.configure({
+          maxConcurrentJobs: -5,
+        }),
+      ).rejects.toThrowError();
+
+      await engine.close();
+    });
+
+    sidequestTest("should throw error when jobsFilePath does not exist with manualJobResolution", async () => {
+      const engine = new Engine();
+
+      await expect(() =>
+        engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "/non/existent/path/sidequest.jobs.js",
+        }),
+      ).rejects.toThrowError();
+
+      await engine.close();
+    });
+
+    sidequestTest("should throw error when jobsFilePath is not found in parent directories", async () => {
+      const engine = new Engine();
+
+      // Use a temp directory that doesn't have sidequest.jobs.js
+      const tempDir = platform() === "win32" ? "C:\\Windows\\Temp" : "/tmp";
+
+      // Mock process.cwd to return temp directory
+      const originalCwd = process.cwd.bind(process);
+      process.cwd = vi.fn(() => tempDir);
+
+      try {
+        await expect(() =>
+          engine.configure({
+            manualJobResolution: true,
+            // Don't provide jobsFilePath, so it will search parent directories
+          }),
+        ).rejects.toThrowError();
+      } finally {
+        process.cwd = originalCwd;
+        await engine.close();
+      }
+    });
+
+    sidequestTest("should accept valid jobsFilePath with manualJobResolution", async () => {
+      const engine = new Engine();
+
+      // Use the actual sidequest.jobs.js file
+      const fileLocation = resolve(import.meta.dirname, "sidequest.jobs.js");
+      try {
+        // We create a file like it will resolve, from the file that calls engine.configure
+        writeFileSync(fileLocation, "// Temporary sidequest.jobs.js file for testing");
+
+        const config = await engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js",
+        });
+
+        expect(config.manualJobResolution).toBe(true);
+        expect(config.jobsFilePath).toBe("./sidequest.jobs.js");
+      } finally {
+        // Clean up the temporary file
+        unlinkSync(fileLocation);
+        await engine.close();
+      }
+    });
+
+    sidequestTest("should accept valid jobsFilePath with manualJobResolution on a different dir", async () => {
+      const engine = new Engine();
+
+      // Use the actual sidequest.jobs.js file
+      const fileLocation = resolve(import.meta.dirname, "..", "sidequest.jobs.js");
+      try {
+        // We create a file like it will resolve, from the file that calls engine.configure
+        writeFileSync(fileLocation, "// Temporary sidequest.jobs.js file for testing");
+
+        const config = await engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "../sidequest.jobs.js",
+        });
+
+        expect(config.manualJobResolution).toBe(true);
+        expect(config.jobsFilePath).toBe("../sidequest.jobs.js");
+      } finally {
+        // Clean up the temporary file
+        unlinkSync(fileLocation);
+        await engine.close();
+      }
+    });
+  });
+
   describe("configure", () => {
     sidequestTest("should configure engine with default values", async () => {
       const engine = new Engine();

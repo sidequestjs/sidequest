@@ -1,13 +1,16 @@
 import { Backend, BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
 import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
+import { existsSync } from "fs";
 import { cpus } from "os";
+import { fileURLToPath } from "url";
 import { inspect } from "util";
 import { DEFAULT_WORKER_PATH } from "./constants";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
 import { ScheduledJobRegistry } from "./job/cron-registry";
 import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
+import { findSidequestJobsScriptInParentDirs, resolveScriptPath } from "./shared-runner";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
 
 /**
@@ -71,6 +74,21 @@ export interface EngineConfig {
    * Defaults to `false`.
    */
   manualJobResolution?: boolean;
+
+  /**
+   * Optional path to the `sidequest.jobs.js` file when using manual job resolution.
+   * If not provided, the engine will search for `sidequest.jobs.js` starting from the current working directory
+   * and walking up through parent directories until it finds the file or reaches the root.
+   *
+   * This is useful if your `sidequest.jobs.js` file is located in a non-standard location
+   * or if you want to explicitly specify its path.
+   *
+   * IMPORTANT: if a relative path is provided, it will be resolved relative to the file calling the engine or
+   * `Sidequest.configure()`, NOT the current working directory.
+   *
+   * If manualJobResolution === false, this option is ignored.
+   */
+  jobsFilePath?: string;
 }
 
 /**
@@ -158,11 +176,10 @@ export class Engine {
         state: config?.queueDefaults?.state ?? QUEUE_FALLBACK.state,
       },
       manualJobResolution: config?.manualJobResolution ?? false,
+      jobsFilePath: config?.jobsFilePath?.trim() ?? "",
     };
 
-    if (this.config.maxConcurrentJobs !== undefined && this.config.maxConcurrentJobs < 1) {
-      throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
-    }
+    this.validateConfig();
 
     logger("Engine").debug(`Configuring Sidequest engine: ${inspect(this.config)}`);
 
@@ -176,6 +193,24 @@ export class Engine {
     }
 
     return this.config;
+  }
+
+  validateConfig() {
+    if (this.config!.maxConcurrentJobs !== undefined && this.config!.maxConcurrentJobs < 1) {
+      throw new Error(`Invalid "maxConcurrentJobs" value: must be at least 1.`);
+    }
+
+    if (this.config!.manualJobResolution) {
+      if (this.config!.jobsFilePath) {
+        const scriptUrl = resolveScriptPath(this.config!.jobsFilePath);
+        if (!existsSync(fileURLToPath(scriptUrl))) {
+          throw new Error(`The specified jobsFilePath does not exist. Resolved to: ${scriptUrl}`);
+        }
+      } else {
+        // This should throw an error if not found
+        findSidequestJobsScriptInParentDirs();
+      }
+    }
   }
 
   /**
