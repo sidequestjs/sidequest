@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { platform } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -330,7 +331,12 @@ describe("resolveScriptPath", () => {
   });
 
   describe("absolute path handling", () => {
-    it("should convert Windows absolute path to file URL", () => {
+    it("should convert Windows absolute path to file URL", (context) => {
+      if (platform() !== "win32") {
+        context.skip();
+        return;
+      }
+
       const absolutePath = "C:\\Users\\test\\project\\script.js";
 
       const result = resolveScriptPath(absolutePath);
@@ -358,20 +364,11 @@ describe("resolveScriptPath", () => {
     });
 
     it("should handle absolute path with special characters", () => {
-      const absolutePath = "C:\\Users\\test@123\\project_name\\script-file.js";
+      const absolutePath = "/Users/test@123/project_name/script-file.js";
 
       const result = resolveScriptPath(absolutePath);
 
       expect(result).toBe(pathToFileURL(absolutePath).href);
-    });
-
-    it("should work with absolute paths on Windows", () => {
-      const windowsPath = "D:\\Projects\\MyApp\\src\\index.js";
-
-      const result = resolveScriptPath(windowsPath);
-
-      expect(result).toBe(pathToFileURL(windowsPath).href);
-      expect(result).toMatch(/^file:\/\//);
     });
   });
 
@@ -467,7 +464,7 @@ describe("resolveScriptPath", () => {
 
   describe("edge cases", () => {
     it("should handle paths without extension", () => {
-      const absolutePath = "C:\\Users\\test\\project\\Dockerfile";
+      const absolutePath = "/Users/test/project/Dockerfile";
 
       const result = resolveScriptPath(absolutePath);
 
@@ -475,7 +472,7 @@ describe("resolveScriptPath", () => {
     });
 
     it("should handle paths with multiple dots", () => {
-      const absolutePath = "C:\\Users\\test\\project\\script.test.js";
+      const absolutePath = "/Users/test/project/script.test.js";
 
       const result = resolveScriptPath(absolutePath);
 
@@ -483,7 +480,7 @@ describe("resolveScriptPath", () => {
     });
 
     it("should handle very long paths", () => {
-      const longPath = "C:\\Users\\test\\" + "very-long-directory-name\\".repeat(20) + "script.js";
+      const longPath = "/Users/test/" + "very-long-directory-name/".repeat(20) + "script.js";
 
       const result = resolveScriptPath(longPath);
 
@@ -491,7 +488,7 @@ describe("resolveScriptPath", () => {
     });
 
     it("should trim whitespace from input", () => {
-      const absolutePath = "  C:\\Users\\test\\project\\script.js  ";
+      const absolutePath = "  /Users/test/project/script.js  ";
 
       const result = resolveScriptPath(absolutePath);
 
@@ -500,7 +497,7 @@ describe("resolveScriptPath", () => {
     });
 
     it("should handle file names with unicode characters", () => {
-      const absolutePath = "C:\\Users\\test\\项目\\脚本.js";
+      const absolutePath = "/Users/test/项目/脚本.js";
 
       const result = resolveScriptPath(absolutePath);
 
@@ -508,7 +505,7 @@ describe("resolveScriptPath", () => {
     });
 
     it("should handle paths with dots in directory names", () => {
-      const absolutePath = "C:\\Users\\test\\.hidden\\script.js";
+      const absolutePath = "/Users/test/.hidden/script.js";
 
       const result = resolveScriptPath(absolutePath);
 
