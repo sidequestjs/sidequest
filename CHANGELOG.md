@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/sidequestjs/sidequest/compare/v1.8.0...v1.9.0) (2025-10-08)
+
+
+### Features
+
+* implement selection saving and restoring functionality in layout ([#115](https://github.com/sidequestjs/sidequest/issues/115)) ([3a97b63](https://github.com/sidequestjs/sidequest/commit/3a97b63ae1b2d079f2d081b295ac76ade8b949fd))
+
 # [1.8.0](https://github.com/sidequestjs/sidequest/compare/v1.7.1...v1.8.0) (2025-09-22)
 
 
