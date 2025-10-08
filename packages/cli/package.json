@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/cli",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "@sidequest/cli is the command line interface for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",
