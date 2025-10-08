@@ -75,9 +75,37 @@ backend: {
 - **Zero Configuration** - No database server setup required, just specify a file path
 - **File-Based Storage** - Self-contained database in a single file for easy deployment
 - **ACID Transactions** - Full transaction support for data integrity and safe job claiming
+- **WAL Mode** - Write-Ahead Logging enabled by default for better concurrent access
 - **Lightweight** - Minimal resource footprint, perfect for development and small deployments
 - **Migration Support** - Automatic database schema management with Knex.js migrations
 - **Portable** - Database files can be easily backed up, moved, or shared
+
+## WAL Mode and Concurrency
+
+The SQLite backend automatically enables **WAL (Write-Ahead Logging) mode** for improved concurrent access. This provides several benefits:
+
+- **Better Concurrency**: Allows multiple readers and one writer simultaneously
+- **Reduced Lock Contention**: Minimizes `SQLITE_BUSY` errors during concurrent job processing
+- **Improved Performance**: Faster writes and better throughput for job queue operations
+- **Safer Transactions**: More reliable atomic operations for job claiming
+
+### WAL Mode Files
+
+When WAL mode is enabled, SQLite creates additional files alongside your main database:
+
+- `sidequest.sqlite` - Main database file
+- `sidequest.sqlite-wal` - Write-ahead log file
+- `sidequest.sqlite-shm` - Shared memory index file
+
+These files are managed automatically by SQLite and should not be manually edited or deleted.
+
+### Limitations
+
+While WAL mode significantly improves concurrency, SQLite is still not recommended for high-concurrency production deployments. For production use with multiple workers or distributed systems, consider using:
+
+- **PostgreSQL** (`@sidequest/postgres-backend`) - Best for production
+- **MySQL** (`@sidequest/mysql-backend`) - Good for production
+- **MongoDB** (`@sidequest/mongo-backend`) - Alternative for production
 
 ## License
 
