@@ -10,6 +10,7 @@
     <script src="/public/js/highlight.js"></script>
     <script src="/public/js/chart.js"></script>
     <script src="/public/js/scroll.js"></script>
+    <script src="/public/js/selection.js"></script>
   </head>
   <body class="h-full bg-base-100 text-base-content">
     <div class="flex h-full">
@@ -28,7 +29,6 @@
           v0.1.0 — OSS Edition
         </div>
       </aside>
-      
 
       <!-- Main content -->
       <main id="main-section" class="flex-1 p-6 overflow-y-auto"><%- body %></main>
@@ -37,7 +37,13 @@
     <script>
       function loadLibs() {
         feather.replace();
+
+        // Save selection before highlighting (which destroys DOM nodes)
+        window.saveSelection();
+        // Highlights all code blocks
         hljs.highlightAll();
+        // Restore selection after highlighting
+        window.restoreSelection();
       }
 
       document.addEventListener("htmx:afterSwap", loadLibs);
