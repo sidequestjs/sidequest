@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/sidequestjs/sidequest/compare/v1.9.0...v1.10.0) (2025-10-08)
+
+
+### Features
+
+* enable WAL mode for SQLite backend to improve concurrency and performance ([#116](https://github.com/sidequestjs/sidequest/issues/116)) ([a2ee3d2](https://github.com/sidequestjs/sidequest/commit/a2ee3d2bbb6a6ab1f4c298c52a0a46c73a6eb509))
+
 # [1.9.0](https://github.com/sidequestjs/sidequest/compare/v1.8.0...v1.9.0) (2025-10-08)
 
 
