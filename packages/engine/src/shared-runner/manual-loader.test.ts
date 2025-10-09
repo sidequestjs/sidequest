@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { platform } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { findSidequestJobsScriptInParentDirs } from "./manual-loader";
+import { findSidequestJobsScriptInParentDirs, resolveScriptPath } from "./manual-loader";
 
 describe("findSidequestJobsScriptInParentDirs", () => {
   const tempDir = resolve(import.meta.dirname, "temp-test-dir");
@@ -251,6 +252,264 @@ describe("findSidequestJobsScriptInParentDirs", () => {
       const result = findSidequestJobsScriptInParentDirs(fileName, tempDir);
 
       expect(result).toBe(pathToFileURL(filePath).href);
+    });
+  });
+});
+
+describe("resolveScriptPath", () => {
+  describe("error handling", () => {
+    it("should throw error for empty string", () => {
+      expect(() => {
+        resolveScriptPath("");
+      }).toThrow();
+    });
+
+    it("should throw error for whitespace-only string", () => {
+      expect(() => {
+        resolveScriptPath("   ");
+      }).toThrow();
+    });
+
+    it("should throw error when relative path cannot be resolved", () => {
+      const nonExistentRelativePath = "./non-existent-file.js";
+
+      expect(() => {
+        resolveScriptPath(nonExistentRelativePath);
+      }).toThrow();
+    });
+
+    it("should throw error for non-existent relative path", () => {
+      const relativePath = "../some/random/path/that/does/not/exist.js";
+
+      expect(() => {
+        resolveScriptPath(relativePath);
+      }).toThrow();
+    });
+  });
+
+  describe("file URL handling", () => {
+    it("should return file URL as-is when already a file URL", () => {
+      const fileUrl = "file:///C:/Users/test/project/script.js";
+
+      const result = resolveScriptPath(fileUrl);
+
+      expect(result).toBe(fileUrl);
+    });
+
+    it("should return file URL for Windows-style file URL", () => {
+      const fileUrl = "file:///C:/path/to/script.js";
+
+      const result = resolveScriptPath(fileUrl);
+
+      expect(result).toBe(fileUrl);
+    });
+
+    it("should return file URL for Unix-style file URL", () => {
+      const fileUrl = "file:///home/user/project/script.js";
+
+      const result = resolveScriptPath(fileUrl);
+
+      expect(result).toBe(fileUrl);
+    });
+
+    it("should not return non-file protocol URLs as-is", () => {
+      const httpUrl = "http://example.com/script.js";
+
+      // Since it's not a file: URL and not a valid file path, it should throw
+      expect(() => {
+        resolveScriptPath(httpUrl);
+      }).toThrow();
+    });
+
+    it("should handle file URLs with encoded characters", () => {
+      const fileUrl = "file:///C:/path%20with%20spaces/script.js";
+
+      const result = resolveScriptPath(fileUrl);
+
+      expect(result).toBe(fileUrl);
+    });
+  });
+
+  describe("absolute path handling", () => {
+    it("should convert Windows absolute path to file URL", (context) => {
+      if (platform() !== "win32") {
+        context.skip();
+        return;
+      }
+
+      const absolutePath = "C:\\Users\\test\\project\\script.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+      expect(result).toMatch(/^file:\/\//);
+    });
+
+    it("should convert Unix absolute path to file URL", () => {
+      const absolutePath = "/home/user/project/script.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+      expect(result).toMatch(/^file:\/\//);
+    });
+
+    it("should handle absolute path with spaces", () => {
+      const absolutePath = resolve(".", "dir with spaces", "script.js");
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+      expect(result).toContain("dir%20with%20spaces");
+    });
+
+    it("should handle absolute path with special characters", () => {
+      const absolutePath = "/Users/test@123/project_name/script-file.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+    });
+  });
+
+  describe("relative path handling", () => {
+    it("should resolve relative path from stack trace context", () => {
+      // Create a file relative to the current test file location
+      const fileName = "relative-test-file.js";
+      const filePath = join(import.meta.dirname, fileName);
+      writeFileSync(filePath, "test content");
+
+      try {
+        const result = resolveScriptPath(`./${fileName}`);
+
+        expect(result).toBe(pathToFileURL(filePath).href);
+      } finally {
+        if (existsSync(filePath)) {
+          rmSync(filePath);
+        }
+      }
+    });
+
+    it("should resolve relative path with parent directory", () => {
+      // Create a file in parent directory
+      const fileName = "parent-relative-test.js";
+      const parentDir = resolve(import.meta.dirname, "..");
+      const filePath = join(parentDir, fileName);
+      writeFileSync(filePath, "test content");
+
+      try {
+        const result = resolveScriptPath(`../${fileName}`);
+
+        expect(result).toBe(pathToFileURL(filePath).href);
+      } finally {
+        if (existsSync(filePath)) {
+          rmSync(filePath);
+        }
+      }
+    });
+
+    it("should resolve deeply nested relative path", () => {
+      // Create a nested directory structure
+      const deepDir = join(import.meta.dirname, "deep", "nested", "path");
+      mkdirSync(deepDir, { recursive: true });
+
+      const fileName = "deep-file.js";
+      const filePath = join(deepDir, fileName);
+      writeFileSync(filePath, "deep content");
+
+      try {
+        const result = resolveScriptPath(`./deep/nested/path/${fileName}`);
+
+        expect(result).toBe(pathToFileURL(filePath).href);
+      } finally {
+        if (existsSync(join(import.meta.dirname, "deep"))) {
+          rmSync(join(import.meta.dirname, "deep"), { recursive: true, force: true });
+        }
+      }
+    });
+
+    it("should resolve current directory reference", () => {
+      const fileName = "current-dir-test.js";
+      const filePath = join(import.meta.dirname, fileName);
+      writeFileSync(filePath, "current dir content");
+
+      try {
+        const result = resolveScriptPath(`./${fileName}`);
+
+        expect(result).toBe(pathToFileURL(filePath).href);
+      } finally {
+        if (existsSync(filePath)) {
+          rmSync(filePath);
+        }
+      }
+    });
+
+    it("should handle multiple parent directory traversals", () => {
+      const fileName = "grandparent-test.js";
+      const grandparentDir = resolve(import.meta.dirname, "..", "..");
+      const filePath = join(grandparentDir, fileName);
+      writeFileSync(filePath, "grandparent content");
+
+      try {
+        const result = resolveScriptPath(`../../${fileName}`);
+
+        expect(result).toBe(pathToFileURL(filePath).href);
+      } finally {
+        if (existsSync(filePath)) {
+          rmSync(filePath);
+        }
+      }
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should handle paths without extension", () => {
+      const absolutePath = "/Users/test/project/Dockerfile";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+    });
+
+    it("should handle paths with multiple dots", () => {
+      const absolutePath = "/Users/test/project/script.test.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+    });
+
+    it("should handle very long paths", () => {
+      const longPath = "/Users/test/" + "very-long-directory-name/".repeat(20) + "script.js";
+
+      const result = resolveScriptPath(longPath);
+
+      expect(result).toBe(pathToFileURL(longPath).href);
+    });
+
+    it("should trim whitespace from input", () => {
+      const absolutePath = "  /Users/test/project/script.js  ";
+
+      const result = resolveScriptPath(absolutePath);
+
+      // Should trim and then convert to file URL
+      expect(result).toBe(pathToFileURL(absolutePath.trim()).href);
+    });
+
+    it("should handle file names with unicode characters", () => {
+      const absolutePath = "/Users/test/项目/脚本.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
+    });
+
+    it("should handle paths with dots in directory names", () => {
+      const absolutePath = "/Users/test/.hidden/script.js";
+
+      const result = resolveScriptPath(absolutePath);
+
+      expect(result).toBe(pathToFileURL(absolutePath).href);
     });
   });
 });

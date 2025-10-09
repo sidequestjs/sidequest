@@ -176,6 +176,9 @@ await Sidequest.start({
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------- |
 | `backend.driver`                 | Backend driver package name (SQLite, Postgres, MySQL, MongoDB)                                                     | `@sidequest/sqlite-backend` |
 | `backend.config`                 | Backend-specific connection string or [Knex configuration object](https://knexjs.org/guide/#configuration-options) | `./sidequest.sqlite`        |
+| `dashboard.enabled`              | Whether to enable the dashboard web interface                                                                      | `true`                      |
+| `dashboard.port`                 | Port for the dashboard web interface                                                                               | `8678`                      |
+| `dashboard.auth`                 | Basic auth configuration with `user` and `password`. If omitted, no auth is required.                              | `undefined`                 |
 | `queues`                         | Array of queue configurations with name, concurrency, priority, and state                                          | `[]`                        |
 | `maxConcurrentJobs`              | Maximum number of jobs processed simultaneously across all queues                                                  | `10`                        |
 | `minThreads`                     | Minimum number of worker threads to use                                                                            | Number of CPU cores         |
@@ -192,6 +195,8 @@ await Sidequest.start({
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                       | `true`                      |
 | `jobDefaults`                    | Default values for new jobs. Used while enqueueing                                                                 | `undefined`                 |
 | `queueDefaults`                  | Default values for auto-created queues                                                                             | `undefined`                 |
+| `manualJobResolution`            | Whether to manually resolve job classes. See [Manual Job Resolution](/jobs/manual-resolution.md)                   | `false`                     |
+| `jobsFilePath`                   | Optional path to the file where job classes are exported. Ignored if `manualJobResolution` is `false`.             | `undefined`                 |
 
 ::: danger
 If `auth` is not configured and `dashboard: true` is enabled in production, the dashboard will be publicly accessible. This is a security risk and **not recommended**.

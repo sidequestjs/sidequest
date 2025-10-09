@@ -1,4 +1,8 @@
 import { sidequestTest } from "@/tests/fixture";
+import { rmSync, unlinkSync, writeFileSync } from "fs";
+import { platform } from "os";
+import { resolve } from "path";
+import { pathToFileURL } from "url";
 import { describe, expect, vi } from "vitest";
 import { Engine } from "./engine";
 import { MANUAL_SCRIPT_TAG } from "./shared-runner";
@@ -34,6 +38,102 @@ export class ParameterizedJob extends DummyJob {
 }
 
 describe("Engine", () => {
+  describe("validateConfig", () => {
+    sidequestTest("should throw error when maxConcurrentJobs is negative", async () => {
+      const engine = new Engine();
+
+      await expect(() =>
+        engine.configure({
+          maxConcurrentJobs: -5,
+        }),
+      ).rejects.toThrowError();
+
+      await engine.close();
+    });
+
+    sidequestTest("should throw error when jobsFilePath does not exist with manualJobResolution", async () => {
+      const engine = new Engine();
+
+      await expect(() =>
+        engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "/non/existent/path/sidequest.jobs.js",
+        }),
+      ).rejects.toThrowError();
+
+      await engine.close();
+    });
+
+    sidequestTest("should throw error when jobsFilePath is not found in parent directories", async () => {
+      const engine = new Engine();
+
+      // Use a temp directory that doesn't have sidequest.jobs.js
+      const tempDir = platform() === "win32" ? "C:\\Windows\\Temp" : "/tmp";
+
+      // Mock process.cwd to return temp directory
+      const originalCwd = process.cwd.bind(process);
+      process.cwd = vi.fn(() => tempDir);
+
+      try {
+        await expect(() =>
+          engine.configure({
+            manualJobResolution: true,
+            // Don't provide jobsFilePath, so it will search parent directories
+          }),
+        ).rejects.toThrowError();
+      } finally {
+        process.cwd = originalCwd;
+        await engine.close();
+      }
+    });
+
+    sidequestTest("should accept valid jobsFilePath with manualJobResolution", async () => {
+      const engine = new Engine();
+
+      // Use the actual sidequest.jobs.js file
+      const fileLocation = resolve(import.meta.dirname, "sidequest.jobs.js");
+      try {
+        // We create a file like it will resolve, from the file that calls engine.configure
+        writeFileSync(fileLocation, "// Temporary sidequest.jobs.js file for testing");
+
+        const config = await engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js",
+        });
+
+        expect(config.manualJobResolution).toBe(true);
+        expect(config.jobsFilePath).toBe(pathToFileURL(fileLocation).href);
+      } finally {
+        // Clean up the temporary file
+        unlinkSync(fileLocation);
+        await engine.close();
+      }
+    });
+
+    sidequestTest("should accept valid jobsFilePath with manualJobResolution on a different dir", async () => {
+      const engine = new Engine();
+
+      // Use the actual sidequest.jobs.js file
+      const fileLocation = resolve(import.meta.dirname, "..", "sidequest.jobs.js");
+      try {
+        // We create a file like it will resolve, from the file that calls engine.configure
+        writeFileSync(fileLocation, "// Temporary sidequest.jobs.js file for testing");
+
+        const config = await engine.configure({
+          manualJobResolution: true,
+          jobsFilePath: "../sidequest.jobs.js",
+        });
+
+        expect(config.manualJobResolution).toBe(true);
+        expect(config.jobsFilePath).toBe(pathToFileURL(fileLocation).href);
+      } finally {
+        // Clean up the temporary file
+        unlinkSync(fileLocation);
+        await engine.close();
+      }
+    });
+  });
+
   describe("configure", () => {
     sidequestTest("should configure engine with default values", async () => {
       const engine = new Engine();
@@ -47,6 +147,8 @@ describe("Engine", () => {
     sidequestTest("should configure engine with custom values", async () => {
       const engine = new Engine();
       const customAvailableAt = new Date("2025-01-01");
+
+      writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
 
       const config = await engine.configure({
         backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
@@ -104,6 +206,7 @@ describe("Engine", () => {
       expect(config.idleWorkerTimeout).toBe(600);
       expect(config.manualJobResolution).toBe(true);
 
+      rmSync(MANUAL_SCRIPT_TAG);
       await engine.close();
     });
 
@@ -565,6 +668,20 @@ describe("Engine", () => {
   });
 
   describe("manualJobResolution", () => {
+    beforeAll(() => {
+      // Ensure MANUAL_SCRIPT_TAG file exists for tests that rely on it
+      writeFileSync(MANUAL_SCRIPT_TAG, "dummy");
+    });
+
+    afterAll(() => {
+      // Clean up the MANUAL_SCRIPT_TAG file after tests
+      try {
+        rmSync(MANUAL_SCRIPT_TAG);
+      } catch {
+        // Ignore errors if file doesn't exist
+      }
+    });
+
     sidequestTest("should configure engine with manualJobResolution enabled", async () => {
       const engine = new Engine();
       const config = await engine.configure({
