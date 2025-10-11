@@ -59,7 +59,8 @@ const jobsTimeline = new Chart(ctx, {
 });
 
 async function refreshGraph() {
-  const res = await fetch(`/dashboard/graph-data?range=${currentRange}`);
+  const basePath = window.SIDEQUEST_BASE_PATH || "";
+  const res = await fetch(`${basePath}/dashboard/graph-data?range=${currentRange}`);
   const graph = await res.json();
   const timestamps = graph.map((entry) => entry.timestamp);
 
