@@ -1,4 +1,4 @@
-<table id="queues-table" class="table rounded-lg" hx-get="/queues" hx-swap="outerHTML"
+<table id="queues-table" class="table rounded-lg" hx-get="<%= basePath %>/queues" hx-swap="outerHTML"
   hx-trigger="every 3s, toggleQueue">
   <thead class="bg-neutral text-neutral-content">
     <tr>
@@ -36,7 +36,7 @@
       <td><%= queue.jobs.failed %></td>
       <td>
         <button class="btn btn-sm"
-          hx-patch="/queues/<%= queue.name %>/toggle" hx-push-url="false" hx-target="this">
+          hx-patch="<%= basePath %>/queues/<%= queue.name %>/toggle" hx-push-url="false" hx-target="this">
           <% if(queue.state==="active") { %>
             <i data-feather="pause" class="w-4 h-4"></i>
           <% } else { %>

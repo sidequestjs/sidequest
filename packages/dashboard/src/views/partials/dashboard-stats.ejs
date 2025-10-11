@@ -1,7 +1,7 @@
 <div
   id="dashboard-stats"
   class="grid grid-cols-4 gap-4"
-  hx-get="/dashboard/stats"
+  hx-get="<%= basePath %>/dashboard/stats"
   hx-swap="outerHTML"
   hx-trigger="every 1s, refresh from:body"
   hx-include="#graph-range"

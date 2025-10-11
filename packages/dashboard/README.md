@@ -82,6 +82,32 @@ await dashboard.start({
 // Dashboard available at http://localhost:8678
 ```
 
+### Reverse Proxy Setup
+
+When deploying behind a reverse proxy, use the `basePath` option:
+
+```typescript
+await Sidequest.start({
+  dashboard: {
+    port: 8678,
+    basePath: "/admin/sidequest", // Serve at /admin/sidequest
+    auth: {
+      user: "admin",
+      password: "secure-password",
+    },
+  },
+});
+```
+
+Then configure your reverse proxy to forward requests:
+
+```nginx
+# Nginx example
+location /admin/sidequest/ {
+  proxy_pass http://localhost:8678/admin/sidequest/;
+}
+```
+
 ## License
 
 LGPL-3.0-or-later
