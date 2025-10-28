@@ -1,7 +1,7 @@
 import { CompletedResult, RetryResult, SnoozeResult } from "@sidequest/core";
 import path from "path";
 import { pathToFileURL } from "url";
-import { Job, resolveScriptPath } from "./job";
+import { Job, resolveScriptPathForJob } from "./job";
 
 export class DummyJob extends Job {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -116,16 +116,16 @@ describe("job.ts", () => {
   });
 });
 
-describe("resolveScriptPath", () => {
+describe("resolveScriptPathForJob", () => {
   it("should return the input if it is already a file URL", () => {
     const fileUrl = "file:///some/path/to/file.js";
-    expect(resolveScriptPath(fileUrl)).toBe(fileUrl);
+    expect(resolveScriptPathForJob(fileUrl)).toBe(fileUrl);
   });
 
   it("should convert an absolute path to a file URL", () => {
     const absPath = path.resolve("/tmp/test.js");
     const expected = pathToFileURL(absPath).href;
-    expect(resolveScriptPath(absPath)).toBe(expected);
+    expect(resolveScriptPathForJob(absPath)).toBe(expected);
   });
 
   it("should resolve a relative path to a file URL based on import.meta.dirname", () => {
@@ -133,7 +133,7 @@ describe("resolveScriptPath", () => {
     const baseDir = import.meta?.dirname ? import.meta.dirname : __dirname;
     const absPath = path.resolve(baseDir, relativePath);
     const expected = pathToFileURL(absPath).href;
-    expect(resolveScriptPath(relativePath)).toBe(expected);
+    expect(resolveScriptPathForJob(relativePath)).toBe(expected);
   });
 
   it("should handle relative paths with ./ and ../", () => {
@@ -141,6 +141,6 @@ describe("resolveScriptPath", () => {
     const baseDir = import.meta?.dirname ? import.meta.dirname : __dirname;
     const absPath = path.resolve(baseDir, relativePath);
     const expected = pathToFileURL(absPath).href;
-    expect(resolveScriptPath(relativePath)).toBe(expected);
+    expect(resolveScriptPathForJob(relativePath)).toBe(expected);
   });
 });

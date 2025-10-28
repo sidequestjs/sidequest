@@ -5,7 +5,7 @@ import { hostname } from "os";
 import path from "path";
 
 const defaultKnexConfig = {
-  client: "sqlite3",
+  client: "better-sqlite3",
   useNullAsDefault: true,
   migrations: {
     directory: path.join(import.meta.dirname, "..", "migrations"),
@@ -18,7 +18,7 @@ const defaultKnexConfig = {
  * Represents a backend implementation for SQLite databases using Knex.
  *
  * This class extends the `SQLBackend` and configures a Knex instance
- * for SQLite3, specifying the database file path, migration directory,
+ * for better-sqlite3, specifying the database file path, migration directory,
  * migration table name, and file extension for migration files.
  *
  * @example

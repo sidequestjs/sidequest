@@ -14,10 +14,14 @@ vi.mock("../utils/import", () => ({
 }));
 
 // Mock the manual loader to control which file it returns
-vi.mock("./manual-loader", () => ({
-  findSidequestJobsScriptInParentDirs: vi.fn(),
-  MANUAL_SCRIPT_TAG: "sidequest.jobs.js",
-}));
+vi.mock("./manual-loader", async (importOriginal) => {
+  const originalModule = await importOriginal<typeof import("./manual-loader")>();
+  return {
+    findSidequestJobsScriptInParentDirs: vi.fn(),
+    resolveScriptPath: originalModule.resolveScriptPath,
+    MANUAL_SCRIPT_TAG: "sidequest.jobs.js",
+  };
+});
 
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
 
@@ -167,6 +171,31 @@ export default { DummyJob };
     });
   });
 
+  sidequestTest("runs a job with manual resolution enabled and custom path", async ({ config }) => {
+    // Create sidequest.jobs.js with unique name
+    const jobsFileContent = `
+import { DummyJob } from "./packages/engine/src/test-jobs/dummy-job.js";
+
+export { DummyJob };
+export default { DummyJob };
+    `;
+    await writeFile(sidequestJobsPath, jobsFileContent);
+
+    // Mock the function to return our unique file
+    mockedFindSidequestJobsScript.mockReturnValue(`file://${sidequestJobsPath.replace(/\\/g, "/")}`);
+
+    // Enable manual job resolution
+    const configWithManualResolution = { ...config, manualJobResolution: true, jobsFilePath: sidequestJobsPath };
+
+    const result = await run({ jobData, config: configWithManualResolution });
+
+    expect(result).toEqual({
+      __is_job_transition__: true,
+      type: "completed",
+      result: "dummy job",
+    });
+  });
+
   sidequestTest("fails when sidequest.jobs.js file is not found", async ({ config }) => {
     // Mock the function to throw an error
     mockedFindSidequestJobsScript.mockImplementation(() => {
@@ -180,6 +209,16 @@ export default { DummyJob };
 
     expect(result.type).toEqual("failed");
     expect(result.error.message).toMatch(/not found in.*or any parent directory/);
+  });
+
+  sidequestTest("fails when sidequest.jobs.js file is not found in custom path", async ({ config }) => {
+    // Enable manual job resolution
+    const configWithManualResolution = { ...config, manualJobResolution: true, jobsFilePath: "./non-existing" };
+
+    const result = (await run({ jobData, config: configWithManualResolution })) as FailedResult;
+
+    expect(result.type).toEqual("failed");
+    expect(result.error.message).toMatch(/Unable to resolve script path/);
   });
 
   sidequestTest("fails when job class is not exported in sidequest.jobs.js", async ({ config }) => {
