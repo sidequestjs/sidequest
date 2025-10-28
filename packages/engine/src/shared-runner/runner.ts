@@ -1,7 +1,9 @@
-import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPath, toErrorData } from "@sidequest/core";
+import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPathForJob, toErrorData } from "@sidequest/core";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
-import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG } from "./manual-loader";
+import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG, resolveScriptPath } from "./manual-loader";
 
 /**
  * Runs a job by dynamically importing its script and executing the specified class.
@@ -16,12 +18,22 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
   try {
     logger("Runner").debug(`Importing job script "${jobData.script}"`);
 
-    let scriptUrl;
+    let scriptUrl: string;
     if (jobData.script === MANUAL_SCRIPT_TAG) {
       logger("Runner").debug("Manual job resolution is enabled; importing 'sidequest.jobs.js' job script.");
       try {
         // When manual job resolution is enabled, import from the sidequest.jobs.js script
-        scriptUrl = findSidequestJobsScriptInParentDirs();
+        if (!config.jobsFilePath) {
+          // If no custom path is provided, search for sidequest.jobs.js in parent directories
+          // throws if not found
+          scriptUrl = findSidequestJobsScriptInParentDirs();
+        } else {
+          // If a custom path is provided, resolve it and ensure it exists
+          scriptUrl = resolveScriptPath(config.jobsFilePath);
+          if (!existsSync(fileURLToPath(scriptUrl))) {
+            throw new Error(`The specified jobsFilePath does not exist. Resolved to: ${scriptUrl}`);
+          }
+        }
       } catch (error) {
         const errorMessage = `Failed to locate 'sidequest.jobs.js' for manual job resolution: ${error instanceof Error ? error.message : String(error)}`;
         logger("Runner").error(errorMessage);
@@ -31,7 +43,7 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
     } else {
       logger("Runner").debug("Manual job resolution is disabled; importing specified job script.");
       // Convert relative path to absolute file URL for dynamic import
-      scriptUrl = resolveScriptPath(jobData.script);
+      scriptUrl = resolveScriptPathForJob(jobData.script);
     }
 
     script = (await import(scriptUrl)) as Record<string, JobClassType>;

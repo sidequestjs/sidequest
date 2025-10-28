@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { MANUAL_SCRIPT_TAG, ScheduledJobRegistry } from "sidequest";
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
@@ -48,26 +49,6 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
           queues: [{ name: "default" }],
         });
 
-        const jobBuilder = Sidequest.build(EnqueueFromWithinJob);
-        const jobData = await jobBuilder.enqueue();
-
-        expect(jobData.id).toBeDefined();
-        expect(jobData.state).toBe("waiting");
-        expect(jobData.class).toBe("EnqueueFromWithinJob");
-
-        // Wait for job to be processed
-        await vi.waitUntil(async () => {
-          const jobs = await Sidequest.job.list();
-          return jobs.length === 2 && jobs.every((job) => job.state === "completed");
-        }, 5000);
-      });
-
-      test(`[${moduleType}] should start Sidequest and execute a job that enqueues another job`, async () => {
-        await Sidequest.start({
-          ...defaultConfig,
-          queues: [{ name: "default" }],
-        });
-
         const jobBuilder = Sidequest.build(SuccessJob);
         const jobData = await jobBuilder.enqueue("Hello World");
 
@@ -83,6 +64,29 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
 
         const processedJob = await Sidequest.job.get(jobData.id);
         expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should start Sidequest and execute a job that enqueues another job`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+        });
+
+        const jobs = await Sidequest.job.list();
+        expect(jobs.length).toBe(0);
+
+        const jobBuilder = Sidequest.build(EnqueueFromWithinJob);
+        const jobData = await jobBuilder.enqueue();
+
+        expect(jobData.id).toBeDefined();
+        expect(jobData.state).toBe("waiting");
+        expect(jobData.class).toBe("EnqueueFromWithinJob");
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const jobs = await Sidequest.job.list();
+          return jobs.length === 2 && jobs.every((job) => job.state === "completed");
+        }, 5000);
       });
 
       test(`[${moduleType}] should enqueue multiple jobs and execute them all`, async () => {
@@ -648,6 +652,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
     describe(`[${moduleType}] Manual Job Resolution`, () => {
       const projectRoot = path.resolve(process.cwd());
       const manualJobsPath = path.join(projectRoot, "sidequest.jobs.js");
+      const manualJobsPathCustom = path.join(projectRoot, "tests", "integration", "sidequest.jobs.js");
 
       beforeAll(async () => {
         const manualJobsContent = `
@@ -656,6 +661,13 @@ import { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } fr
 export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         `;
         await writeFile(manualJobsPath, manualJobsContent);
+
+        const manualJobsContentCustom = `
+import { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } from "./jobs/test-jobs.js";
+
+export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
+        `;
+        await writeFile(manualJobsPathCustom, manualJobsContentCustom);
       });
 
       afterAll(async () => {
@@ -663,6 +675,9 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         try {
           if (existsSync(manualJobsPath)) {
             await unlink(manualJobsPath);
+          }
+          if (existsSync(manualJobsPathCustom)) {
+            await unlink(manualJobsPathCustom);
           }
         } catch {
           // Ignore cleanup errors
@@ -729,6 +744,165 @@ export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
         // Should use the actual script path, not sidequest.jobs.js
         expect(jobData.script).not.toBe(MANUAL_SCRIPT_TAG);
         expect(jobData.script).toMatch(/test-jobs\.c?js$/);
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should use custom jobsFilePath when provided`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js", // Relative path to custom jobs file
+        });
+
+        const jobBuilder = Sidequest.build(SuccessJob);
+        const jobData = await jobBuilder.enqueue("custom jobs path test");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
+        expect(jobData.class).toBe("SuccessJob");
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should handle jobs with constructor arguments using custom jobsFilePath`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js",
+        });
+
+        const jobData = await Sidequest.build(SuccessJob)
+          .with("constructor-arg1", "constructor-arg2")
+          .enqueue("test-arg1", "test-arg2");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
+        expect(jobData.constructor_args).toEqual(["constructor-arg1", "constructor-arg2"]);
+        expect(jobData.args).toEqual(["test-arg1", "test-arg2"]);
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should handle different job types with custom jobsFilePath`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js",
+        });
+
+        // Test SuccessJob
+        const successJob = await Sidequest.build(SuccessJob).enqueue("success-test");
+        expect(successJob.script).toBe(MANUAL_SCRIPT_TAG);
+
+        // Test RetryJob
+        const retryJob = await Sidequest.build(RetryJob).maxAttempts(2).enqueue("retry-test");
+        expect(retryJob.script).toBe(MANUAL_SCRIPT_TAG);
+
+        // Wait for all jobs to complete
+        await vi.waitUntil(async () => {
+          const jobs = await Sidequest.job.list();
+          return jobs.length === 2 && jobs.every((job) => job.state === "completed");
+        }, 5000);
+
+        const allJobs = await Sidequest.job.list();
+        expect(allJobs).toHaveLength(2);
+        allJobs.forEach((job) => {
+          expect(job.state).toBe("completed");
+        });
+      });
+
+      test(`[${moduleType}] should handle scheduled jobs with custom jobsFilePath`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: "./sidequest.jobs.js",
+        });
+
+        // Schedule a job to run every second
+        await Sidequest.build(SuccessJob).schedule("*/1 * * * * *", "scheduled-custom-path");
+
+        // Wait for at least 2 scheduled executions
+        await vi.waitUntil(async () => {
+          const currentJobs = await Sidequest.job.list();
+          return currentJobs.length >= 2 && currentJobs.every((job) => job.state === "completed");
+        }, 5000);
+
+        const scheduledJobs = await Sidequest.job.list();
+        expect(scheduledJobs.length).toBeGreaterThanOrEqual(2);
+        scheduledJobs.forEach((job) => {
+          expect(job.script).toBe(MANUAL_SCRIPT_TAG);
+          expect(job.state).toBe("completed");
+        });
+      });
+
+      test(`[${moduleType}] should throw error when jobsFilePath points to non-existent file`, async () => {
+        await expect(
+          Sidequest.start({
+            ...defaultConfig,
+            queues: [{ name: "default" }],
+            manualJobResolution: true,
+            jobsFilePath: "./non-existent-jobs-file.js",
+          }),
+        ).rejects.toThrow();
+      });
+
+      test(`[${moduleType}] should work with absolute path for jobsFilePath`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: manualJobsPathCustom, // Absolute path
+        });
+
+        const jobData = await Sidequest.build(SuccessJob).enqueue("absolute-path-test");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
+
+        // Wait for job to be processed
+        await vi.waitUntil(async () => {
+          const job = await Sidequest.job.get(jobData.id);
+          return job?.state === "completed";
+        }, 5000);
+
+        const processedJob = await Sidequest.job.get(jobData.id);
+        expect(processedJob?.state).toBe("completed");
+      });
+
+      test(`[${moduleType}] should work with file URL for jobsFilePath`, async () => {
+        await Sidequest.start({
+          ...defaultConfig,
+          queues: [{ name: "default" }],
+          manualJobResolution: true,
+          jobsFilePath: pathToFileURL(manualJobsPathCustom).href, // File URL
+        });
+
+        const jobData = await Sidequest.build(SuccessJob).enqueue("absolute-path-test");
+
+        expect(jobData.script).toBe(MANUAL_SCRIPT_TAG);
 
         // Wait for job to be processed
         await vi.waitUntil(async () => {
