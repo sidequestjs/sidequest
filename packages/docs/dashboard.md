@@ -56,12 +56,13 @@ await Sidequest.start({
 
 ### Configuration Options
 
-| Option          | Type      | Default     | Description                                |
-| --------------- | --------- | ----------- | ------------------------------------------ |
-| `enabled`       | `boolean` | `true`      | Enable or disable the dashboard completely |
-| `port`          | `number`  | `8678`      | Port number for the dashboard server       |
-| `auth.user`     | `string`  | `undefined` | Username for basic authentication          |
-| `auth.password` | `string`  | `undefined` | Password for basic authentication          |
+| Option          | Type      | Default     | Description                                                             |
+| --------------- | --------- | ----------- | ----------------------------------------------------------------------- |
+| `enabled`       | `boolean` | `true`      | Enable or disable the dashboard completely                              |
+| `port`          | `number`  | `8678`      | Port number for the dashboard server                                    |
+| `basePath`      | `string`  | `""`        | Base path for serving behind a reverse proxy (e.g., `/admin/sidequest`) |
+| `auth.user`     | `string`  | `undefined` | Username for basic authentication                                       |
+| `auth.password` | `string`  | `undefined` | Password for basic authentication                                       |
 
 ### Security Configuration
 
@@ -130,6 +131,26 @@ await Sidequest.start({
   },
 });
 ```
+
+### Reverse Proxy Configuration
+
+When deploying the dashboard behind a reverse proxy (e.g., nginx, Apache, or a cloud load balancer), you can use the `basePath` option to serve the dashboard at a specific path prefix.
+
+#### Using Base Path
+
+```typescript
+await Sidequest.start({
+  dashboard: {
+    enabled: true,
+    port: 8678,
+    basePath: "/admin/sidequest", // Dashboard will be served at /admin/sidequest
+  },
+});
+```
+
+::: tip
+The `basePath` ensures all assets, links, and API calls use the correct prefix, making it seamless to integrate the dashboard into your existing application at any path.
+:::
 
 ## Starting only the Dashboard
 

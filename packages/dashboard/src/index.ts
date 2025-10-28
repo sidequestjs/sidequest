@@ -96,6 +96,16 @@ export class SidequestDashboard {
       ...config,
     };
 
+    // Normalize basePath: remove trailing slash, ensure leading slash
+    if (this.config.basePath) {
+      this.config.basePath = this.config.basePath.replace(/\/$/, "");
+      if (!this.config.basePath.startsWith("/")) {
+        this.config.basePath = "/" + this.config.basePath;
+      }
+    } else {
+      this.config.basePath = "";
+    }
+
     if (!this.config.enabled) {
       logger("Dashboard").debug(`Dashboard is disabled`);
       return;
@@ -128,6 +138,12 @@ export class SidequestDashboard {
     if (logger().isDebugEnabled()) {
       this.app?.use(morgan("combined"));
     }
+
+    // Make basePath available to all templates
+    this.app?.use((req, res, next) => {
+      res.locals.basePath = this.config!.basePath ?? "";
+      next();
+    });
   }
 
   /**
@@ -180,7 +196,8 @@ export class SidequestDashboard {
     this.app!.set("view engine", "ejs");
     this.app!.set("views", path.join(import.meta.dirname, "views"));
     this.app!.set("layout", path.join(import.meta.dirname, "views", "layout"));
-    this.app!.use("/public", express.static(path.join(import.meta.dirname, "public")));
+    const publicPath = this.config!.basePath ? `${this.config!.basePath}/public` : "/public";
+    this.app!.use(publicPath, express.static(path.join(import.meta.dirname, "public")));
   }
 
   /**
@@ -195,9 +212,14 @@ export class SidequestDashboard {
    */
   setupRoutes() {
     logger("Dashboard").debug(`Setting up routes`);
-    this.app!.use(...createDashboardRouter(this.backend!));
-    this.app!.use(...createJobsRouter(this.backend!));
-    this.app!.use(...createQueuesRouter(this.backend!));
+    const basePath = this.config!.basePath ?? "";
+    const [dashboardPath, dashboardRouter] = createDashboardRouter(this.backend!);
+    const [jobsPath, jobsRouter] = createJobsRouter(this.backend!);
+    const [queuesPath, queuesRouter] = createQueuesRouter(this.backend!);
+
+    this.app!.use(basePath + dashboardPath, dashboardRouter);
+    this.app!.use(basePath + jobsPath, jobsRouter);
+    this.app!.use(basePath + queuesPath, queuesRouter);
   }
 
   /**
