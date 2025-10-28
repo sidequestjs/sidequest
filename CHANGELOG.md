@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/sidequestjs/sidequest/compare/v1.11.0...v1.12.0) (2025-10-28)
+
+
+### Features
+
+* add dashboard base path ([#119](https://github.com/sidequestjs/sidequest/issues/119)) ([4730c46](https://github.com/sidequestjs/sidequest/commit/4730c467f33124e69ac3b8ec2b2e96a48d021322))
+
 # [1.11.0](https://github.com/sidequestjs/sidequest/compare/v1.10.0...v1.11.0) (2025-10-28)
 
 

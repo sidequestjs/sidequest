@@ -1,6 +1,6 @@
 {
   "name": "@sidequest/sqlite-backend",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "@sidequest/sqlite-backend is a SQLite backend for Sidequest, a distributed background job queue system.",
   "keywords": [
     "nodejs",
