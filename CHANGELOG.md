@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/sidequestjs/sidequest/compare/v1.10.0...v1.11.0) (2025-10-28)
+
+
+### Features
+
+* custom script path for manual resolution ([#111](https://github.com/sidequestjs/sidequest/issues/111)) ([ed47cb4](https://github.com/sidequestjs/sidequest/commit/ed47cb482f24cff79c17320f3db98a7c66176fbc))
+
 # [1.10.0](https://github.com/sidequestjs/sidequest/compare/v1.9.0...v1.10.0) (2025-10-08)
 
 
