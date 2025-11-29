@@ -29,6 +29,7 @@ export class MainWorker {
           this.backend,
           new QueueManager(this.backend, nonNullConfig.queues, nonNullConfig.queueDefaults),
           new ExecutorManager(this.backend, nonNullConfig),
+          nonNullConfig.jobPollingInterval,
         );
         this.dispatcher.start();
 

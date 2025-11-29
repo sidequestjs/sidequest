@@ -61,7 +61,6 @@ export interface EngineConfig {
    * @see {@link QueueDefaults} for more details
    */
   queueDefaults?: QueueDefaults;
-
   /**
    * If true, job scripts will NOT be automatically resolved by the engine.
    * In this case, you need to create a `sidequest.jobs.js` file at the root of your project
@@ -74,7 +73,6 @@ export interface EngineConfig {
    * Defaults to `false`.
    */
   manualJobResolution?: boolean;
-
   /**
    * Optional path to the `sidequest.jobs.js` file when using manual job resolution.
    * If not provided, the engine will search for `sidequest.jobs.js` starting from the current working directory
@@ -92,6 +90,14 @@ export interface EngineConfig {
    * If manualJobResolution === false, this option is ignored.
    */
   jobsFilePath?: string;
+  /**
+   * Interval in milliseconds for polling new jobs in the dispatcher loop. Every polling cycle,
+   * the dispatcher will check for new jobs in the DB to process.
+   * Increase this number to reduce DB load at the cost of job start latency.
+   *
+   * Defaults to 100 ms.
+   */
+  jobPollingInterval?: number;
 }
 
 /**
@@ -180,6 +186,7 @@ export class Engine {
       },
       manualJobResolution: config?.manualJobResolution ?? false,
       jobsFilePath: config?.jobsFilePath?.trim() ?? "",
+      jobPollingInterval: config?.jobPollingInterval ?? 100,
     };
 
     this.validateConfig();
