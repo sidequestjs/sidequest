@@ -56,6 +56,7 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, config.queues!),
         new ExecutorManager(backend, config as NonNullableEngineConfig),
+        100,
       );
       dispatcher.start();
 
@@ -81,7 +82,7 @@ describe("Dispatcher", () => {
 
       const mockClaim = vi.spyOn(backend, "claimPendingJob");
 
-      const dispatcher = new Dispatcher(backend, new QueueManager(backend, config.queues!), executorManager);
+      const dispatcher = new Dispatcher(backend, new QueueManager(backend, config.queues!), executorManager, 100);
       dispatcher.start();
 
       expect(mockClaim).not.toBeCalled();
@@ -99,6 +100,7 @@ describe("Dispatcher", () => {
         backend,
         new QueueManager(backend, config.queues!),
         new ExecutorManager(backend, config as NonNullableEngineConfig),
+        100,
       );
       dispatcher.start();
 

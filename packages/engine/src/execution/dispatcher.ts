@@ -3,8 +3,6 @@ import { JobData, logger } from "@sidequest/core";
 import { ExecutorManager } from "./executor-manager";
 import { QueueManager } from "./queue-manager";
 
-const sleepDelay = 100;
-
 /**
  * Dispatcher for managing job execution and queue polling.
  */
@@ -22,6 +20,7 @@ export class Dispatcher {
     private backend: Backend,
     private queueManager: QueueManager,
     private executorManager: ExecutorManager,
+    private sleepDelay: number,
   ) {}
 
   /**
@@ -38,14 +37,14 @@ export class Dispatcher {
         const availableSlots = this.executorManager.availableSlotsByQueue(queue);
         if (availableSlots <= 0) {
           logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.sleepDelay);
           continue;
         }
 
         const globalSlots = this.executorManager.availableSlotsGlobal();
         if (globalSlots <= 0) {
           logger("Dispatcher").debug(`Global concurrency limit reached!`);
-          await this.sleep(sleepDelay);
+          await this.sleep(this.sleepDelay);
           continue;
         }
 
@@ -63,7 +62,7 @@ export class Dispatcher {
       }
 
       if (shouldSleep) {
-        await this.sleep(sleepDelay);
+        await this.sleep(this.sleepDelay);
       }
     }
   }

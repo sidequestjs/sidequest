@@ -55,6 +55,8 @@ await Sidequest.configure({
 
 **Configuration Options:**
 
+Here are a few of the most common configuration options you can provide:
+
 - `backend` - Database backend configuration (defaults to SQLite)
 - `queues` - Initial queue configurations
 - `logger` - Logging configuration
@@ -63,7 +65,7 @@ await Sidequest.configure({
 - `queueDefaults` - Default queue settings
 - `gracefulShutdown` - Enable graceful shutdown handling
 
-More information about configuration options can be found in the [Configuration Guide](/engine/configuration).
+More information about configuration options and a full list can be found in the [Configuration Guide](/engine/configuration).
 
 ### `Sidequest.start`
 
