@@ -91,9 +91,11 @@ export interface EngineConfig {
    */
   jobsFilePath?: string;
   /**
-   * Interval in milliseconds for polling new jobs in the dispatcher loop. Every polling cycle,
-   * the dispatcher will check for new jobs in the DB to process.
+   * Interval in milliseconds for polling new jobs in the dispatcher loop.
+   * The dispatcher will check for new jobs in the DB to process at every polling cycle.
+   *
    * Increase this number to reduce DB load at the cost of job start latency.
+   * Decrease this number if you want to have lower latency at the cost of higher DB load.
    *
    * Defaults to 100 ms.
    */
