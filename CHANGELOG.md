@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/sidequestjs/sidequest/compare/v1.12.0...v1.13.0) (2025-12-01)
+
+
+### Features
+
+* Job polling interval configuration ([#139](https://github.com/sidequestjs/sidequest/issues/139)) ([4425c21](https://github.com/sidequestjs/sidequest/commit/4425c21607696f45c79b2d7475f6ca89867bb679))
+
 # [1.12.0](https://github.com/sidequestjs/sidequest/compare/v1.11.0...v1.12.0) (2025-10-28)
 
 

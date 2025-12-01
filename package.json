@@ -86,5 +86,5 @@
     "vitepress": "^1.6.4",
     "vitest": "^3.2.4"
   },
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.12.0"
 }
