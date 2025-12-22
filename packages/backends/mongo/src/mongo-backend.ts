@@ -49,10 +49,8 @@ export default class MongoBackend implements Backend {
   private _connected: boolean;
 
   constructor(mongoUrl: string) {
-    const url = new URL(mongoUrl);
-    const dbName = url.pathname && url.pathname !== "/" ? url.pathname.replace(/^\//, "") : "test";
     this.client = new MongoClient(mongoUrl, { ignoreUndefined: true });
-    this.db = this.client.db(dbName);
+    this.db = this.client.db();
     this.jobs = this.db.collection<JobData>("sidequest_jobs");
     this.queues = this.db.collection<QueueConfig>("sidequest_queues");
     this.counters = this.db.collection("sidequest_counters");
