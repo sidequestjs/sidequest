@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/sidequestjs/sidequest/compare/v1.13.0...v1.13.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* mongo-backend multi-host URI support ([#147](https://github.com/sidequestjs/sidequest/issues/147)) ([a1c6bd3](https://github.com/sidequestjs/sidequest/commit/a1c6bd3d5e656d8ba12eb595d73809164ade62af))
+
 # [1.13.0](https://github.com/sidequestjs/sidequest/compare/v1.12.0...v1.13.0) (2025-12-01)
 
 
