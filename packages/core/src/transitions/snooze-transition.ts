@@ -10,7 +10,7 @@ import { JobTransition } from "./transition";
  * If the job is currently running, it will decrement the attempt count.
  * This allows the job to be retried after the delay.
  *
- * Only jobs in "waiting" or "running" state can be snoozed.
+ * Only jobs in "claimed" or "running" state can be snoozed.
  */
 export class SnoozeTransition extends JobTransition {
   /** The delay in milliseconds. */
@@ -40,6 +40,6 @@ export class SnoozeTransition extends JobTransition {
   }
 
   shouldRun(job: JobData): boolean {
-    return ["waiting", "running"].includes(job.state);
+    return ["claimed", "running"].includes(job.state);
   }
 }
