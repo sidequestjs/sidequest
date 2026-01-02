@@ -1,3 +1,10 @@
+## [1.13.2](https://github.com/sidequestjs/sidequest/compare/v1.13.1...v1.13.2) (2026-01-02)
+
+
+### Bug Fixes
+
+* allowing snooze claimed jobs ([#151](https://github.com/sidequestjs/sidequest/issues/151)) ([c3c2fe9](https://github.com/sidequestjs/sidequest/commit/c3c2fe99183dd76aefc056590212d2328a2349e7))
+
 ## [1.13.1](https://github.com/sidequestjs/sidequest/compare/v1.13.0...v1.13.1) (2025-12-23)
 
 
