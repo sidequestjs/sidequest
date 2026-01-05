@@ -131,7 +131,7 @@ describe("Dispatcher", () => {
           maxConcurrentJobs: 3,
         };
 
-        // Create 5 jobs to ensure there are enough jobs to claim
+        // Create 4 jobs to ensure there are enough jobs to claim
         await createJob(backend, "default");
         await createJob(backend, "default");
         await createJob(backend, "default");
