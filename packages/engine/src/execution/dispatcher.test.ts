@@ -120,5 +120,49 @@ describe("Dispatcher", () => {
 
       await dispatcher.stop();
     });
+
+    sidequestTest(
+      "claims min(availableSlots, globalSlots) jobs when queue has more slots than global",
+      async ({ backend }) => {
+        // Setup: Queue has concurrency of 10, but global has only 3 slots
+        const configWithHighQueueConcurrency: EngineConfig = {
+          backend: { driver: "@sidequest/sqlite-backend" },
+          queues: [{ name: "default", concurrency: 10 }],
+          maxConcurrentJobs: 3,
+        };
+
+        // Create 5 jobs to ensure there are enough jobs to claim
+        await createJob(backend, "default");
+        await createJob(backend, "default");
+        await createJob(backend, "default");
+        await createJob(backend, "default");
+
+        expect(await backend.listJobs({ state: "waiting" })).toHaveLength(5);
+
+        const mockClaim = vi.spyOn(backend, "claimPendingJob");
+
+        const dispatcher = new Dispatcher(
+          backend,
+          new QueueManager(backend, configWithHighQueueConcurrency.queues!),
+          new ExecutorManager(backend, configWithHighQueueConcurrency as NonNullableEngineConfig),
+          100,
+        );
+        dispatcher.start();
+
+        runMock.mockImplementation(() => {
+          return { type: "completed", result: "foo", __is_job_transition__: true } as CompletedResult;
+        });
+
+        // Wait for the first claim to happen
+        await vi.waitUntil(() => mockClaim.mock.calls.length > 0);
+
+        // Verify that claimPendingJob was called with Math.min(availableSlots, globalSlots)
+        // Queue has 10 slots available, global has 3 slots available
+        // So it should claim min(10, 3) = 3 jobs
+        expect(mockClaim).toHaveBeenCalledWith("default", 3);
+
+        await dispatcher.stop();
+      },
+    );
   });
 });

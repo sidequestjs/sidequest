@@ -48,7 +48,7 @@ export class Dispatcher {
           continue;
         }
 
-        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, availableSlots);
+        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, Math.min(availableSlots, globalSlots));
 
         if (jobs.length > 0) {
           // if a job was found on any queue do not sleep
@@ -56,6 +56,10 @@ export class Dispatcher {
         }
 
         for (const job of jobs) {
+          // adds jobs to active sets before execution to avoid race conditions
+          // because the execution is not awaited. This way we ensure that available slots
+          // are correctly calculated.
+          this.executorManager.queueJob(queue, job);
           // does not await for job execution.
           void this.executorManager.execute(queue, job);
         }

@@ -171,46 +171,6 @@ describe("ExecutorManager", () => {
 
       await executorManager.destroy();
     });
-
-    sidequestTest("snoozes job when queue is full", async ({ backend, config }) => {
-      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(backend, config);
-
-      vi.spyOn(executorManager, "availableSlotsByQueue").mockReturnValue(0);
-
-      // Set up job in claimed state (as it would be when passed to execute)
-      jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
-
-      await executorManager.execute(queryConfig, jobData);
-
-      // Verify the job runner was NOT called since the job was snoozed
-      expect(runMock).not.toHaveBeenCalled();
-
-      // Verify slots remain unchanged (no job was actually executed)
-      expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(0);
-      expect(executorManager.totalActiveWorkers()).toEqual(0);
-      await executorManager.destroy();
-    });
-
-    sidequestTest("snoozes job when global slots are full", async ({ backend, config }) => {
-      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 5 });
-      const executorManager = new ExecutorManager(backend, { ...config, maxConcurrentJobs: 1 });
-
-      vi.spyOn(executorManager, "availableSlotsGlobal").mockReturnValue(0);
-
-      // Set up job in claimed state
-      jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
-
-      await executorManager.execute(queryConfig, jobData);
-
-      // Verify the job runner was NOT called
-      expect(runMock).not.toHaveBeenCalled();
-
-      // Verify global slots show as full
-      expect(executorManager.availableSlotsGlobal()).toEqual(0);
-      expect(executorManager.totalActiveWorkers()).toEqual(0);
-      await executorManager.destroy();
-    });
   });
 
   describe("availableSlotsByQueue", () => {

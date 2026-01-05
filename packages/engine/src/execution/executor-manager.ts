@@ -1,13 +1,5 @@
 import { Backend } from "@sidequest/backend";
-import {
-  JobData,
-  JobTransitionFactory,
-  logger,
-  QueueConfig,
-  RetryTransition,
-  RunTransition,
-  SnoozeTransition,
-} from "@sidequest/core";
+import { JobData, JobTransitionFactory, logger, QueueConfig, RetryTransition, RunTransition } from "@sidequest/core";
 import EventEmitter from "events";
 import { inspect } from "util";
 import { NonNullableEngineConfig } from "../engine";
@@ -77,44 +69,49 @@ export class ExecutorManager {
   }
 
   /**
+   * Prepares a job for execution by marking it as active and adding it to a queue slot.
+   * @param queueConfig The queue configuration.
+   * @param job The job data.
+   */
+  queueJob(queueConfig: QueueConfig, job: JobData) {
+    if (!this.activeByQueue[queueConfig.name]) {
+      this.activeByQueue[queueConfig.name] = new Set();
+    }
+    this.activeByQueue[queueConfig.name].add(job.id);
+    this.activeJobs.add(job.id);
+  }
+
+  /**
    * Executes a job in the given queue.
    * @param queueConfig The queue configuration.
    * @param job The job data to execute.
    */
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
-    logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
-    if (!this.activeByQueue[queueConfig.name]) {
-      this.activeByQueue[queueConfig.name] = new Set();
-    }
-
-    if (this.availableSlotsByQueue(queueConfig) <= 0 || this.availableSlotsGlobal() <= 0) {
-      logger("Executor Manager").debug(`No available slots for job ${job.id} in queue ${queueConfig.name}`);
-      await JobTransitioner.apply(this.backend, job, new SnoozeTransition(0));
-      return;
-    }
-
-    this.activeByQueue[queueConfig.name].add(job.id);
-    this.activeJobs.add(job.id);
-
-    job = await JobTransitioner.apply(this.backend, job, new RunTransition());
-
-    const signal = new EventEmitter();
-    let isRunning = true;
-    const cancellationCheck = async () => {
-      while (isRunning) {
-        const watchedJob = await this.backend.getJob(job.id);
-        if (watchedJob!.state === "canceled") {
-          logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
-          signal.emit("abort");
-          isRunning = false;
-          return;
-        }
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-    };
-    void cancellationCheck();
-
+    let isRunning = false;
     try {
+      logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
+      // We call prepareJob here again to make sure the jobs are in the queues.
+      // This might not be necessary, but for the sake of consistency we do it.
+      this.queueJob(queueConfig, job);
+
+      job = await JobTransitioner.apply(this.backend, job, new RunTransition());
+
+      isRunning = true;
+      const signal = new EventEmitter();
+      const cancellationCheck = async () => {
+        while (isRunning) {
+          const watchedJob = await this.backend.getJob(job.id);
+          if (watchedJob!.state === "canceled") {
+            logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
+            signal.emit("abort");
+            isRunning = false;
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      };
+      void cancellationCheck();
+
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
 
       const runPromise = this.runnerPool.run(job, signal);
