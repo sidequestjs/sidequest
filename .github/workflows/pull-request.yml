@@ -15,9 +15,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Build project
+        run: yarn build
+
+  format-check:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Run format checker
+        run: yarn format:check
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Run linter
+        run: yarn lint
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
     services:
       postgres:
         image: postgres:latest
@@ -59,25 +97,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Setup Latest Yarn
-        uses: threeal/setup-yarn-action@v2.0.0
-        with:
-          version: berry
-          cache: false
-
-      - name: Build project
-        run: yarn build
-
-      - name: Run format checker
-        run: yarn format:check
-
-      - name: Run linter
-        run: yarn lint
+      - name: Setup project
+        uses: ./.github/actions/setup
 
       - name: Run tests
         env:
@@ -85,6 +106,30 @@ jobs:
           MYSQL_URL: mysql://root:root@127.0.0.1:3306/test
           MONGODB_URL: mongodb://127.0.0.1:27017/test
         run: yarn test:all:ci
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
 
       - name: Run integration tests
         env:
