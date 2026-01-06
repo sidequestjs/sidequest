@@ -1,0 +1,31 @@
+name: Setup Project
+description: Checkout code, setup Node.js, restore build cache, and setup Yarn
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '22'
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Restore build outputs
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/dist
+        key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
+
+    - name: Setup Latest Yarn
+      uses: threeal/setup-yarn-action@v2.0.0
+      with:
+        version: berry
