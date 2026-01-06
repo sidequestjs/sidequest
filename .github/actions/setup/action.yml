@@ -19,6 +19,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: |
+          .yarn
+          node_modules
+          **/node_modules
           **/dist
         key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
 
