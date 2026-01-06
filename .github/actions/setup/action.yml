@@ -1,5 +1,5 @@
 name: Setup Project
-description: Checkout code, setup Node.js, restore build cache, and setup Yarn
+description: Setup Node.js, restore build cache, and setup Yarn
 
 inputs:
   node-version:
@@ -10,9 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
