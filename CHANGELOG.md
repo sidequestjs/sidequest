@@ -1,3 +1,10 @@
+## [1.13.4](https://github.com/sidequestjs/sidequest/compare/v1.13.3...v1.13.4) (2026-01-07)
+
+
+### Bug Fixes
+
+* Add dependency injection ([#153](https://github.com/sidequestjs/sidequest/issues/153)) ([fd267e0](https://github.com/sidequestjs/sidequest/commit/fd267e07305dd9c4e1532391b28e1b3db6c89dd9))
+
 ## [1.13.3](https://github.com/sidequestjs/sidequest/compare/v1.13.2...v1.13.3) (2026-01-06)
 
 
