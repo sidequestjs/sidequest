@@ -1,5 +1,5 @@
 import { Backend } from "@sidequest/backend";
-import { NonNullableEngineConfig } from "../dist";
+import { NonNullableEngineConfig } from "./engine";
 
 /**
  * Enumeration of available dependency tokens for the dependency registry.
