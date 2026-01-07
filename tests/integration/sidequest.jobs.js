@@ -1,5 +1,3 @@
+import { EnqueueFromWithinJob, FailingJob, RetryJob, SuccessJob, TimeoutJob } from "./jobs/test-jobs.js";
 
-import { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob } from "./jobs/test-jobs.js";
-
-export { SuccessJob, RetryJob, FailingJob, TimeoutJob, EnqueueFromWithinJob };
-        
+export { EnqueueFromWithinJob, FailingJob, RetryJob, SuccessJob, TimeoutJob };
