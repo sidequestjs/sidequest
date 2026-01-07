@@ -1,3 +1,10 @@
+## [1.13.3](https://github.com/sidequestjs/sidequest/compare/v1.13.2...v1.13.3) (2026-01-06)
+
+
+### Bug Fixes
+
+* added Math.min to the dispatcher and removed redundant checks ([#152](https://github.com/sidequestjs/sidequest/issues/152)) ([7fc9e0f](https://github.com/sidequestjs/sidequest/commit/7fc9e0f4794a93de41986e1afe7891930db43433))
+
 ## [1.13.2](https://github.com/sidequestjs/sidequest/compare/v1.13.1...v1.13.2) (2026-01-02)
 
 
