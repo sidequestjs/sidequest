@@ -22,11 +22,6 @@ interface DependencyRegistryTypes {
 }
 
 /**
- * Union type of all valid dependency registry keys.
- */
-type DependencyRegistryKey = keyof DependencyRegistryTypes;
-
-/**
  * A type-safe dependency injection container for managing core engine dependencies.
  * Provides methods to register, retrieve, and clear dependencies used throughout the engine lifecycle.
  */
@@ -34,14 +29,14 @@ class DependencyRegistry {
   /**
    * Internal storage for registered dependencies.
    */
-  private registry = new Map<DependencyRegistryKey, unknown>();
+  private registry = new Map<Dependency, unknown>();
 
   /**
    * Retrieves a registered dependency by its token.
    * @param token - The dependency token to look up
    * @returns The registered dependency instance, or undefined if not found
    */
-  get<T extends DependencyRegistryKey>(token: T): DependencyRegistryTypes[T] | undefined {
+  get<T extends Dependency>(token: T): DependencyRegistryTypes[T] | undefined {
     return this.registry.get(token) as DependencyRegistryTypes[T] | undefined;
   }
 
@@ -51,7 +46,7 @@ class DependencyRegistry {
    * @param instance - The dependency instance to register
    * @returns The registered instance
    */
-  register<T extends DependencyRegistryKey>(token: T, instance: DependencyRegistryTypes[T]) {
+  register<T extends Dependency>(token: T, instance: DependencyRegistryTypes[T]) {
     this.registry.set(token, instance);
     return instance;
   }
