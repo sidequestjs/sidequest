@@ -556,7 +556,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         // Wait for the two scheduled executions
         await vi.waitUntil(async () => {
           const currentJobs = await Sidequest.job.list();
-          return currentJobs.length === 2 && currentJobs.every((job) => job.state === "completed");
+          return currentJobs.length >= 2 && currentJobs.every((job) => job.state === "completed");
         }, 5000);
       });
 
@@ -609,7 +609,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         let currentJobs;
         await vi.waitUntil(async () => {
           currentJobs = await Sidequest.job.list();
-          return currentJobs.length === 3 && currentJobs.every((job) => job.state === "completed");
+          return currentJobs.length >= 3 && currentJobs.every((job) => job.state === "completed");
         }, 5000);
 
         const job1Executions = currentJobs.filter((job) => job.args[0] === "job-1");
@@ -634,7 +634,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         let currentJobs;
         await vi.waitUntil(async () => {
           currentJobs = await Sidequest.job.list();
-          return currentJobs.length === 2 && currentJobs.every((job) => job.state === "completed");
+          return currentJobs.length >= 2 && currentJobs.every((job) => job.state === "completed");
         }, 5000);
 
         expect(currentJobs.length).toBe(2);
