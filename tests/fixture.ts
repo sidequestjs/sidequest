@@ -1,6 +1,7 @@
 import { test as baseTest } from "vitest";
 import { Backend } from "../packages/backends/backend/src";
 import { Engine, NonNullableEngineConfig } from "../packages/engine/src";
+import { dependencyRegistry } from "../packages/engine/src/dependency-registry";
 
 export interface SidequestTestFixture {
   engine: Engine;
@@ -29,6 +30,7 @@ export const sidequestTest = baseTest.extend<SidequestTestFixture>({
     }
 
     await engine.close();
+    dependencyRegistry.clear();
   },
 
   backend: async ({ engine }, use) => {
