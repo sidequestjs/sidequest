@@ -26,6 +26,7 @@ runs:
         key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
 
     - name: Setup Latest Yarn
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: threeal/setup-yarn-action@v2.0.0
       with:
         version: berry
