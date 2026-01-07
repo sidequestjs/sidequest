@@ -15,6 +15,14 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Install Yarn Berry
+      shell: bash
+      run: yarn set version berry
+
     - name: Restore build outputs
       id: cache
       uses: actions/cache@v4
@@ -26,9 +34,7 @@ runs:
           **/dist
         key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
 
-    - name: Setup Latest Yarn
+    - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
-      uses: threeal/setup-yarn-action@v2.0.0
-      with:
-        version: berry
-        cache: false
+      shell: bash
+      run: yarn install --frozen-lockfile
