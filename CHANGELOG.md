@@ -1,3 +1,10 @@
+## [1.13.5](https://github.com/sidequestjs/sidequest/compare/v1.13.4...v1.13.5) (2026-01-26)
+
+
+### Bug Fixes
+
+* enhance stale job handling with JobTransitioner and improve test coverage ([#157](https://github.com/sidequestjs/sidequest/issues/157)) ([f85e592](https://github.com/sidequestjs/sidequest/commit/f85e592b46b2c3e849af0273ae54ed585d0ae58a))
+
 ## [1.13.4](https://github.com/sidequestjs/sidequest/compare/v1.13.3...v1.13.4) (2026-01-07)
 
 
