@@ -13,7 +13,90 @@ describe("release-stale-jobs.ts", () => {
     expect(updateJobSpy).not.toHaveBeenCalled();
   });
 
-  sidequestTest("should release stale jobs by setting state to waiting", async ({ backend }) => {
+  sidequestTest("should release stale claimed jobs by setting state to waiting", async ({ backend }) => {
+    const mockStaleJob = {
+      id: 1,
+      queue: "default",
+      state: "claimed",
+      script: "/path/to/script.js",
+      class: "TestJob",
+      args: [],
+      constructor_args: [],
+      attempt: 1,
+      max_attempts: 3,
+      claimed_at: new Date(Date.now() - 60000),
+    } as unknown as JobData;
+
+    const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
+    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
+
+    await releaseStaleJobs(backend, 600_000, 60_000);
+
+    expect(staleJobsSpy).toHaveBeenCalledOnce();
+    expect(updateJobSpy).toHaveBeenCalledOnce();
+
+    // Claimed jobs should go back to waiting without using JobTransitioner
+    expect(mockStaleJob.state).toBe("waiting");
+    expect(updateJobSpy).toHaveBeenCalledWith(mockStaleJob);
+  });
+
+  sidequestTest("should retry stale running jobs using JobTransitioner", async ({ backend }) => {
+    const mockStaleJob = {
+      id: 2,
+      queue: "high",
+      state: "running",
+      script: "/path/to/another-script.js",
+      class: "AnotherTestJob",
+      args: ["arg1", "arg2"],
+      constructor_args: [],
+      attempt: 2,
+      max_attempts: 5,
+      claimed_at: new Date(Date.now() - 120000),
+    } as unknown as JobData;
+
+    const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
+    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+      return Promise.resolve(job as JobData);
+    });
+
+    await releaseStaleJobs(backend, 600_000, 60_000);
+
+    expect(staleJobsSpy).toHaveBeenCalledOnce();
+    expect(updateJobSpy).toHaveBeenCalledOnce();
+
+    // Running jobs should be retried via JobTransitioner, which sets state to waiting
+    expect(mockStaleJob.state).toBe("waiting");
+  });
+
+  sidequestTest("should fail stale running job at max attempts", async ({ backend }) => {
+    const mockStaleJob = {
+      id: 3,
+      queue: "critical",
+      state: "running",
+      script: "/path/to/critical-script.js",
+      class: "CriticalJob",
+      args: [],
+      constructor_args: [],
+      attempt: 3,
+      max_attempts: 3,
+      claimed_at: new Date(Date.now() - 180000),
+    } as unknown as JobData;
+
+    const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
+    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+      return Promise.resolve(job as JobData);
+    });
+
+    await releaseStaleJobs(backend, 600_000, 60_000);
+
+    expect(staleJobsSpy).toHaveBeenCalledOnce();
+    expect(updateJobSpy).toHaveBeenCalledOnce();
+
+    // Job at max attempts should be marked as failed, not retried
+    expect(mockStaleJob.state).toBe("failed");
+  });
+
+  sidequestTest("should handle mixed stale jobs (claimed and running)", async ({ backend }) => {
     const mockStaleJobs = [
       {
         id: 1,
@@ -42,18 +125,18 @@ describe("release-stale-jobs.ts", () => {
     ] as unknown as JobData[];
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue(mockStaleJobs);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
+    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+      return Promise.resolve(job as JobData);
+    });
 
     await releaseStaleJobs(backend, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).toHaveBeenCalledTimes(2);
 
+    // Both should end up in waiting state
     expect(mockStaleJobs[0].state).toBe("waiting");
     expect(mockStaleJobs[1].state).toBe("waiting");
-
-    expect(updateJobSpy).toHaveBeenNthCalledWith(1, mockStaleJobs[0]);
-    expect(updateJobSpy).toHaveBeenNthCalledWith(2, mockStaleJobs[1]);
   });
 
   sidequestTest("should handle single stale job", async ({ backend }) => {
