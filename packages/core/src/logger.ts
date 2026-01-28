@@ -1,7 +1,12 @@
 import { inspect } from "util";
 import winston from "winston";
 
-let _logger: winston.Logger;
+/**
+ * Re-export of the Winston Logger type.
+ */
+export type Logger = winston.Logger;
+
+let _logger: Logger;
 
 /**
  * Options for configuring the logger.
@@ -76,6 +81,6 @@ _logger = configureLogger({ level: "info", json: false });
  * Returns the default logger instance.
  * @returns The Winston logger instance.
  */
-export function logger(scope?: string): winston.Logger {
+export function logger(scope?: string): Logger {
   return scope ? _logger.child({ scope }) : _logger;
 }
