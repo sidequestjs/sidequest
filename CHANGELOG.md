@@ -1,3 +1,10 @@
+## [1.13.6](https://github.com/sidequestjs/sidequest/compare/v1.13.5...v1.13.6) (2026-02-02)
+
+
+### Bug Fixes
+
+* re-export winston logger type for easy usage ([#158](https://github.com/sidequestjs/sidequest/issues/158)) ([8a6f357](https://github.com/sidequestjs/sidequest/commit/8a6f357de519950a3cd0513b6c7ee02534fa54d4))
+
 ## [1.13.5](https://github.com/sidequestjs/sidequest/compare/v1.13.4...v1.13.5) (2026-01-26)
 
 
