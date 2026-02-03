@@ -48,20 +48,31 @@ export default class SqliteBackend extends SQLBackend {
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
     const workerName = `sidequest@${hostname()}-${process.pid}`;
 
-    const result = (await this.knex.transaction(async (trx) =>
-      trx("sidequest_jobs")
-        .update({
-          claimed_by: workerName,
-          claimed_at: new Date(),
-          state: "claimed",
-        })
-        .where("state", "waiting")
-        .andWhere("queue", queue)
-        .andWhere("available_at", "<=", new Date())
-        .orderBy("inserted_at")
-        .limit(quantity)
-        .returning("*"),
-    )) as JobData[];
+    const rowsToUpdate = (await this.knex("sidequest_jobs")
+      .select("id")
+      .where("state", "waiting")
+      .andWhere("queue", queue)
+      .andWhere("available_at", "<=", new Date())
+      .orderBy("inserted_at")
+      .limit(quantity)) as { id: number }[];
+
+    if (rowsToUpdate.length === 0) {
+      return [];
+    }
+
+    const result = (await this.knex("sidequest_jobs")
+      .update({
+        claimed_by: workerName,
+        claimed_at: new Date(),
+        state: "claimed",
+      })
+      .where("state", "waiting")
+      .andWhere(
+        "id",
+        "in",
+        rowsToUpdate.map((row) => row.id),
+      )
+      .returning("*")) as JobData[];
 
     return result.map(safeParseJobData);
   }
