@@ -1,3 +1,11 @@
+## [1.13.7](https://github.com/sidequestjs/sidequest/compare/v1.13.6...v1.13.7) (2026-02-04)
+
+
+### Bug Fixes
+
+* fixed CI/CD ([ce35ef7](https://github.com/sidequestjs/sidequest/commit/ce35ef7e9c87d2c7376678b4207662d975a4f362))
+* fixes SQLITE not respecting orderby + limit on update ([#161](https://github.com/sidequestjs/sidequest/issues/161)) ([6a15dec](https://github.com/sidequestjs/sidequest/commit/6a15decb877e5996a8415d3519db08066128c294))
+
 ## [1.13.6](https://github.com/sidequestjs/sidequest/compare/v1.13.5...v1.13.6) (2026-02-02)
 
 
