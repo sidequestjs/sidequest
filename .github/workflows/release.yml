@@ -7,6 +7,10 @@ on:
     types:
       - completed
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # To create releases
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -50,15 +54,11 @@ jobs:
           nodeLinker: node-modules
 
           npmRegistryServer: "https://registry.npmjs.org"
-          npmAuthToken: "${NPM_TOKEN}"
 
           npmScopes:
             sidequest:
               npmRegistryServer: "https://registry.npmjs.org"
-              npmAuthToken: "${NPM_TOKEN}"
           EOF
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Semantic Release
         env:
