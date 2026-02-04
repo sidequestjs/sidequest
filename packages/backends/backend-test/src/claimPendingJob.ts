@@ -170,5 +170,28 @@ export default function defineClaimPendingJobTestSuite() {
       const [claimedJob] = await backend.claimPendingJob("default");
       expect(claimedJob).toBe(undefined);
     });
+
+    it("should claim at max 1 job", async () => {
+      // Insert a new waiting job
+      const job: NewJobData = {
+        queue: "default",
+        class: "TestJob",
+        args: [{ foo: "bar" }],
+        constructor_args: [{}],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+        max_attempts: 5,
+      };
+
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+      await backend.createNewJob(job);
+
+      const claimedJobs = await backend.claimPendingJob("default", 1);
+      expect(claimedJobs).toHaveLength(1);
+    });
   });
 }

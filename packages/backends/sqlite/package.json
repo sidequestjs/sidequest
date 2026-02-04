@@ -45,7 +45,7 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
-    "better-sqlite3": "^12.4.1",
+    "better-sqlite3": "^12.6.2",
     "knex": "^3.1.0"
   },
   "devDependencies": {
