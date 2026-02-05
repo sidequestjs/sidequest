@@ -26,7 +26,7 @@ describe("createBackendFromDriver", () => {
     };
 
     // Mock the dynamic import
-    vi.doMock("/packages/backends/backend/src/mock-driver", () => ({
+    vi.doMock("/src/mock-driver", () => ({
       default: MockBackend,
     }));
 
@@ -86,7 +86,7 @@ describe("createBackendFromDriver", () => {
       // noop
     });
 
-    vi.doMock("/packages/backends/backend/src/config-driver", () => ({
+    vi.doMock("/src/config-driver", () => ({
       default: MockBackendWithSpy,
     }));
 
