@@ -1,11 +1,9 @@
 @import "tailwindcss";
-@plugin "daisyui";
-
-@plugin "daisyui/theme" {
+@plugin "daisyui" {
   name: "sidequest-dark";
   default: false;
   prefersdark: true;
-  color-scheme: "dark";
+  color-scheme: "light";
 
   --color-base-100: #0c1226;
   --color-base-200: #182038;
@@ -48,7 +46,6 @@
   --noise: 0;
 }
 
-
 pretty-json {
   --key-color: #7aa2f7;
   --arrow-color: #6c6c6c;
@@ -64,6 +61,5 @@ pretty-json {
   --font-family: monospace;
   --font-size: 0.875rem;
 }
-
 
 @import "./highlight-theme.css";

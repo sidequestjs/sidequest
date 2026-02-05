@@ -1,5 +1,5 @@
 export default {
-  content: ["./src/web/views/**/*.ejs"],
+  content: ["./src/views/**/*.ejs", "./src/public/**/*.js"],
   theme: {
     extend: {},
   },

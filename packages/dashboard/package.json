@@ -55,7 +55,7 @@
     "@types/feather-icons": "^4.29.4",
     "@types/morgan": "^1.9.10",
     "chart.js": "^4.5.1",
-    "daisyui": "^5.5.17",
+    "daisyui": "5.1.7",
     "feather-icons": "^4.29.2",
     "htmx.org": "^2.0.8"
   }
