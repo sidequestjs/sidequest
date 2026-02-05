@@ -10,10 +10,12 @@ import { QueueManager } from "./queue-manager";
 const runMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
-  RunnerPool: vi.fn(() => ({
-    run: runMock,
-    destroy: vi.fn(),
-  })),
+  RunnerPool: vi.fn(function () {
+    return {
+      run: runMock,
+      destroy: vi.fn(),
+    };
+  }),
 }));
 
 async function createJob(backend: Backend, queue = "default") {

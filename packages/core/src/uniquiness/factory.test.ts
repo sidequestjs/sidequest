@@ -38,7 +38,9 @@ describe("UniquenessFactory", () => {
 
   it("should return instance of the correct uniqueness class", () => {
     const mockInstance = {} as AliveJobUniqueness;
-    vi.mocked(AliveJobUniqueness).mockImplementation(() => mockInstance);
+    vi.mocked(AliveJobUniqueness).mockImplementation(function () {
+      return mockInstance;
+    });
 
     const config: UniquenessConfig = { type: "alive-job" };
     const result = UniquenessFactory.create(config);
