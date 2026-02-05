@@ -3,7 +3,7 @@
   name: "sidequest-dark";
   default: false;
   prefersdark: true;
-  color-scheme: "light";
+  color-scheme: "dark";
 
   --color-base-100: #0c1226;
   --color-base-200: #182038;
