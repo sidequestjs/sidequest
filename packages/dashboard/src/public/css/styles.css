@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@plugin "daisyui" {
+@plugin "daisyui/themes" {
   name: "sidequest-dark";
   default: false;
   prefersdark: true;
