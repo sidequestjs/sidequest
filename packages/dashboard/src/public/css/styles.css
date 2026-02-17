@@ -48,7 +48,6 @@
   --noise: 0;
 }
 
-
 pretty-json {
   --key-color: #7aa2f7;
   --arrow-color: #6c6c6c;
@@ -64,6 +63,5 @@ pretty-json {
   --font-family: monospace;
   --font-size: 0.875rem;
 }
-
 
 @import "./highlight-theme.css";

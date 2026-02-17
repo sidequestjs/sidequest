@@ -10,10 +10,12 @@ import { ExecutorManager } from "./executor-manager";
 const runMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
-  RunnerPool: vi.fn().mockImplementation(() => ({
-    run: runMock,
-    destroy: vi.fn(),
-  })),
+  RunnerPool: vi.fn().mockImplementation(function () {
+    return {
+      run: runMock,
+      destroy: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock("../job/job-transitioner", () => ({

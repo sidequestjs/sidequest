@@ -12,7 +12,9 @@ const piscinaMockInstance = {
 
 vi.mock("piscina", () => {
   return {
-    default: vi.fn().mockImplementation(() => piscinaMockInstance),
+    default: vi.fn().mockImplementation(function () {
+      return piscinaMockInstance;
+    }),
   };
 });
 

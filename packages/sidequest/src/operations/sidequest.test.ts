@@ -12,7 +12,9 @@ const mockSidequestDashboard = vi.hoisted(() => ({
 }));
 
 vi.mock("@sidequest/dashboard", () => ({
-  SidequestDashboard: vi.fn().mockImplementation(() => mockSidequestDashboard),
+  SidequestDashboard: vi.fn().mockImplementation(function () {
+    return mockSidequestDashboard;
+  }),
 }));
 
 const mockEngineInstance = vi.hoisted(() => ({
@@ -24,7 +26,9 @@ const mockEngineInstance = vi.hoisted(() => ({
 
 vi.mock("@sidequest/engine", async (importOriginal) => ({
   ...(await importOriginal()),
-  Engine: vi.fn().mockImplementation(() => mockEngineInstance),
+  Engine: vi.fn().mockImplementation(function () {
+    return mockEngineInstance;
+  }),
 }));
 
 vi.mock("./job", () => ({
