@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/sidequestjs/sidequest/compare/v1.13.7...v1.14.0) (2026-02-17)
+
+
+### Features
+
+* upgrade all deps ([#162](https://github.com/sidequestjs/sidequest/issues/162)) ([56e12ed](https://github.com/sidequestjs/sidequest/commit/56e12edffe5eeb922900ce5eb91ddad961ebaa4a))
+
 ## [1.13.7](https://github.com/sidequestjs/sidequest/compare/v1.13.6...v1.13.7) (2026-02-04)
 
 
