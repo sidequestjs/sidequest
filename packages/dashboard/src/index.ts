@@ -144,6 +144,15 @@ export class SidequestDashboard {
       res.locals.basePath = this.config!.basePath ?? "";
       next();
     });
+
+    // Fixes a HTMX bug where restoring the dashboard tab from cache causes it to show an unstyled page
+    // https://github.com/bigskysoftware/htmx/issues/497
+    this.app?.use((req, res, next) => {
+      if (req.headers["hx-request"]) {
+        res.setHeader("Cache-Control", "no-store, max-age=0");
+      }
+      next();
+    });
   }
 
   /**
