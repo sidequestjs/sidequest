@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/sidequestjs/sidequest/compare/v1.14.0...v1.14.1) (2026-03-12)
+
+
+### Bug Fixes
+
+* Fixes an issue with HTMX cache and forces sidequest-dark theme ([#167](https://github.com/sidequestjs/sidequest/issues/167)) ([5330628](https://github.com/sidequestjs/sidequest/commit/533062802b4a66cb92d68fe51a5e12498e6d12e4))
+
 # [1.14.0](https://github.com/sidequestjs/sidequest/compare/v1.13.7...v1.14.0) (2026-02-17)
 
 
