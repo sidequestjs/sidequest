@@ -5,25 +5,73 @@ description: Sidequest architecture — two layers of isolation, piscina worker 
 
 # How It Works
 
-> **Work in progress.** Architecture deep-dive coming soon.
+Sidequest runs your background jobs in two layers of isolation so that a crashing job cannot affect your main application, and jobs from different queues cannot starve each other.
 
-Sidequest uses two layers of isolation to ensure job failures never affect your main application:
+## The two-process model
 
-1. **Engine child process** — the scheduler and executor run in a forked child process. A crash in job code cannot kill your app.
-2. **Worker threads (piscina)** — each job executes in an isolated worker thread inside the engine process.
+When you call `Sidequest.start()`, your app **forks a child process** to run the engine. All scheduling, dispatching, and thread management happen in that process. Your app communicates with the engine over IPC.
 
 ```
 Your app process
-  └─ fork() ──► Engine process
-                  ├─ Dispatcher   (polls DB, claims jobs)
-                  ├─ QueueManager (per-queue concurrency limits)
-                  └─ piscina pool (worker threads)
-                       └─ Job#run() runs here
-                              │
-                              ▼
-                       Database (Postgres / MySQL / SQLite / MongoDB)
+  │
+  ├─ HTTP server, Express routes, etc.        ← still yours, unaffected by job crashes
+  │
+  └─ fork() ──► Engine child process
+                  ├─ Dispatcher              polls DB, claims jobs atomically
+                  ├─ QueueManager            tracks concurrency limits per queue
+                  └─ piscina thread pool     one worker thread per running job
+                         │
+                         └─ Job#run()        your code, fully isolated
+                                │
+                                ▼
+                         Database
+                         (Postgres / MySQL / SQLite / MongoDB)
 ```
 
-The Dispatcher polls the database at a configurable interval (default: 100 ms), claims jobs atomically using `SELECT ... FOR UPDATE SKIP LOCKED` (SQL backends), and passes them to the thread pool.
+Because the engine is a separate process, a job that calls `process.exit()` or throws an unhandled exception will kill the engine process but **not your app**. The engine restarts automatically.
 
-For a full configuration reference, see [Configuration](/getting-started/configuration).
+## How jobs are claimed
+
+The Dispatcher polls the database at a configurable interval (default: **100 ms**). When it finds pending jobs that fit within queue concurrency limits, it claims them atomically:
+
+- **SQL backends** use `SELECT ... FOR UPDATE SKIP LOCKED`, which is the same mechanism used by Solid Queue (Rails) and pg-boss. Multiple engine instances can poll the same database without double-issuing a job.
+- **MongoDB backend** uses a findOneAndUpdate with a conditional filter for the same effect.
+
+Increasing `jobPollingInterval` reduces database load at the cost of higher job start latency. Lowering it does the opposite.
+
+## Worker threads
+
+Each claimed job runs in its own **worker thread** inside the engine process, managed by [piscina](https://github.com/piscinajs/piscina). Piscina maintains a configurable thread pool (`minThreads` / `maxThreads`). Jobs do not share memory with each other or with the engine's main thread.
+
+The engine dynamically loads your job class into the thread by resolving the source file from a stack trace at enqueue time (auto-resolution). If you use a bundler or serverless platform that mangles paths, you can disable this with `manualJobResolution: true`. See [Manual Job Resolution](/production/manual-resolution) for details.
+
+## Queue model
+
+A queue is a named channel with three settings:
+
+| Setting | Controls |
+|---|---|
+| `concurrency` | Max jobs from this queue running simultaneously |
+| `priority` | Which queue gets the next available worker when multiple queues have pending jobs |
+| `state` | `active` (processing) or `paused` (no new jobs claimed) |
+
+Queue settings are stored in the database and can be changed at runtime via the dashboard or `Sidequest.queue.*` methods. If you list a queue in `start({ queues: [...] })`, those values override whatever is in the database on startup.
+
+## Job lifecycle
+
+```
+pending → claimed → running → completed
+                          ↘ failed → (retry) → pending
+                          ↘ cancelled
+                          ↘ snoozed → pending (after delay)
+```
+
+The Dispatcher moves jobs from `pending` to `claimed`, then the executor moves them to `running`. Your `run()` method returns (or throws) and the executor writes the final state. Stale jobs stuck in `running` or `claimed` past a configurable age are automatically reset to `pending` by a background routine.
+
+See [Job Lifecycle](/guide/jobs/lifecycle) for the full state diagram and transition rules.
+
+## Next steps
+
+- [Configuration reference](/getting-started/configuration) — all engine options
+- [Backends](/production/backends) — choosing and connecting a database driver
+- [Queue management](/guide/queues/) — concurrency, priority, and states
