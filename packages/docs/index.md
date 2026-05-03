@@ -11,13 +11,13 @@ hero:
   actions:
     - theme: brand
       text: Installation
-      link: /installation
+      link: /getting-started/installation
     - theme: alt
       text: Quick Start
-      link: /quick-start
+      link: /getting-started/quick-start
     - theme: alt
       text: FAQ
-      link: /faq
+      link: /resources/faq
 
 features:
   - title: 🌎 Cloud & Database Agnostic

@@ -18,110 +18,125 @@ export default defineConfig({
       gtag('config', '${process.env.VITE_GA_TAG}');`,
     ],
   ],
+  rewrites: {
+    // Old top-level pages → new locations
+    "overview.md": "introduction/why.md",
+    "installation.md": "getting-started/installation.md",
+    "quick-start.md": "getting-started/quick-start.md",
+    "cli.md": "resources/cli.md",
+    "dashboard.md": "resources/dashboard.md",
+    "development.md": "resources/development.md",
+    "examples.md": "resources/examples.md",
+    "faq.md": "resources/faq.md",
+    // Old jobs/* → guide/jobs/*
+    "jobs/:page": "guide/jobs/:page",
+    // Old queues/* → guide/queues/*
+    "queues/:page": "guide/queues/:page",
+    // Old engine/* → new locations
+    "engine/configuration.md": "getting-started/configuration.md",
+    "engine/backends.md": "production/backends.md",
+    "engine/enqueue.md": "guide/jobs/enqueueing.md",
+    "engine/graceful-shutdown.md": "production/graceful-shutdown.md",
+    "engine/cleanup.md": "production/cleanup.md",
+    "engine/starting.md": "production/starting.md",
+    "engine/index.md": "api/sidequest.md",
+    // Merged pages
+    "guide/jobs/run-method.md": "guide/jobs/running.md",
+    "guide/jobs/convenience-methods.md": "guide/jobs/running.md",
+  },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "Home", link: "/" },
-      { text: "Docs", link: "/overview" },
+      { text: "Docs", link: "/introduction/why" },
+      { text: "API", link: "/api/sidequest" },
     ],
 
     sidebar: [
-      { text: "🔭 Overview", link: "/overview" },
-      { text: "📦 Installation", link: "/installation" },
-      { text: "🚀 Quick Start", link: "/quick-start" },
-      { text: "💻 CLI", link: "/cli" },
       {
-        text: "💼 Jobs",
-        base: "/jobs",
-        link: "/",
-        collapsed: false,
+        text: "Introduction",
         items: [
-          {
-            text: "Lifecycle",
-            link: "/lifecycle",
-          },
-          {
-            text: "Job Class",
-            link: "/class",
-          },
-          {
-            text: "Job.run Method",
-            link: "/run-method",
-          },
-          {
-            text: "Convenience Methods",
-            link: "/convenience-methods",
-          },
-          {
-            text: "Recurring Jobs",
-            link: "/recurring",
-          },
-          {
-            text: "Manual Job Resolution",
-            link: "/manual-resolution",
-          },
-          {
-            text: "Logging",
-            link: "/logging",
-          },
+          { text: "Why Sidequest", link: "/introduction/why" },
+          { text: "How It Works", link: "/introduction/how-it-works" },
         ],
       },
       {
-        text: "🛣️ Queues",
-        base: "/queues",
-        link: "/",
-        collapsed: false,
+        text: "Getting Started",
         items: [
-          {
-            text: "States",
-            link: "/states",
-          },
-          {
-            text: "Priority",
-            link: "/priority",
-          },
-          {
-            text: "Concurrency",
-            link: "/concurrency",
-          },
+          { text: "Installation", link: "/getting-started/installation" },
+          { text: "Quick Start", link: "/getting-started/quick-start" },
+          { text: "Configuration", link: "/getting-started/configuration" },
         ],
       },
       {
-        text: "⚙️ Engine",
-        base: "/engine",
+        text: "Jobs",
+        base: "/guide/jobs",
         link: "/",
         collapsed: false,
         items: [
-          {
-            text: "Configuration",
-            link: "/configuration",
-          },
-          {
-            text: "Starting the Engine",
-            link: "/starting",
-          },
-          {
-            text: "Backends",
-            link: "/backends",
-          },
-          {
-            text: "Enqueueing Jobs",
-            link: "/enqueue",
-          },
-          {
-            text: "Graceful Shutdown",
-            link: "/graceful-shutdown",
-          },
-          {
-            text: "Cleaning Up Jobs",
-            link: "/cleanup",
-          },
+          { text: "Job Class", link: "/class" },
+          { text: "Lifecycle", link: "/lifecycle" },
+          { text: "Execution and Control", link: "/running" },
+          { text: "Enqueueing", link: "/enqueueing" },
+          { text: "Recurring Jobs", link: "/recurring" },
+          { text: "Logging", link: "/logging" },
         ],
       },
-      { text: "🌐 Dashboard", link: "/dashboard" },
-      { text: "🧑‍💻 Development", link: "/development" },
-      { text: "⚒️ Examples", link: "/examples" },
-      { text: "🆘 FAQ", link: "/faq" },
+      {
+        text: "Queues",
+        base: "/guide/queues",
+        link: "/",
+        collapsed: false,
+        items: [
+          { text: "Concurrency", link: "/concurrency" },
+          { text: "Priority", link: "/priority" },
+          { text: "States", link: "/states" },
+        ],
+      },
+      {
+        text: "Production",
+        base: "/production",
+        collapsed: false,
+        items: [
+          { text: "Backends", link: "/backends" },
+          { text: "Graceful Shutdown", link: "/graceful-shutdown" },
+          { text: "Cleanup", link: "/cleanup" },
+          { text: "Manual Job Resolution", link: "/manual-resolution" },
+          { text: "Deployment", link: "/deployment" },
+        ],
+      },
+      {
+        text: "Recipes",
+        base: "/recipes",
+        link: "/",
+        collapsed: true,
+        items: [
+          { text: "Sending Emails", link: "/emails" },
+          { text: "Job Chaining", link: "/chaining" },
+          { text: "Scheduled Reports", link: "/scheduled-reports" },
+          { text: "Standalone Dashboard", link: "/standalone-dashboard" },
+        ],
+      },
+      {
+        text: "API Reference",
+        base: "/api",
+        collapsed: true,
+        items: [
+          { text: "Sidequest", link: "/sidequest" },
+          { text: "Job", link: "/job" },
+          { text: "Queue", link: "/queue" },
+        ],
+      },
+      {
+        text: "Resources",
+        items: [
+          { text: "CLI", link: "/resources/cli" },
+          { text: "Dashboard", link: "/resources/dashboard" },
+          { text: "FAQ", link: "/resources/faq" },
+          { text: "Examples", link: "/resources/examples" },
+          { text: "Contributing", link: "/resources/development" },
+        ],
+      },
     ],
 
     socialLinks: [{ icon: "github", link: "https://github.com/sidequestjs/sidequest" }],
