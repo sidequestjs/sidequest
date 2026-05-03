@@ -16,7 +16,7 @@ _Last updated: May 2026._
 | **Language** | Node.js | Node.js | Node.js | Node.js | Ruby/Rails | Elixir |
 | **Storage** | Postgres, MySQL, SQLite, MongoDB | Redis | MongoDB, Postgres, Redis | Postgres only | Postgres, MySQL, SQLite | Postgres, MySQL, SQLite |
 | **No Redis required** | ✅ | ❌ | ✅ (MongoDB) | ✅ | ✅ | ✅ |
-| **Transactional enqueue** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Transactional enqueue** | Roadmap¹ | ❌ | ❌ | ✅ | ✅ | ✅ |
 | **Worker isolation** | Worker threads (piscina) + child process | Worker threads | Child process | None built-in | Fork or thread pool | BEAM process per job |
 | **Built-in dashboard** | ✅ Free | Via Bull Board (free) or Taskforce.sh (paid) | Agendash (free, separate package) | `@pg-boss/dashboard` (separate) | Mission Control (separate, free) | Oban Web (free as of v2.11) |
 | **Unique jobs** | ✅ | ✅ | ✅ | ✅ | ❌ (concurrency controls only) | ✅ |
@@ -24,6 +24,8 @@ _Last updated: May 2026._
 | **TypeScript** | ✅ First-class | ✅ First-class | Partial | Partial | N/A | N/A |
 | **License** | LGPL-3.0 | MIT | MIT | MIT | MIT | Apache 2.0 |
 | **GitHub stars** | — | ~8 800 | ~9 700 | ~3 500 | ~2 400 | ~3 900 |
+
+_¹ Sidequest stores jobs in the same database as your application data (same DB = no split-brain), but the `JobBuilder` does not yet expose a `withTransaction(trx)` API for first-class atomic enqueue. Roadmap item._
 
 ---
 

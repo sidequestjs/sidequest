@@ -25,7 +25,7 @@ Sidequest persists jobs in your existing Postgres, MySQL, SQLite, or MongoDB dat
 
 **Lower cost.** No managed Redis instance. If you're on Heroku, Railway, Render, or Fly.io, that's one fewer add-on bill.
 
-**Transactional enqueue.** This is the feature Redis-based queues simply cannot offer: you can `INSERT` a new user row *and* enqueue their welcome email in the same database transaction. If the transaction rolls back, the job disappears too. No phantom jobs. No compensating logic. No "but the email already went out."
+**Shared database, no split-brain.** Because jobs live in the same database as your application data, you don't have the Redis split-brain problem — a Redis queue can have jobs for rows that were never committed, or miss jobs for rows that were. Sidequest doesn't have that gap. A first-class `withTransaction(trx)` API for atomic enqueue is on the roadmap.
 
 **Familiar tooling.** Inspect the job queue with the same SQL client you use for everything else. `SELECT * FROM sidequest_jobs WHERE state = 'failed'` — you know how to do that already.
 
