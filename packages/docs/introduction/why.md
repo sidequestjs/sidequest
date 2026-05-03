@@ -39,8 +39,6 @@ This is the same thesis as [Solid Queue](https://dev.37signals.com/introducing-s
 
 Sidequest does not try to out-benchmark BullMQ at 100k jobs/sec on a dedicated Redis cluster. If you need extreme throughput, you already have Redis, or you are building a multi-tenant SaaS where queue infrastructure is a first-class concern — a Redis-based queue may be the right tool.
 
-See [Alternatives](/introduction/comparison) for a direct comparison.
-
 ## What Sidequest provides
 
 - **Multiple backends** — Postgres, MySQL, SQLite, MongoDB. Use what you have.

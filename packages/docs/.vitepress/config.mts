@@ -58,7 +58,6 @@ export default defineConfig({
         items: [
           { text: "Why Sidequest", link: "/introduction/why" },
           { text: "How It Works", link: "/introduction/how-it-works" },
-          { text: "Alternatives", link: "/introduction/comparison" },
         ],
       },
       {
@@ -77,7 +76,7 @@ export default defineConfig({
         items: [
           { text: "Job Class", link: "/class" },
           { text: "Lifecycle", link: "/lifecycle" },
-          { text: "run() & Convenience Methods", link: "/running" },
+          { text: "Execution and Control", link: "/running" },
           { text: "Enqueueing", link: "/enqueueing" },
           { text: "Recurring Jobs", link: "/recurring" },
           { text: "Logging", link: "/logging" },
@@ -113,7 +112,6 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: "Sending Emails", link: "/emails" },
-          { text: "Rate Limiting", link: "/rate-limiting" },
           { text: "Job Chaining", link: "/chaining" },
           { text: "Scheduled Reports", link: "/scheduled-reports" },
           { text: "Standalone Dashboard", link: "/standalone-dashboard" },

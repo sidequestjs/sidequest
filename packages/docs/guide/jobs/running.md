@@ -1,12 +1,12 @@
 ---
 outline: deep
-title: The run() Method
-description: Implementing run(), returning values, handling errors, and using convenience methods inside a job.
+title: Execution and Control
+description: How run() works, runtime metadata, and the flow control methods for driving a job through its lifecycle.
 ---
 
-# The run() Method
+# Execution and Control
 
-The `run()` method is the entry point for your job's logic. Sidequest calls it when the job is claimed from the queue.
+The `run()` method is the entry point for your job's logic. Sidequest calls it when the job is claimed from the queue. Inside it, you write the work — and you use **flow control methods** to explicitly drive the job into the next lifecycle state when the default behavior (return = completed, throw = retry/failed) isn't expressive enough.
 
 ## Basic implementation
 
@@ -24,13 +24,16 @@ export class ProcessOrderJob extends Job {
 }
 ```
 
-Anything you `return` is stored as the job's `result` and the job transitions to `completed`.
+By default:
 
-If `run()` throws, the job transitions to `failed` (if no retries remain) or back to `pending` (if retries remain). The error is stored in the job's `errors` field.
+- **Return a value** → job transitions to `completed`, return value stored as `result`.
+- **Throw an error** → job transitions back to `pending` for retry (if attempts remain) or to `failed` (if not). Error stored in `errors`.
+
+When you need finer control — fail without retrying, retry with a custom delay, pause until later — use the flow control methods below.
 
 ## Runtime metadata
 
-After the job is created but before `run()` executes, Sidequest injects read-only properties onto `this`:
+Before `run()` executes, Sidequest injects read-only properties onto `this`:
 
 | Property            | Type        | Description                      |
 | ------------------- | ----------- | -------------------------------- |
@@ -46,43 +49,51 @@ After the job is created but before `run()` executes, Sidequest injects read-onl
 These properties are only available inside `run()`. They are `undefined` in the constructor.
 :::
 
-## Convenience methods
+## Flow control
 
-Inside `run()`, you can call four methods to control the job's outcome. **You must `return` them** — calling without returning is a no-op.
+These methods let you explicitly transition the job to a specific lifecycle state from inside `run()`. Each one is a convenient shorthand for a state transition — hence the name "convenience methods" you may see in older docs.
+
+::: danger
+You must **`return`** the result of every flow control method. Calling one without returning it is a no-op — the transition won't happen.
+
+```typescript
+this.fail("reason");        // ❌ does nothing
+return this.fail("reason"); // ✅ transitions to failed
+```
+:::
 
 ### `return this.complete(result)`
 
-Explicitly mark the job as completed with a specific result. Equivalent to a plain `return`, but useful when you want to be explicit or when branching:
+Explicitly transition the job to `completed` with a given result. Functionally equivalent to a plain `return`, but useful when branching:
 
 ```typescript
 async run(data: unknown) {
   if (!isValid(data)) {
     return this.complete({ skipped: true, reason: "invalid input" });
   }
-  const result = await process(data);
-  return this.complete(result);
+  return this.complete(await process(data));
 }
 ```
 
 ### `return this.fail(reason)`
 
-Mark the job as permanently failed, bypassing any remaining retry attempts. Use this for errors that will never succeed on retry (missing resource, validation failure, hard bounce):
+Immediately transition the job to `failed`, bypassing any remaining retry attempts. Use this when the error is permanent and retrying would be pointless:
 
 ```typescript
 async run(userId: string) {
   const user = await db.users.findById(userId);
   if (!user) {
-    return this.fail(`User ${userId} not found`); // no point retrying
+    return this.fail(`User ${userId} not found`);
   }
   await processUser(user);
 }
 ```
 
-`reason` can be a string or an `Error` object. It is stored in the job's `errors` field.
+`reason` can be a string or an `Error` object — stored in the job's `errors` field.
 
 ### `return this.retry(reason, delay?)`
 
-Force a retry with an optional delay in milliseconds. Unlike throwing an error, `retry()` gives you control over the delay independently of the global `retryDelay` setting:
+Explicitly request a retry with an optional delay in milliseconds. Unlike throwing, this lets you control the retry delay independently of the global `retryDelay` config:
 
 ```typescript
 async run(endpoint: string) {
@@ -101,41 +112,39 @@ async run(endpoint: string) {
 }
 ```
 
-`retry()` consumes a retry attempt. If you're already on the last attempt, the job fails.
+`retry()` consumes a retry attempt. If this is the last attempt, the job transitions to `failed`.
 
 ### `return this.snooze(delay)`
 
-Move the job back to `pending` and make it available again after `delay` milliseconds. Unlike `retry()`, **snooze does not consume a retry attempt** — it's a pause, not a failure:
+Transition the job back to `pending` and make it available again after `delay` milliseconds. Unlike `retry()`, **snooze does not consume a retry attempt** — it's a lifecycle pause, not a failure:
 
 ```typescript
 async run(payload: unknown) {
   if (!isBusinessHours()) {
-    const msUntilOpen = msUntilNextBusinessHour();
-    return this.snooze(msUntilOpen); // try again when the office opens
+    return this.snooze(msUntilNextBusinessHour()); // come back when the office opens
   }
   return await processPayload(payload);
 }
 ```
 
-Use `snooze` for timing-based deferrals (rate limits with long windows, business hours, external maintenance windows).
+Use `snooze` for time-based deferrals: rate limit windows, maintenance modes, business hours.
 
 ## Choosing the right method
 
-| Situation                                   | Method                                                  |
-| ------------------------------------------- | ------------------------------------------------------- |
-| Permanent, unrecoverable error              | `return this.fail(reason)`                              |
-| Transient error with controlled retry delay | `return this.retry(reason, delay)`                      |
-| Not time yet — try again later              | `return this.snooze(delay)`                             |
-| Normal completion                           | plain `return result` or `return this.complete(result)` |
-| Unexpected error — let Sidequest retry      | `throw error`                                           |
+| Situation | Use |
+|---|---|
+| Normal completion | `return result` or `return this.complete(result)` |
+| Permanent, unrecoverable error | `return this.fail(reason)` |
+| Transient error, controlled retry delay | `return this.retry(reason, delay)` |
+| Not the right time — try again later | `return this.snooze(delay)` |
+| Unexpected error — let Sidequest decide | `throw error` |
 
 ## Best practices
 
 - Make jobs **idempotent** — safe to run more than once with the same arguments.
-- Distinguish **permanent failures** (use `fail()`) from **transient ones** (throw or use `retry()`).
-- Keep `run()` focused on one task. Use [job chaining](/recipes/chaining) for multi-step workflows.
-- Add [logging](/guide/jobs/logging) for key events so you can debug failures from the dashboard.
-- For large payloads, store intermediate results in the database and pass only an ID between jobs.
+- Use `fail()` for errors that won't resolve on retry. Use `throw` or `retry()` for transient ones.
+- Keep `run()` focused on a single responsibility. Use [job chaining](/recipes/chaining) for multi-step workflows.
+- Add [logging](/guide/jobs/logging) for key events so failures are debuggable from the dashboard.
 
 ---
 
