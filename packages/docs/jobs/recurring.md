@@ -62,7 +62,31 @@ Sidequest.build(MyJob).schedule("*/5 * * * * *", "foo"); // Every 5 seconds with
 #### Notes
 
 - **In-memory only:** Scheduled tasks are NOT persisted in the database. You must re-register schedules on every app startup.
-- **No overlap:** Sidequest uses `noOverlap: true` by default—if a previous run is still in progress, a new job will not be enqueued for that tick.
+- **No overlap:** Sidequest uses `noOverlap: true` by default - if a previous run is still in progress, a new job will not be enqueued for that tick. You can override this via `.scheduleOptions({ noOverlap: false })`.
+
+## Timezone Support
+
+By default, cron expressions are evaluated in the server's local time. Use `.scheduleOptions()` to specify an [IANA timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) so jobs fire on local business hours regardless of where the server is running.
+
+```ts
+// Fire at 9 AM every weekday in Brisbane
+Sidequest.build(MyJob).scheduleOptions({ timezone: "Australia/Brisbane" }).schedule("0 9 * * 1-5");
+
+// Pass run-method arguments alongside timezone
+Sidequest.build(ReportJob)
+  .scheduleOptions({ timezone: "America/New_York" })
+  .schedule("0 8 * * *", { region: "us-east" });
+```
+
+`.scheduleOptions()` accepts any option supported by node-cron's `TaskOptions`:
+
+| Option           | Type      | Description                                                                |
+| ---------------- | --------- | -------------------------------------------------------------------------- |
+| `timezone`       | `string`  | IANA timezone name (e.g. `"Europe/Berlin"`).                               |
+| `noOverlap`      | `boolean` | Skip a tick if the previous run is still in progress. **Default: `true`**. |
+| `name`           | `string`  | Optional label for the task in node-cron's registry.                       |
+| `maxExecutions`  | `number`  | Stop the task after N executions.                                          |
+| `maxRandomDelay` | `number`  | Add a random delay (ms) to each execution.                                 |
 
 ## Limitations and Recommendations
 

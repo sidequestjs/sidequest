@@ -14,7 +14,7 @@ import {
   UniquenessConfig,
   UniquenessFactory,
 } from "@sidequest/core";
-import nodeCron, { ScheduledTask } from "node-cron";
+import nodeCron, { ScheduledTask, TaskOptions } from "node-cron";
 import { inspect } from "node:util";
 import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { JOB_BUILDER_FALLBACK } from "./constants";
@@ -62,6 +62,8 @@ export interface JobBuilderDefaults {
   retryDelay?: number;
   /** Default backoff strategy for jobs built with the JobBuilder */
   backoffStrategy?: BackoffStrategy;
+  /** Default node-cron schedule options (e.g. timezone) for jobs built with the JobBuilder */
+  scheduleOptions?: TaskOptions;
 }
 
 /**
@@ -77,6 +79,7 @@ export class JobBuilder<T extends JobClassType> {
   protected jobAvailableAt?: Date;
   protected jobRetryDelay?: number;
   protected jobBackoffStrategy?: BackoffStrategy;
+  protected jobScheduleOptions?: TaskOptions;
 
   /**
    * Creates a new JobBuilder for the given job class.
@@ -96,6 +99,7 @@ export class JobBuilder<T extends JobClassType> {
     this.with(...(JOB_BUILDER_FALLBACK.constructorArgs as unknown as ConstructorParameters<T>));
     this.retryDelay(this.defaults?.retryDelay ?? JOB_BUILDER_FALLBACK.retryDelay!);
     this.backoffStrategy(this.defaults?.backoffStrategy ?? JOB_BUILDER_FALLBACK.backoffStrategy!);
+    this.scheduleOptions(this.defaults?.scheduleOptions ?? JOB_BUILDER_FALLBACK.scheduleOptions!);
   }
 
   /**
@@ -209,6 +213,27 @@ export class JobBuilder<T extends JobClassType> {
     return this;
   }
 
+  /**
+   * Sets node-cron schedule options used by {@link schedule}.
+   *
+   * @remarks
+   * `noOverlap` defaults to `true` if not explicitly set here or in the builder defaults.
+   *
+   * @param options node-cron `TaskOptions` (e.g. `timezone`, `noOverlap`).
+   * @returns This builder instance.
+   *
+   * @example
+   * ```typescript
+   * Sidequest.build(MyJob)
+   *   .scheduleOptions({ timezone: "Australia/Brisbane" })
+   *   .schedule("0 9 * * *");
+   * ```
+   */
+  scheduleOptions(options: TaskOptions): this {
+    this.jobScheduleOptions = options;
+    return this;
+  }
+
   protected async build(...args: Parameters<InstanceType<T>["run"]>): Promise<NewJobData> {
     const job = new this.JobClass(...this.constructorArgs!);
 
@@ -313,7 +338,7 @@ export class JobBuilder<T extends JobClassType> {
         );
         return this.backend.createNewJob(jobData);
       },
-      { noOverlap: true },
+      this.jobScheduleOptions,
     );
 
     // Register the scheduled task with the ScheduledJobRegistry for proper later cleanup

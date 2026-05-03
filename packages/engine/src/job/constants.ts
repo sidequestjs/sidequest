@@ -25,4 +25,5 @@ export const JOB_BUILDER_FALLBACK: JobBuilderDefaults & { constructorArgs: unkno
   constructorArgs: [],
   retryDelay: 1000,
   backoffStrategy: JOB_FALLBACK.backoff_strategy,
+  scheduleOptions: { noOverlap: true },
 };

@@ -168,6 +168,9 @@ export class Engine {
         availableAt: config?.jobDefaults?.availableAt,
         timeout: config?.jobDefaults?.timeout ?? JOB_BUILDER_FALLBACK.timeout!,
         uniqueness: config?.jobDefaults?.uniqueness ?? JOB_BUILDER_FALLBACK.uniqueness!,
+        backoffStrategy: config?.jobDefaults?.backoffStrategy ?? JOB_BUILDER_FALLBACK.backoffStrategy!,
+        retryDelay: config?.jobDefaults?.retryDelay ?? JOB_BUILDER_FALLBACK.retryDelay!,
+        scheduleOptions: config?.jobDefaults?.scheduleOptions ?? JOB_BUILDER_FALLBACK.scheduleOptions!,
       },
       queueDefaults: {
         concurrency: config?.queueDefaults?.concurrency ?? QUEUE_FALLBACK.concurrency,
