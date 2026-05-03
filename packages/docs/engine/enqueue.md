@@ -327,6 +327,46 @@ await Sidequest.build(EmailJob).enqueue("user@example.com", "Hello", "Message bo
 
 **Default**: `[]` (no run method arguments)
 
+### `.scheduleOptions(options: TaskOptions)`
+
+Configures [node-cron](https://www.npmjs.com/package/node-cron) options used when calling `.schedule()`. The most common use case is setting a `timezone` so recurring jobs fire relative to a specific region rather than the server's local time.
+
+```typescript
+// Fire at 9 AM Brisbane time regardless of server timezone
+await Sidequest.build(DailyReportJob).scheduleOptions({ timezone: "Australia/Brisbane" }).schedule("0 9 * * *");
+
+// Multiple options
+await Sidequest.build(MyJob)
+  .scheduleOptions({ timezone: "America/New_York", noOverlap: false })
+  .schedule("*/5 * * * *");
+```
+
+**Default:** `{ noOverlap: true }`
+
+**Available options** (from node-cron's `TaskOptions`):
+
+| Option           | Type      | Description                                                                 |
+| ---------------- | --------- | --------------------------------------------------------------------------- |
+| `timezone`       | `string`  | IANA timezone name (e.g. `"Europe/Berlin"`, `"America/New_York"`).          |
+| `noOverlap`      | `boolean` | Skip a tick if the previous execution is still running. Defaults to `true`. |
+| `name`           | `string`  | Optional label for the task in node-cron's registry.                        |
+| `maxExecutions`  | `number`  | Stop the task after this many executions.                                   |
+| `maxRandomDelay` | `number`  | Add a random delay (ms) to each execution.                                  |
+
+::: tip Setting a default via configuration
+You can set a default `scheduleOptions` for all jobs by passing it through `jobDefaults` in `Sidequest.configure()` or `Sidequest.start()`:
+
+```typescript
+await Sidequest.start({
+  jobDefaults: {
+    scheduleOptions: { timezone: "Australia/Brisbane" },
+  },
+});
+```
+
+The per-call `.scheduleOptions()` method always overrides the default.
+:::
+
 ### `.schedule(cronExpression: string, ...args?: unknown[])`
 
 For recurring jobs, you can use the `.schedule()` method instead of `.enqueue()`:
