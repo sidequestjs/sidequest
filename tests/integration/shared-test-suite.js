@@ -611,10 +611,16 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         await Sidequest.build(SuccessJob).schedule("*/2 * * * * *", "job-2");
 
         let currentJobs;
-        await vi.waitUntil(async () => {
-          currentJobs = await Sidequest.job.list();
-          return currentJobs.length >= 3 && currentJobs.every((job) => job.state === "completed");
-        }, 5000);
+        await vi.waitUntil(
+          async () => {
+            currentJobs = await Sidequest.job.list();
+            return currentJobs.length >= 3 && currentJobs.every((job) => job.state === "completed");
+          },
+          {
+            interval: 100,
+            timeout: 5000,
+          },
+        );
 
         const job1Executions = currentJobs.filter((job) => job.args[0] === "job-1");
         const job2Executions = currentJobs.filter((job) => job.args[0] === "job-2");
