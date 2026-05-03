@@ -197,6 +197,7 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
         const jobData = await Sidequest.build(RetryJob)
           .maxAttempts(3)
           .backoffStrategy("exponential")
+          .retryDelay(500)
           .enqueue("retry-with-delay");
 
         // Wait for job to complete (should take some time due to retry delays)
