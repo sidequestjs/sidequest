@@ -27,7 +27,7 @@ Jobs in Sidequest.js follow this execution flow:
 2. **Storage**: Job data is persisted in your chosen backend (SQLite, PostgreSQL, MySQL)
 3. **Claiming**: Workers claim available jobs from [queues](/guide/queues/index) based on concurrency limits
 4. **Construction**: Job objects are constructed using the [job class](./class.md) and constructor arguments
-5. **Execution**: The [job's `run` method](./run-method.md) is executed with the provided arguments
+5. **Execution**: The [job's `run` method](./running.md) is executed with the provided arguments
 6. **Transition**: Based on the result, [jobs follow their lifecycle](./lifecycle.md) by transitioning to completed, failed, canceled, or waiting (in case of retry) states
 7. **Cleanup**: Completed or failed [jobs can be cleaned up](/production/cleanup) based on retention policies
 
@@ -140,6 +140,5 @@ This jobs documentation covers everything you need to know about working with jo
 
 - **[Job Lifecycle](./lifecycle.md)**: Understanding job states and transitions
 - **[Job Class](./class.md)**: How to create job classes and structure your work
-- **[Run Method](./run-method.md)**: Implementing job logic and handling results
-- **[Convenience Methods](./convenience-methods.md)**: Built-in methods for common job transitions
+- **[run() & Convenience Methods](./running.md)**: Implementing job logic, handling results, and controlling execution flow
 - **[Logging](./logging.md)**: How to add logging and debugging to your jobs

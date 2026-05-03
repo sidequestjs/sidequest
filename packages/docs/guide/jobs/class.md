@@ -120,3 +120,7 @@ While not required, following these conventions helps with organization:
 4. **Handle dependencies carefully**: Consider how to provide services and configurations to your jobs
 5. **Add proper logging**: Use the [built-in logger](./logging.md) for debugging and monitoring
 6. **Validate inputs**: Check that required arguments are present and valid
+
+---
+
+**Next:** [run() Method](/guide/jobs/running) — return values, error handling, complete/fail/retry/snooze

@@ -40,6 +40,9 @@ export default defineConfig({
     "engine/cleanup.md": "production/cleanup.md",
     "engine/starting.md": "production/starting.md",
     "engine/index.md": "api/sidequest.md",
+    // Merged pages
+    "guide/jobs/run-method.md": "guide/jobs/running.md",
+    "guide/jobs/convenience-methods.md": "guide/jobs/running.md",
   },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -74,8 +77,7 @@ export default defineConfig({
         items: [
           { text: "Job Class", link: "/class" },
           { text: "Lifecycle", link: "/lifecycle" },
-          { text: "run() Method", link: "/run-method" },
-          { text: "Convenience Methods", link: "/convenience-methods" },
+          { text: "run() & Convenience Methods", link: "/running" },
           { text: "Enqueueing", link: "/enqueueing" },
           { text: "Recurring Jobs", link: "/recurring" },
           { text: "Logging", link: "/logging" },

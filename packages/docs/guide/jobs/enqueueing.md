@@ -318,7 +318,7 @@ await Sidequest.build(CustomEmailJob)
 
 ### `.enqueue(...args?: unknown[])`
 
-Enqueues the job with the provided arguments. The arguments are sent to the [Job's `run` method](/guide/jobs/run-method). This method is called after all configuration methods.
+Enqueues the job with the provided arguments. The arguments are sent to the [Job's `run` method](/guide/jobs/running). This method is called after all configuration methods.
 
 ```typescript
 // Enqueue with run method arguments

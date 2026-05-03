@@ -7,4 +7,4 @@ description: API reference for the Job base class.
 
 > **Work in progress.** Full API reference being written.
 
-See [Job Class](/guide/jobs/class) and [run() Method](/guide/jobs/run-method) for current documentation.
+See [Job Class](/guide/jobs/class) and [run() & Convenience Methods](/guide/jobs/running) for current documentation.

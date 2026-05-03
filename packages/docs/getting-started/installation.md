@@ -132,3 +132,7 @@ pnpm add -g @sidequest/cli
 ```
 
 :::
+
+---
+
+**Next:** [Quick Start](/getting-started/quick-start) — create your first job and run it in 5 minutes
