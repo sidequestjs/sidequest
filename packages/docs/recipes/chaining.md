@@ -19,9 +19,7 @@ export class ProcessUploadJob extends Job {
     await processFile(fileId); // do the work
 
     // Enqueue the next step
-    await Sidequest.build(GenerateThumbnailJob)
-      .queue("media")
-      .enqueue(fileId);
+    await Sidequest.build(GenerateThumbnailJob).queue("media").enqueue(fileId);
 
     return { processed: true };
   }

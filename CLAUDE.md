@@ -12,18 +12,18 @@ Production-grade distributed background job processor for Node.js. Persists jobs
 
 Monorepo on **Yarn 4 (Berry, via Corepack) + Turbo**. Workspaces declared in root `package.json`: `packages/*`, `packages/backends/*`, `examples`.
 
-| Package | Public name | Role |
-|---|---|---|
-| `packages/sidequest` | `sidequest` | Umbrella package end users install. Exposes `Sidequest`, re-exports the rest. Source is intentionally thin — mostly the `Sidequest` static class and operations facade. |
-| `packages/engine` | `@sidequest/engine` | Orchestration. Owns the `Engine`, `Dispatcher`, `QueueManager`, `ExecutorManager`, `JobBuilder`, `JobTransitioner`, cron registry, routines (cleanup, stale recovery), shared runner pool. |
-| `packages/core` | `@sidequest/core` | Shared primitives: `Job` base class, schema/types (`JobData`, `QueueConfig`, etc.), state transitions, logger (Winston), uniqueness, tools. |
-| `packages/dashboard` | `@sidequest/dashboard` | Express + EJS + HTMX + Tailwind/DaisyUI web UI. Can run standalone via `SidequestDashboard`. |
-| `packages/cli` | `@sidequest/cli` | `sidequest` / `sq` CLI for `config`, `migrate`, `rollback`. |
-| `packages/docs` | (private) | VitePress site → docs.sidequestjs.com. |
-| `packages/backends/backend` | `@sidequest/backend` | Backend interface + `SQLBackend` base (Knex-based). |
-| `packages/backends/backend-test` | `@sidequest/backend-test` | Conformance suite every backend driver runs. |
-| `packages/backends/{postgres,mysql,sqlite,mongo}` | `@sidequest/{name}-backend` | Driver implementations. SQL backends extend `SQLBackend` (Knex); Mongo is its own thing. |
-| `examples/` | (private) | Runnable usage examples. **Useful but incomplete** — never treat as the source of truth. |
+| Package                                           | Public name                 | Role                                                                                                                                                                                       |
+| ------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/sidequest`                              | `sidequest`                 | Umbrella package end users install. Exposes `Sidequest`, re-exports the rest. Source is intentionally thin — mostly the `Sidequest` static class and operations facade.                    |
+| `packages/engine`                                 | `@sidequest/engine`         | Orchestration. Owns the `Engine`, `Dispatcher`, `QueueManager`, `ExecutorManager`, `JobBuilder`, `JobTransitioner`, cron registry, routines (cleanup, stale recovery), shared runner pool. |
+| `packages/core`                                   | `@sidequest/core`           | Shared primitives: `Job` base class, schema/types (`JobData`, `QueueConfig`, etc.), state transitions, logger (Winston), uniqueness, tools.                                                |
+| `packages/dashboard`                              | `@sidequest/dashboard`      | Express + EJS + HTMX + Tailwind/DaisyUI web UI. Can run standalone via `SidequestDashboard`.                                                                                               |
+| `packages/cli`                                    | `@sidequest/cli`            | `sidequest` / `sq` CLI for `config`, `migrate`, `rollback`.                                                                                                                                |
+| `packages/docs`                                   | (private)                   | VitePress site → docs.sidequestjs.com.                                                                                                                                                     |
+| `packages/backends/backend`                       | `@sidequest/backend`        | Backend interface + `SQLBackend` base (Knex-based).                                                                                                                                        |
+| `packages/backends/backend-test`                  | `@sidequest/backend-test`   | Conformance suite every backend driver runs.                                                                                                                                               |
+| `packages/backends/{postgres,mysql,sqlite,mongo}` | `@sidequest/{name}-backend` | Driver implementations. SQL backends extend `SQLBackend` (Knex); Mongo is its own thing.                                                                                                   |
+| `examples/`                                       | (private)                   | Runnable usage examples. **Useful but incomplete** — never treat as the source of truth.                                                                                                   |
 
 `tests/integration/` at the root holds cross-package integration tests.
 

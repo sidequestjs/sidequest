@@ -32,15 +32,15 @@ If `run()` throws, the job transitions to `failed` (if no retries remain) or bac
 
 After the job is created but before `run()` executes, Sidequest injects read-only properties onto `this`:
 
-| Property | Type | Description |
-|---|---|---|
-| `this.id` | `string` | Job ID |
-| `this.attempt` | `number` | Current attempt number (1-based) |
-| `this.max_attempts` | `number` | Maximum allowed attempts |
-| `this.queue` | `string` | Queue the job is running in |
-| `this.state` | `string` | Current state (`"running"`) |
-| `this.inserted_at` | `Date` | When the job was first enqueued |
-| `this.args` | `unknown[]` | The run arguments |
+| Property            | Type        | Description                      |
+| ------------------- | ----------- | -------------------------------- |
+| `this.id`           | `string`    | Job ID                           |
+| `this.attempt`      | `number`    | Current attempt number (1-based) |
+| `this.max_attempts` | `number`    | Maximum allowed attempts         |
+| `this.queue`        | `string`    | Queue the job is running in      |
+| `this.state`        | `string`    | Current state (`"running"`)      |
+| `this.inserted_at`  | `Date`      | When the job was first enqueued  |
+| `this.args`         | `unknown[]` | The run arguments                |
 
 ::: warning
 These properties are only available inside `run()`. They are `undefined` in the constructor.
@@ -121,13 +121,13 @@ Use `snooze` for timing-based deferrals (rate limits with long windows, business
 
 ## Choosing the right method
 
-| Situation | Method |
-|---|---|
-| Permanent, unrecoverable error | `return this.fail(reason)` |
-| Transient error with controlled retry delay | `return this.retry(reason, delay)` |
-| Not time yet — try again later | `return this.snooze(delay)` |
-| Normal completion | plain `return result` or `return this.complete(result)` |
-| Unexpected error — let Sidequest retry | `throw error` |
+| Situation                                   | Method                                                  |
+| ------------------------------------------- | ------------------------------------------------------- |
+| Permanent, unrecoverable error              | `return this.fail(reason)`                              |
+| Transient error with controlled retry delay | `return this.retry(reason, delay)`                      |
+| Not time yet — try again later              | `return this.snooze(delay)`                             |
+| Normal completion                           | plain `return result` or `return this.complete(result)` |
+| Unexpected error — let Sidequest retry      | `throw error`                                           |
 
 ## Best practices
 

@@ -202,7 +202,7 @@ await Sidequest.start({
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                                      | `true`                      |
 | `jobDefaults`                    | Default values for new jobs. Used while enqueueing                                                                                | `undefined`                 |
 | `queueDefaults`                  | Default values for auto-created queues                                                                                            | `undefined`                 |
-| `manualJobResolution`            | Whether to manually resolve job classes. See [Manual Job Resolution](/production/manual-resolution)                                  | `false`                     |
+| `manualJobResolution`            | Whether to manually resolve job classes. See [Manual Job Resolution](/production/manual-resolution)                               | `false`                     |
 | `jobsFilePath`                   | Optional path to the file where job classes are exported. Ignored if `manualJobResolution` is `false`.                            | `undefined`                 |
 | `jobPollingInterval`             | Interval (milliseconds) for polling new jobs to process. Increase this number to reduce DB load at the cost of job start latency. | `100` (100 milliseconds)    |
 

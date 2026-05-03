@@ -21,9 +21,7 @@ await Sidequest.start({
 ```
 
 ```typescript
-await Sidequest.build(CallExternalAPIJob)
-  .queue("external-api")
-  .enqueue(payload);
+await Sidequest.build(CallExternalAPIJob).queue("external-api").enqueue(payload);
 ```
 
 For APIs with a requests-per-second limit, set concurrency to the max parallel calls you're allowed.
@@ -97,7 +95,7 @@ If you have both a high-volume low-priority queue and a small critical queue, se
 queues: [
   { name: "critical", concurrency: 10, priority: 100 },
   { name: "bulk", concurrency: 5, priority: 10 },
-]
+];
 ```
 
 When both queues have pending jobs, the Dispatcher selects from `critical` first. See [Queue Priority](/guide/queues/priority) for details.

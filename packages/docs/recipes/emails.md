@@ -89,7 +89,7 @@ For transient SMTP failures, exponential backoff avoids hammering a struggling m
 await Sidequest.build(SendEmailJob)
   .queue("emails")
   .maxAttempts(5)
-  .retryDelay(10000)      // 10s base delay
+  .retryDelay(10000) // 10s base delay
   .backoffStrategy("exponential") // 10s, 20s, 40s, 80s, 160s
   .enqueue(to, subject, body);
 ```

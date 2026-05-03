@@ -95,7 +95,5 @@ Scheduled jobs are regular jobs — you can also enqueue them manually from the 
 
 ```typescript
 // Trigger an immediate report outside the normal schedule
-await Sidequest.build(DailyReportJob)
-  .queue("reports")
-  .enqueue("on-demand@company.com");
+await Sidequest.build(DailyReportJob).queue("reports").enqueue("on-demand@company.com");
 ```

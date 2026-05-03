@@ -49,11 +49,11 @@ The engine dynamically loads your job class into the thread by resolving the sou
 
 A queue is a named channel with three settings:
 
-| Setting | Controls |
-|---|---|
-| `concurrency` | Max jobs from this queue running simultaneously |
-| `priority` | Which queue gets the next available worker when multiple queues have pending jobs |
-| `state` | `active` (processing) or `paused` (no new jobs claimed) |
+| Setting       | Controls                                                                          |
+| ------------- | --------------------------------------------------------------------------------- |
+| `concurrency` | Max jobs from this queue running simultaneously                                   |
+| `priority`    | Which queue gets the next available worker when multiple queues have pending jobs |
+| `state`       | `active` (processing) or `paused` (no new jobs claimed)                           |
 
 Queue settings are stored in the database and can be changed at runtime via the dashboard or `Sidequest.queue.*` methods. If you list a queue in `start({ queues: [...] })`, those values override whatever is in the database on startup.
 

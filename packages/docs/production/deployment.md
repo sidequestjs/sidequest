@@ -30,7 +30,11 @@ import { Sidequest } from "sidequest";
 
 await Sidequest.start({
   backend: { driver: "@sidequest/postgres-backend", config: process.env.DATABASE_URL },
-  dashboard: { enabled: true, port: 8678, auth: { user: process.env.DASHBOARD_USER!, password: process.env.DASHBOARD_PASSWORD! } },
+  dashboard: {
+    enabled: true,
+    port: 8678,
+    auth: { user: process.env.DASHBOARD_USER!, password: process.env.DASHBOARD_PASSWORD! },
+  },
 });
 ```
 
@@ -154,9 +158,7 @@ One concern: **cron schedules are in-memory only**. If you call `Sidequest.build
 Prevent this with `unique()`:
 
 ```typescript
-await Sidequest.build(DailyReportJob)
-  .unique({ period: "day" })
-  .schedule("0 9 * * *");
+await Sidequest.build(DailyReportJob).unique({ period: "day" }).schedule("0 9 * * *");
 ```
 
 With `unique({ period: "day" })`, only one job per day is created regardless of how many instances try to enqueue it.
