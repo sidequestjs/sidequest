@@ -38,7 +38,7 @@ console.log("Sidequest is running!");
 ```
 
 ::: info
-For detailed configuration options, see the [Configuration Guide](/engine/configuration).
+For detailed configuration options, see the [Configuration Guide](/getting-started/configuration).
 :::
 
 :::tip
@@ -253,6 +253,6 @@ await Sidequest.start({
 
 Once Sidequest is running:
 
-- **[Enqueue Jobs](/engine/enqueue)** - Start processing jobs
-- **[Monitor with Dashboard](/dashboard)** - View job status and manage queues
-- **[Configure Graceful Shutdown](/engine/graceful-shutdown)** - Handle application lifecycle
+- **[Enqueue Jobs](/guide/jobs/enqueueing)** - Start processing jobs
+- **[Monitor with Dashboard](/resources/dashboard)** - View job status and manage queues
+- **[Configure Graceful Shutdown](/production/graceful-shutdown)** - Handle application lifecycle

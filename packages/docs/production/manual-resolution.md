@@ -6,7 +6,7 @@ description: Manual Job Resolution guide for Sidequest.js
 
 # Manual Job Resolution
 
-Manual Job Resolution is a deployment and bundling strategy for Sidequest.js that gives you complete control over how job classes are resolved and imported at runtime. Instead of relying on [automatic script path detection](/jobs/class#job-script-detection), you can manually specify which job classes are available through a central registry file.
+Manual Job Resolution is a deployment and bundling strategy for Sidequest.js that gives you complete control over how job classes are resolved and imported at runtime. Instead of relying on [automatic script path detection](/guide/jobs/class#job-script-detection), you can manually specify which job classes are available through a central registry file.
 
 ## What is Manual Job Resolution?
 

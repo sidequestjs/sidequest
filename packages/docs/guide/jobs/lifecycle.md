@@ -73,5 +73,5 @@ Jobs can be manually canceled at any point before completion:
 
 1. **Set appropriate timeouts**: Configure job timeouts to prevent indefinite hanging
 2. **Monitor failed jobs**: Set up alerts for jobs that fail permanently. You can poll the backend for failed jobs and notify your team
-3. **Clean up old jobs**: Regularly clean up completed and failed jobs to manage storage (Sidequest has a configuration for that - see [cleanup guide](/engine/cleanup.md))
+3. **Clean up old jobs**: Regularly clean up completed and failed jobs to manage storage (Sidequest has a configuration for that - see [cleanup guide](/production/cleanup))
 4. **Use meaningful delays**: Don't retry immediately - use exponential backoff for transient failures

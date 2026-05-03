@@ -570,7 +570,7 @@ await backend.rollbackMigration();
 
 ## Next Steps
 
-- **[Engine Configuration](/engine/configuration)** - Configure the Sidequest engine
-- **[Queue Management](/queues/index)** - Learn about queue configuration and management
-- **[Job Management](/jobs/index)** - Understand job creation and processing
-- **[Dashboard](/dashboard)** - Monitor your jobs and queues
+- **[Engine Configuration](/getting-started/configuration)** - Configure the Sidequest engine
+- **[Queue Management](/guide/queues/index)** - Learn about queue configuration and management
+- **[Job Management](/guide/jobs/index)** - Understand job creation and processing
+- **[Dashboard](/resources/dashboard)** - Monitor your jobs and queues

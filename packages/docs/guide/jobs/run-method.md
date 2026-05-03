@@ -85,7 +85,7 @@ export class ApiCallJob extends Job {
 
 ## Job Retry Configuration
 
-Jobs can be retried if they fail, and you can configure the number of attempts when enqueuing the job. Check our [job enqueueing guide](/engine/enqueue) for details on how to set retry attempts.
+Jobs can be retried if they fail, and you can configure the number of attempts when enqueuing the job. Check our [job enqueueing guide](/guide/jobs/enqueueing) for details on how to set retry attempts.
 
 ## Convenience Methods
 

@@ -6,7 +6,7 @@ description: Frequently Asked Questions for Sidequest.js
 
 # Frequently Asked Questions (FAQ)
 
-This page offers answers to some of the most common questions about Sidequest.js. If you have a question that isn't covered here, we ask you to take a closer look at the [documentation](/overview) - usually your question is answered there. However, if you still haven't got an answer to your doubt, please feel free to [open an issue](https://github.com/sidequestjs/sidequest/issues).
+This page offers answers to some of the most common questions about Sidequest.js. If you have a question that isn't covered here, we ask you to take a closer look at the [documentation](/introduction/why) - usually your question is answered there. However, if you still haven't got an answer to your doubt, please feel free to [open an issue](https://github.com/sidequestjs/sidequest/issues).
 
 ## What is Sidequest.js?
 
@@ -16,13 +16,13 @@ Sidequest is an open-source, modern, scalable distributed background job process
 
 Each queue is a separate logical channel, with its own concurrency, priority, and state configuration.
 
-More info: [Queues Documentation](/queues/index.md)
+More info: [Queues Documentation](/guide/queues/index.md)
 
 ## What is a Job?
 
 A job in Sidequest.js is a unit of work that can be executed asynchronously. Jobs are stored in a backend (database) and processed by workers in a queue-based system.
 
-More info: [Jobs Documentation](/jobs/index.md)
+More info: [Jobs Documentation](/guide/jobs/index.md)
 
 ## Can I use Sidequest without a dashboard?
 
@@ -36,13 +36,13 @@ await Sidequest.start({
 });
 ```
 
-More info: [Dashboard Documentation](/dashboard)
+More info: [Dashboard Documentation](/resources/dashboard)
 
 ## Can I use Sidequest without processing jobs - no workers?
 
 Yes, you can start Sidequest without processing jobs by using `Sidequest.configure(...)`. This will enable you to enqueue jobs without starting any workers.
 
-More info: [Engine Documentation](/engine/index.md)
+More info: [Engine Documentation](/api/sidequest)
 
 ## Can I start only the Dashboard?
 
@@ -63,36 +63,36 @@ await dashboard.start({
 });
 ```
 
-More info: [Starting only the Dashboard](/dashboard#starting-only-the-dashboard)
+More info: [Starting only the Dashboard](/resources/dashboard#starting-only-the-dashboard)
 
 ## Can I use Sidequest without a database?
 
 No. You need a database to store information about jobs, queues, and their states.
 
-More info: [Backend Documentation](/engine/backends)
+More info: [Backend Documentation](/production/backends)
 
 ## Which databases are supported by Sidequest.js?
 
 PostgreSQL, MongoDB, MySQL, and SQLite. We recommend PostgreSQL for production use.
 
-More info: [Backend Documentation](/engine/backends)
+More info: [Backend Documentation](/production/backends)
 
 ## How does Sidequest load my job script?
 
 Sidequest.js uses dynamic imports to load your job scripts. By specifying the job's type during `Sidequest.build`, Sidequest will automatically find the script and load it.
 
-More info: [Job Script Detection](/jobs/class#job-script-detection)
+More info: [Job Script Detection](/guide/jobs/class#job-script-detection)
 
 ## How do I avoid the automatic job script detection?
 
-If you want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/jobs/manual-resolution.md) feature.
+If you want to control the importing/exporting of job classes manually, you can use the [Manual Job Resolution](/production/manual-resolution) feature.
 By adding a `sidequest.jobs.js` file that exports all your job classes, you can avoid the chain of `../../../` relative paths.
 
 ## Can I run a function directly as a job?
 
 No. Sidequest requires you to create a job class that extends the `Job` base class. This ensures that your job has the necessary structure and methods to be processed correctly.
 
-More info: [Job Class](/jobs/class)
+More info: [Job Class](/guide/jobs/class)
 
 ## Sidequest is not finding my job script, what do I do?
 
@@ -117,13 +117,13 @@ const job = await Sidequest.job.get(jobId);
 console.log(job.result);
 ```
 
-More info: [Using Sidequest.job and Sidequest.queue](/engine/#using-sidequest-job-and-sidequest-queue)
+More info: [Using Sidequest.job and Sidequest.queue](/api/sidequest#using-sidequest-job-and-sidequest-queue)
 
 ## I have jobs in the `running` state, but no workers are running. What do I do?
 
 Sidequest will automatically clear stale jobs in the `running` state after a certain timeout. This timeout is configurable via config options passed to `Sidequest.start` or `Sidequest.configure`. You can also manually clear them if you like.
 
-More info: [Stale Job Recovery](/engine/graceful-shutdown#stale-job-recovery)
+More info: [Stale Job Recovery](/production/graceful-shutdown#stale-job-recovery)
 
 ## What is a scheduled/recurring job?
 
@@ -133,7 +133,7 @@ However, scheduled jobs are a bit different from regular jobs. When you call `Si
 
 Scheduled jobs (crons) are not persisted in the database, even though the jobs they create are. If you restart your Sidequest instance, you will need to re-register your scheduled jobs to ensure they continue to run as expected.
 
-More info: [.schedule](/engine/enqueue#schedule-cronexpression-string-args-unknown)
+More info: [.schedule](/guide/jobs/enqueueing#schedule-cronexpression-string-args-unknown)
 
 ## Can I run TypeScript jobs directly?
 
@@ -149,4 +149,4 @@ Great question! We welcome contributions from the community. You can contribute 
 
 ## But Senpai, I have a question that isn't answered here!
 
-If your question isn't covered in this FAQ, please take a closer look at the [documentation](/overview). Try using the search functionality up top as well. If you still haven't got an answer to your doubt, feel free to [open an issue](https://github.com/sidequestjs/sidequest/issues), but please make sure to check if your question has already been asked before.
+If your question isn't covered in this FAQ, please take a closer look at the [documentation](/introduction/why). Try using the search functionality up top as well. If you still haven't got an answer to your doubt, feel free to [open an issue](https://github.com/sidequestjs/sidequest/issues), but please make sure to check if your question has already been asked before.

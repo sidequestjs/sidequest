@@ -6,7 +6,7 @@ description: Complete guide to enqueueing jobs using the JobBuilder pattern in S
 
 # Enqueueing Jobs
 
-Once your [Sidequest engine is configured](./configuration), you can enqueue jobs for processing using the `Sidequest.build()` method. This method returns a `JobBuilder` instance that provides a fluent interface for configuring and enqueueing jobs.
+Once your [Sidequest engine is configured](/getting-started/configuration), you can enqueue jobs for processing using the `Sidequest.build()` method. This method returns a `JobBuilder` instance that provides a fluent interface for configuring and enqueueing jobs.
 
 ::: tip
 You can enqueue new jobs from within other jobs, allowing for complex workflows and job chaining. Just use `Sidequest.build()` inside your job's `run` method to create and enqueue new jobs dynamically.
@@ -78,7 +78,7 @@ await Sidequest.build(ReportJob)
 **Key Points:**
 
 - If the queue doesn't exist, it will be created automatically with default settings when running the job
-- Check the [Queue Management](/queues/index) section for more details on queue configuration
+- Check the [Queue Management](/guide/queues/index) section for more details on queue configuration
 
 ### `.timeout(milliseconds: number)`
 
@@ -318,7 +318,7 @@ await Sidequest.build(CustomEmailJob)
 
 ### `.enqueue(...args?: unknown[])`
 
-Enqueues the job with the provided arguments. The arguments are sent to the [Job's `run` method](/jobs/run-method). This method is called after all configuration methods.
+Enqueues the job with the provided arguments. The arguments are sent to the [Job's `run` method](/guide/jobs/run-method). This method is called after all configuration methods.
 
 ```typescript
 // Enqueue with run method arguments
@@ -474,6 +474,6 @@ try {
 
 ## Next Steps
 
-- **[Job Classes](/jobs/index)** - Learn how to create custom job classes
-- **[Queue Management](/queues/index)** - Understand queue configuration and management
-- **[Monitoring Jobs](/dashboard)** - Use the dashboard to monitor job execution
+- **[Job Classes](/guide/jobs/index)** - Learn how to create custom job classes
+- **[Queue Management](/guide/queues/index)** - Understand queue configuration and management
+- **[Monitoring Jobs](/resources/dashboard)** - Use the dashboard to monitor job execution

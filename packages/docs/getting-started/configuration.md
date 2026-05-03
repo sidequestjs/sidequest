@@ -202,7 +202,7 @@ await Sidequest.start({
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                                      | `true`                      |
 | `jobDefaults`                    | Default values for new jobs. Used while enqueueing                                                                                | `undefined`                 |
 | `queueDefaults`                  | Default values for auto-created queues                                                                                            | `undefined`                 |
-| `manualJobResolution`            | Whether to manually resolve job classes. See [Manual Job Resolution](/jobs/manual-resolution.md)                                  | `false`                     |
+| `manualJobResolution`            | Whether to manually resolve job classes. See [Manual Job Resolution](/production/manual-resolution)                                  | `false`                     |
 | `jobsFilePath`                   | Optional path to the file where job classes are exported. Ignored if `manualJobResolution` is `false`.                            | `undefined`                 |
 | `jobPollingInterval`             | Interval (milliseconds) for polling new jobs to process. Increase this number to reduce DB load at the cost of job start latency. | `100` (100 milliseconds)    |
 
@@ -218,7 +218,7 @@ If you enqueue a job to a queue that does not exist yet, Sidequest will automati
 
 You can run Sidequest on any supported backend. Supported backends include Postgres, SQLite, MySQL, and soon MongoDB. Install the corresponding driver and provide the config string.
 
-**See:** [Installation Guide](/installation#choose-your-backend) for details on installing drivers.
+**See:** [Installation Guide](/getting-started/installation#choose-your-backend) for details on installing drivers.
 
 ### Using PostgreSQL backend
 
@@ -317,6 +317,6 @@ await Sidequest.start({
 
 ## Next Steps
 
-- [Enqueueing Jobs](/engine/enqueue)
-- [Job Class Reference](/jobs/index)
-- [Monitoring Jobs with the Dashboard](/dashboard)
+- [Enqueueing Jobs](/guide/jobs/enqueueing)
+- [Job Class Reference](/guide/jobs/index)
+- [Monitoring Jobs with the Dashboard](/resources/dashboard)

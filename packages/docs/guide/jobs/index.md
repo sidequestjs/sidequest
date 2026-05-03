@@ -23,17 +23,17 @@ A job in Sidequest.js is a unit of work that can be executed asynchronously. Job
 
 Jobs in Sidequest.js follow this execution flow:
 
-1. **Creation**: Jobs are created and enqueued using a [job builder](/engine/enqueue)
+1. **Creation**: Jobs are created and enqueued using a [job builder](/guide/jobs/enqueueing)
 2. **Storage**: Job data is persisted in your chosen backend (SQLite, PostgreSQL, MySQL)
-3. **Claiming**: Workers claim available jobs from [queues](/queues/index) based on concurrency limits
+3. **Claiming**: Workers claim available jobs from [queues](/guide/queues/index) based on concurrency limits
 4. **Construction**: Job objects are constructed using the [job class](./class.md) and constructor arguments
 5. **Execution**: The [job's `run` method](./run-method.md) is executed with the provided arguments
 6. **Transition**: Based on the result, [jobs follow their lifecycle](./lifecycle.md) by transitioning to completed, failed, canceled, or waiting (in case of retry) states
-7. **Cleanup**: Completed or failed [jobs can be cleaned up](/engine/cleanup.md) based on retention policies
+7. **Cleanup**: Completed or failed [jobs can be cleaned up](/production/cleanup) based on retention policies
 
 ## Job Enqueuing
 
-Jobs are enqueued by using a `JobBuilder`. For more info on how to enqueue jobs, refer to the [Job Enqueuing guide](/engine/enqueue).
+Jobs are enqueued by using a `JobBuilder`. For more info on how to enqueue jobs, refer to the [Job Enqueuing guide](/guide/jobs/enqueueing).
 
 ## Job Metadata
 

@@ -246,6 +246,6 @@ app.get("/health", async (req, res) => {
 
 ## Next Steps
 
-- **[Job Cleanup](/engine/cleanup)** - Learn about automatic job cleanup
-- **[Monitoring](/dashboard)** - Use the dashboard to monitor job states
-- **[Configuration](/engine/configuration)** - Configure timeout and cleanup settings
+- **[Job Cleanup](/production/cleanup)** - Learn about automatic job cleanup
+- **[Monitoring](/resources/dashboard)** - Use the dashboard to monitor job states
+- **[Configuration](/getting-started/configuration)** - Configure timeout and cleanup settings

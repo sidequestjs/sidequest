@@ -12,9 +12,9 @@ The Sidequest engine is the core component that orchestrates job processing, que
 
 Before you delve into the details, here are some common scenarios you might be interested in:
 
-1. If you want to enable only the engine without starting job processing (e.g., to allow enqueueing only), [you can partially setup Sidequest using `Sidequest.configure`](./configuration.md#_2-partial-startup).
-2. If you want to simply run the engine to process jobs without the dashboard, [you can use `Sidequest.start({ dashboard: { enabled: false } })`](./configuration#configuration-options).
-3. If you want to only run the dashboard without job processing, [you can use the `SidequestDashboard` class directly](/dashboard#starting-only-the-dashboard).
+1. If you want to enable only the engine without starting job processing (e.g., to allow enqueueing only), [you can partially setup Sidequest using `Sidequest.configure`](/getting-started/configuration#_2-partial-startup).
+2. If you want to simply run the engine to process jobs without the dashboard, [you can use `Sidequest.start({ dashboard: { enabled: false } })`](/getting-started/configuration#configuration-options).
+3. If you want to only run the dashboard without job processing, [you can use the `SidequestDashboard` class directly](/resources/dashboard#starting-only-the-dashboard).
    :::
 
 ## Summary
@@ -65,7 +65,7 @@ Here are a few of the most common configuration options you can provide:
 - `queueDefaults` - Default queue settings
 - `gracefulShutdown` - Enable graceful shutdown handling
 
-More information about configuration options and a full list can be found in the [Configuration Guide](/engine/configuration).
+More information about configuration options and a full list can be found in the [Configuration Guide](/getting-started/configuration).
 
 ### `Sidequest.start`
 
@@ -91,7 +91,7 @@ await Sidequest.start({
 console.log("Sidequest started! Dashboard: http://localhost:3000");
 ```
 
-The `start` method configuration options are the same as `Sidequest.configure` plus the Dashboard options. For more configuration details, refer to the [Configuration Guide](/engine/configuration).
+The `start` method configuration options are the same as `Sidequest.configure` plus the Dashboard options. For more configuration details, refer to the [Configuration Guide](/getting-started/configuration).
 
 ## Using `Sidequest.job` and `Sidequest.queue`
 
@@ -176,20 +176,20 @@ await Sidequest.build(EmailJob)
   .enqueue("user@example.com", "Welcome!", "Thanks for signing up!");
 ```
 
-For more details on job building and enqueuing patterns, refer to the [Enqueue Guide](/engine/enqueue).
+For more details on job building and enqueuing patterns, refer to the [Enqueue Guide](/guide/jobs/enqueueing).
 
 ## Related Documentation
 
 For more detailed information about specific engine features, check out these related guides:
 
-- **[Configuration](/engine/configuration)** - Detailed configuration options and backend setup
-- **[Starting](/engine/starting)** - Engine startup process and initialization
-- **[Enqueue](/engine/enqueue)** - Job building and enqueuing patterns
-- **[Graceful Shutdown](/engine/graceful-shutdown)** - Proper shutdown procedures
-- **[Cleanup](/engine/cleanup)** - Maintenance and cleanup operations
+- **[Configuration](/getting-started/configuration)** - Detailed configuration options and backend setup
+- **[Starting](/production/starting)** - Engine startup process and initialization
+- **[Enqueue](/guide/jobs/enqueueing)** - Job building and enqueuing patterns
+- **[Graceful Shutdown](/production/graceful-shutdown)** - Proper shutdown procedures
+- **[Cleanup](/production/cleanup)** - Maintenance and cleanup operations
 
 For broader system documentation:
 
-- **[Jobs](/jobs/index)** - Creating and managing job classes
-- **[Queues](/queues/index)** - Queue concepts and management
-- **[Dashboard](/dashboard)** - Web interface for monitoring and management
+- **[Jobs](/guide/jobs/index)** - Creating and managing job classes
+- **[Queues](/guide/queues/index)** - Queue concepts and management
+- **[Dashboard](/resources/dashboard)** - Web interface for monitoring and management

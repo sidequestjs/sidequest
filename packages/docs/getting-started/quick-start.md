@@ -10,12 +10,12 @@ This guide will help you quickly set up Sidequest.js in your Node.js application
 
 ## 1. Installation
 
-To install Sidequest.js, check out [Installation Guide](/installation).
+To install Sidequest.js, check out [Installation Guide](/getting-started/installation).
 If you are strictly following this quick start, you should install the SQLite backend driver, which is the default backend for Sidequest.js.
 
 ## 2. Job Creation
 
-The first step is to create a [Job](/jobs/index) class. This class will define the job's behavior and can be customized as needed.
+The first step is to create a [Job](/guide/jobs/index) class. This class will define the job's behavior and can be customized as needed.
 
 ```typescript
 // jobs/EmailJob.js
@@ -32,7 +32,7 @@ export class EmailJob extends Job {
 
 ## 3. Sidequest Startup
 
-The next step is to configure and start the [Sidequest engine](/engine/index). You can use the default settings or customize it according to your needs.
+The next step is to configure and start the [Sidequest engine](/api/sidequest). You can use the default settings or customize it according to your needs.
 
 ```typescript
 // app.js
@@ -46,7 +46,7 @@ console.log("Sidequest started! Dashboard: http://localhost:8678");
 
 ## 4. Enqueue Jobs
 
-Now that you have your job class and Sidequest is running, you can [enqueue jobs](/engine/enqueue) to be processed.
+Now that you have your job class and Sidequest is running, you can [enqueue jobs](/guide/jobs/enqueueing) to be processed.
 
 ```typescript
 // Somewhere in your application
@@ -59,15 +59,15 @@ await Sidequest.build(EmailJob).enqueue("user@example.com", "Welcome!", "Thanks 
 
 ## 5. Check the Dashboard
 
-You can access the [Sidequest Dashboard](/dashboard) at `http://localhost:8678` to monitor your jobs, queues, and their statuses. The dashboard provides a user-friendly interface to manage and visualize your job processing.
+You can access the [Sidequest Dashboard](/resources/dashboard) at `http://localhost:8678` to monitor your jobs, queues, and their statuses. The dashboard provides a user-friendly interface to manage and visualize your job processing.
 
 ## What's Next?
 
 Now that you have a basic setup, you can explore more advanced features like:
 
-- Learn about [Jobs](/jobs/index) and how to create custom job classes
-- Learn about [Queues](/queues/index) and how to manage them
-- Learn how to configure and run the [Sidequest Engine](/engine/index)
-- Check [Sidequest's Dashboard](/dashboard) for monitoring and managing jobs
+- Learn about [Jobs](/guide/jobs/index) and how to create custom job classes
+- Learn about [Queues](/guide/queues/index) and how to manage them
+- Learn how to configure and run the [Sidequest Engine](/api/sidequest)
+- Check [Sidequest's Dashboard](/resources/dashboard) for monitoring and managing jobs
 
 Check the rest of the documentation for detailed guides on these topics.

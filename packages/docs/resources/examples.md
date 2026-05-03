@@ -186,8 +186,8 @@ The dashboard shows:
 
 After exploring these examples:
 
-1. **Learn about [Job Classes](/jobs/index)** - Understand job lifecycle and advanced features
-2. **Explore [Queue Management](/queues/index)** - Configure queues for different priorities and concurrency
-3. **Read the [Configuration Guide](/engine/configuration)** - Customize Sidequest for your environment
-4. **Check out the [Dashboard](/dashboard)** - Monitor and manage your jobs
-5. **Review [Best Practices](/engine/graceful-shutdown)** - Production deployment considerations
+1. **Learn about [Job Classes](/guide/jobs/index)** - Understand job lifecycle and advanced features
+2. **Explore [Queue Management](/guide/queues/index)** - Configure queues for different priorities and concurrency
+3. **Read the [Configuration Guide](/getting-started/configuration)** - Customize Sidequest for your environment
+4. **Check out the [Dashboard](/resources/dashboard)** - Monitor and manage your jobs
+5. **Review [Best Practices](/production/graceful-shutdown)** - Production deployment considerations

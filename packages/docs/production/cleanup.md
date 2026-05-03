@@ -332,6 +332,6 @@ async function archiveAndCleanup() {
 
 ## Next Steps
 
-- **[Job Management](/jobs/index)** - Learn about job lifecycle and states
-- **[Monitoring](/dashboard)** - Use the dashboard to monitor cleanup effectiveness
-- **[Performance Tuning](/engine/configuration)** - Optimize cleanup for your workload
+- **[Job Management](/guide/jobs/index)** - Learn about job lifecycle and states
+- **[Monitoring](/resources/dashboard)** - Use the dashboard to monitor cleanup effectiveness
+- **[Performance Tuning](/getting-started/configuration)** - Optimize cleanup for your workload

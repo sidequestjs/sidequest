@@ -423,6 +423,6 @@ await Sidequest.start({
 
 ## Next Steps
 
-- **[Job Management](/jobs/index)** - Learn about creating and managing job classes
-- **[Queue Configuration](/queues/index)** - Understand queue setup and optimization
-- **[Engine Configuration](/engine/configuration)** - Configure the underlying engine settings
+- **[Job Management](/guide/jobs/index)** - Learn about creating and managing job classes
+- **[Queue Configuration](/guide/queues/index)** - Understand queue setup and optimization
+- **[Engine Configuration](/getting-started/configuration)** - Configure the underlying engine settings
