@@ -456,6 +456,78 @@ describe("JobBuilder", () => {
 
       await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
     });
+
+    describe("scheduleOptions", () => {
+      it("passes default scheduleOptions { noOverlap: true } to node-cron when no options set", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+        await jobBuilder.schedule("* * * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ noOverlap: true });
+      });
+
+      it("passes custom timezone via scheduleOptions to node-cron", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+        await jobBuilder.scheduleOptions({ timezone: "Australia/Brisbane" }).schedule("0 9 * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ timezone: "Australia/Brisbane" });
+      });
+
+      it("allows overriding noOverlap to false via scheduleOptions", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+        await jobBuilder.scheduleOptions({ noOverlap: false }).schedule("* * * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ noOverlap: false });
+      });
+
+      it("allows combining timezone and noOverlap via scheduleOptions", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob);
+
+        await jobBuilder.scheduleOptions({ timezone: "Australia/Brisbane", noOverlap: true }).schedule("0 9 * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ timezone: "Australia/Brisbane", noOverlap: true });
+      });
+
+      it("uses scheduleOptions from constructor defaults", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob, {
+          scheduleOptions: { timezone: "Europe/Rome", noOverlap: false },
+        });
+
+        await jobBuilder.schedule("* * * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ timezone: "Europe/Rome", noOverlap: false });
+      });
+
+      it("scheduleOptions() method overrides constructor defaults", async () => {
+        const createNewJobMock = vi.fn().mockResolvedValue({} as JobData);
+        const backendMock = { createNewJob: createNewJobMock } as unknown as Backend;
+        jobBuilder = new JobBuilder(backendMock, DummyJob, {
+          scheduleOptions: { timezone: "Europe/Rome" },
+        });
+
+        await jobBuilder.scheduleOptions({ timezone: "Australia/Brisbane" }).schedule("* * * * *");
+
+        const [, , options] = scheduleMock.mock.calls[0] as [string, unknown, unknown];
+        expect(options).toEqual({ timezone: "Australia/Brisbane" });
+      });
+    });
   });
 
   describe("manualJobResolution", () => {
