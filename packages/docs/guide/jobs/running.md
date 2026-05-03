@@ -27,7 +27,7 @@ export class ProcessOrderJob extends Job {
 By default:
 
 - **Return a value** → job transitions to `completed`, return value stored as `result`.
-- **Throw an error** → job transitions back to `pending` for retry (if attempts remain) or to `failed` (if not). Error stored in `errors`.
+- **Throw an error** → job transitions back to `waiting` for retry (if attempts remain) or to `failed` (if not). Error stored in `errors`.
 
 When you need finer control — fail without retrying, retry with a custom delay, pause until later — use the flow control methods below.
 
@@ -116,7 +116,7 @@ async run(endpoint: string) {
 
 ### `return this.snooze(delay)`
 
-Transition the job back to `pending` and make it available again after `delay` milliseconds. Unlike `retry()`, **snooze does not consume a retry attempt** — it's a lifecycle pause, not a failure:
+Transition the job back to `waiting` and make it available again after `delay` milliseconds. Unlike `retry()`, **snooze does not consume a retry attempt** — it's a lifecycle pause, not a failure:
 
 ```typescript
 async run(payload: unknown) {

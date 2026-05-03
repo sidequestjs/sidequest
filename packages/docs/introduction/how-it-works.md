@@ -32,7 +32,7 @@ Because the engine is a separate process, a job that calls `process.exit()` or t
 
 ## How jobs are claimed
 
-The Dispatcher polls the database at a configurable interval (default: **100 ms**). When it finds pending jobs that fit within queue concurrency limits, it claims them atomically:
+The Dispatcher polls the database at a configurable interval (default: **100 ms**). When it finds waiting jobs that fit within queue concurrency limits, it claims them atomically:
 
 - **SQL backends** use `SELECT ... FOR UPDATE SKIP LOCKED`, which is the same mechanism used by Solid Queue (Rails) and pg-boss. Multiple engine instances can poll the same database without double-issuing a job.
 - **MongoDB backend** uses a findOneAndUpdate with a conditional filter for the same effect.
@@ -52,7 +52,7 @@ A queue is a named channel with three settings:
 | Setting       | Controls                                                                          |
 | ------------- | --------------------------------------------------------------------------------- |
 | `concurrency` | Max jobs from this queue running simultaneously                                   |
-| `priority`    | Which queue gets the next available worker when multiple queues have pending jobs |
+| `priority`    | Which queue gets the next available worker when multiple queues have waiting jobs |
 | `state`       | `active` (processing) or `paused` (no new jobs claimed)                           |
 
 Queue settings are stored in the database and can be changed at runtime via the dashboard or `Sidequest.queue.*` methods. If you list a queue in `start({ queues: [...] })`, those values override whatever is in the database on startup.
@@ -60,13 +60,13 @@ Queue settings are stored in the database and can be changed at runtime via the 
 ## Job lifecycle
 
 ```
-pending → claimed → running → completed
-                          ↘ failed → (retry) → pending
+waiting → claimed → running → completed
+                          ↘ failed → (retry) → waiting
                           ↘ cancelled
-                          ↘ snoozed → pending (after delay)
+                          ↘ snoozed → waiting (after delay)
 ```
 
-The Dispatcher moves jobs from `pending` to `claimed`, then the executor moves them to `running`. Your `run()` method returns (or throws) and the executor writes the final state. Stale jobs stuck in `running` or `claimed` past a configurable age are automatically reset to `pending` by a background routine.
+The Dispatcher moves jobs from `waiting` to `claimed`, then the executor moves them to `running`. Your `run()` method returns (or throws) and the executor writes the final state. Stale jobs stuck in `running` or `claimed` past a configurable age are automatically reset to `waiting` by a background routine.
 
 See [Job Lifecycle](/guide/jobs/lifecycle) for the full state diagram and transition rules.
 

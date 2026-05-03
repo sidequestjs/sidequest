@@ -21,13 +21,13 @@ Sidequest manages queues to ensure each one adheres to its configuration while u
 ✅ **Isolate different workloads** for example, separate queues for emails, reports, push notifications.\
 ✅ **Control concurrency** limit heavy jobs without affecting fast jobs.\
 ✅ **Prioritize critical tasks** ensure high-priority jobs are handled first.\
-✅ **Pause without losing jobs** suspend a queue without discarding its pending jobs.
+✅ **Pause without losing jobs** suspend a queue without discarding its waiting jobs.
 
 ## How does Sidequest manage queues?
 
 - Each queue is processed by an internal pool of workers, respecting its `concurrency` limit.
 - Priority between queues is considered when multiple queues have ready jobs.
-- Jobs in a `paused` queue remain pending until the queue is activated.
+- Jobs in a `paused` queue remain waiting until the queue is activated.
 - The total number of concurrent jobs never exceeds `maxConcurrentJobs` even with multiple active queues.
 
 ## Queue states
@@ -79,7 +79,7 @@ If not specified, the job goes to the `default` queue.
 When the dashboard is enabled (`dashboard.enabled: true`), you can:
 
 ✅ See the current status of each queue.\
-✅ See how many jobs are active, pending, completed, or failed per queue.\
+✅ See how many jobs are waiting, running, completed, or failed per queue.\
 ✅ Activate or pause queues manually.
 
 This is the recommended way to operate in production.

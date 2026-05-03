@@ -365,7 +365,7 @@ export class MyCustomBackend implements Backend {
   }
 
   async claimPendingJob(queue: string, quantity = 1): Promise<JobData[]> {
-    // Atomically claim pending jobs from queue
+    // Atomically claim waiting jobs from queue
   }
 
   async updateJob(job: UpdateJobData): Promise<JobData> {

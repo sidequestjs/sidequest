@@ -4,13 +4,13 @@ This document provides a detailed explanation of **queue priority** in Sidequest
 
 ## What is queue priority?
 
-**Queue priority** determines the relative importance of a queue compared to other queues when multiple queues have pending jobs. Queues with higher priority values are given preference by the scheduler when deciding which queue’s jobs to process next.
+**Queue priority** determines the relative importance of a queue compared to other queues when multiple queues have waiting jobs. Queues with higher priority values are given preference by the scheduler when deciding which queue’s jobs to process next.
 
 Priority is configured per queue as a positive integer. There is no hard limit, but it is recommended to use a reasonable scale (e.g. 0–100) for clarity.
 
 ## How it works
 
-When Sidequest has available workers and multiple queues have pending jobs, it compares the `priority` of each queue. Jobs from the highest-priority queue are selected first. Within a queue, jobs are processed in the order they were enqueued, respecting the queue’s `concurrency` limit.
+When Sidequest has available workers and multiple queues have waiting jobs, it compares the `priority` of each queue. Jobs from the highest-priority queue are selected first. Within a queue, jobs are processed in the order they were enqueued, respecting the queue’s `concurrency` limit.
 
 If two or more queues have the same priority, they are served in a round-robin fashion.
 

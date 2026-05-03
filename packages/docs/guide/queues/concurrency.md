@@ -10,7 +10,7 @@ Concurrency is configured per queue as a positive integer and applies only to th
 
 ## How it works
 
-Each queue in Sidequest has a dedicated pool of workers limited by its `concurrency` setting. When jobs are ready to run, Sidequest will not start more than `concurrency` jobs from a queue at the same time, even if more jobs are pending.
+Each queue in Sidequest has a dedicated pool of workers limited by its `concurrency` setting. When jobs are ready to run, Sidequest will not start more than `concurrency` jobs from a queue at the same time, even if more jobs are waiting.
 
 The total number of jobs running across all queues is also limited by the global `maxConcurrentJobs` parameter.
 

@@ -33,12 +33,12 @@ Queue states can be changed at runtime without restarting Sidequest. This allows
 ### Example scenarios
 
 ✅ **Pause a queue during maintenance:** If a downstream system is under maintenance, pause its related queue to avoid errors.\
-✅ **Resume a queue after resolving an incident:** Once the dependency is healthy again, resume the queue to process pending jobs.\
+✅ **Resume a queue after resolving an incident:** Once the dependency is healthy again, resume the queue to process waiting jobs.\
 ✅ **Throttle less important workloads:** Temporarily pause low-priority queues to free resources for urgent tasks.
 
 ## Best practices for managing queue states
 
-- Always monitor the number of pending jobs in a paused queue. Avoid leaving queues paused for too long without reviewing them.
+- Always monitor the number of waiting jobs in a paused queue. Avoid leaving queues paused for too long without reviewing them.
 - Document operational procedures for when and how to pause/resume queues.
 - Use the dashboard regularly to ensure no queue is unintentionally left in `paused`.
 - Communicate state changes to your team, especially in production environments.
