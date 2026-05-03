@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/sidequestjs/sidequest/compare/v1.14.1...v1.15.0) (2026-05-03)
+
+
+### Features
+
+* add scheduleOptions support to JobBuilder for node-cron integration ([#174](https://github.com/sidequestjs/sidequest/issues/174)) ([3a7c59f](https://github.com/sidequestjs/sidequest/commit/3a7c59f9c9649f1e18cb82384229718f25f2bf09))
+
 ## [1.14.1](https://github.com/sidequestjs/sidequest/compare/v1.14.0...v1.14.1) (2026-03-12)
 
 
