@@ -24,6 +24,23 @@ vi.mock("child_process", () => ({
   }),
 }));
 
+// Mock the in-process worker runtime so the no-fork path doesn't run a real dispatcher loop.
+const workerRuntimeMocks = vi.hoisted(() => ({
+  start: vi.fn().mockResolvedValue(undefined),
+  shutdown: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./workers/worker-runtime", () => ({
+  WorkerRuntime: vi.fn(function () {
+    return {
+      start: workerRuntimeMocks.start,
+      shutdown: workerRuntimeMocks.shutdown,
+    };
+  }),
+}));
+
+import { fork } from "child_process";
+
 export class ParameterizedJob extends DummyJob {
   constructor(
     public param1: string,
@@ -397,6 +414,26 @@ describe("Engine", () => {
       expect(config!.gracefulShutdown).toBe(false);
 
       await engine.close();
+    });
+
+    sidequestTest("runs in-process and skips fork when fork is false", async () => {
+      vi.mocked(fork).mockClear();
+      workerRuntimeMocks.start.mockClear();
+      workerRuntimeMocks.shutdown.mockClear();
+
+      const engine = new Engine();
+
+      await engine.start({
+        backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+        fork: false,
+        gracefulShutdown: false,
+      });
+
+      expect(workerRuntimeMocks.start).toHaveBeenCalledTimes(1);
+      expect(fork).not.toHaveBeenCalled();
+
+      await engine.close();
+      expect(workerRuntimeMocks.shutdown).toHaveBeenCalledTimes(1);
     });
 
     sidequestTest("should warn when starting already started engine", async () => {
