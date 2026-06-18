@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/sidequestjs/sidequest/compare/v1.15.0...v1.15.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* gate worker bootstrap on explicit flag instead of process.send ([#176](https://github.com/sidequestjs/sidequest/issues/176)) ([3a8dee2](https://github.com/sidequestjs/sidequest/commit/3a8dee264cd09bf43220737c314f91b90fe4629c)), closes [#175](https://github.com/sidequestjs/sidequest/issues/175)
+
 # [1.15.0](https://github.com/sidequestjs/sidequest/compare/v1.14.1...v1.15.0) (2026-05-03)
 
 
