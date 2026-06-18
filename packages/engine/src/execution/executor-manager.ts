@@ -4,7 +4,7 @@ import EventEmitter from "events";
 import { inspect } from "util";
 import { NonNullableEngineConfig } from "../engine";
 import { JobTransitioner } from "../job/job-transitioner";
-import { RunnerPool } from "../shared-runner";
+import { InlineRunner, JobRunner, RunnerPool } from "../shared-runner";
 
 /**
  * Manages job execution and worker concurrency for Sidequest.
@@ -12,7 +12,7 @@ import { RunnerPool } from "../shared-runner";
 export class ExecutorManager {
   private activeByQueue: Record<string, Set<number>>;
   private activeJobs: Set<number>;
-  private runnerPool: RunnerPool;
+  private jobRunner: JobRunner;
 
   /**
    * Creates a new ExecutorManager.
@@ -25,7 +25,10 @@ export class ExecutorManager {
   ) {
     this.activeByQueue = {};
     this.activeJobs = new Set();
-    this.runnerPool = new RunnerPool(this.nonNullConfig);
+    this.jobRunner =
+      this.nonNullConfig.runner === "inline"
+        ? new InlineRunner(this.nonNullConfig)
+        : new RunnerPool(this.nonNullConfig);
   }
 
   /**
@@ -114,7 +117,7 @@ export class ExecutorManager {
 
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
 
-      const runPromise = this.runnerPool.run(job, signal);
+      const runPromise = this.jobRunner.run(job, signal);
 
       if (job.timeout) {
         void new Promise(() => {
@@ -155,13 +158,13 @@ export class ExecutorManager {
     await new Promise<void>((resolve, reject) => {
       const checkJobs = () => {
         if (this.totalActiveWorkers() === 0) {
-          logger("ExecutorManager").info("All active jobs finished. Destroying runner pool.");
+          logger("ExecutorManager").info("All active jobs finished. Destroying runner.");
           try {
-            this.runnerPool.destroy();
-            logger("ExecutorManager").debug("Runner pool destroyed. Returning.");
+            this.jobRunner.destroy();
+            logger("ExecutorManager").debug("Runner destroyed. Returning.");
             resolve();
           } catch (error) {
-            logger("ExecutorManager").error("Error while destroying runner pool:", error);
+            logger("ExecutorManager").error("Error while destroying runner:", error);
             reject(error as Error);
           }
         } else {
