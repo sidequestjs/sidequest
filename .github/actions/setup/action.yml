@@ -30,10 +30,6 @@ runs:
       shell: bash
       run: corepack enable
 
-    - name: Install Yarn Berry
-      shell: bash
-      run: yarn set version berry
-
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
