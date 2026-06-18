@@ -1,6 +1,7 @@
 import { Backend } from "@sidequest/backend";
 import { logger } from "@sidequest/core";
 import cron from "node-cron";
+import { WORKER_PROCESS_FLAG } from "../constants";
 import { Engine, EngineConfig, NonNullableEngineConfig } from "../engine";
 import { Dispatcher } from "../execution/dispatcher";
 import { ExecutorManager } from "../execution/executor-manager";
@@ -142,7 +143,11 @@ export class MainWorker {
   }
 }
 
-const isChildProcess = !!process.send;
+// Gate the bootstrap on the explicit flag the engine passes when forking, not on `!!process.send`.
+// Any process forked over IPC (including a Vitest `pool: 'forks'` test worker that transitively
+// imports this module) has `process.send`, so the old heuristic would self-initialize there and
+// emit a "ready" message the host IPC layer can't handle. See issue #175.
+const isChildProcess = process.argv.includes(WORKER_PROCESS_FLAG);
 
 if (isChildProcess) {
   const worker = new MainWorker();

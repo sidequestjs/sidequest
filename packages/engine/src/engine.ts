@@ -5,7 +5,7 @@ import { existsSync } from "fs";
 import { cpus } from "os";
 import { fileURLToPath } from "url";
 import { inspect } from "util";
-import { DEFAULT_WORKER_PATH } from "./constants";
+import { DEFAULT_WORKER_PATH, WORKER_PROCESS_FLAG } from "./constants";
 import { Dependency, dependencyRegistry } from "./dependency-registry";
 import { JOB_BUILDER_FALLBACK } from "./job/constants";
 import { ScheduledJobRegistry } from "./job/cron-registry";
@@ -264,7 +264,7 @@ export class Engine {
       if (!this.mainWorker) {
         const runWorker = () => {
           logger("Engine").debug("Starting main worker...");
-          this.mainWorker = fork(DEFAULT_WORKER_PATH);
+          this.mainWorker = fork(DEFAULT_WORKER_PATH, [WORKER_PROCESS_FLAG]);
           logger("Engine").debug(`Worker PID: ${this.mainWorker.pid}`);
           this.mainWorker.on("message", (msg) => {
             if (msg === "ready") {
