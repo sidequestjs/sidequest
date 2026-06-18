@@ -13,6 +13,7 @@ import { JobBuilder, JobBuilderDefaults } from "./job/job-builder";
 import { grantQueueConfig, QueueDefaults } from "./queue/grant-queue-config";
 import { findSidequestJobsScriptInParentDirs, resolveScriptPath } from "./shared-runner";
 import { clearGracefulShutdown, gracefulShutdown } from "./utils/shutdown";
+import { WorkerRuntime } from "./workers/worker-runtime";
 
 /**
  * Configuration options for the Sidequest engine.
@@ -40,6 +41,18 @@ export interface EngineConfig {
   cleanupFinishedJobsOlderThan?: number;
   /** Whether to enable graceful shutdown handling. Defaults to `true` */
   gracefulShutdown?: boolean;
+  /**
+   * Whether to run the engine in a forked child process.
+   *
+   * - `true` (default): the engine runs in a `child_process.fork`, isolating job-code crashes from
+   *   the host application.
+   * - `false`: the engine runs in the host process. A crash in job code can take down the host, but
+   *   jobs can reach live in-process state. Useful for single-process setups (serverless, tests)
+   *   and required by framework integrations that rely on in-process execution.
+   *
+   * Defaults to `true`.
+   */
+  fork?: boolean;
   /** Minimum number of worker threads to use. Defaults to number of CPUs */
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
@@ -124,6 +137,12 @@ export class Engine {
   private mainWorker?: ChildProcess;
 
   /**
+   * Worker runtime when the engine runs in-process (`fork: false`).
+   * Mutually exclusive with {@link mainWorker}.
+   */
+  private inProcessRuntime?: WorkerRuntime;
+
+  /**
    * Flag indicating whether the engine is currently shutting down.
    * This is used to prevent multiple shutdown attempts and ensure graceful shutdown behavior.
    */
@@ -155,6 +174,7 @@ export class Engine {
         json: config?.logger?.json ?? false,
       },
       gracefulShutdown: config?.gracefulShutdown ?? true,
+      fork: config?.fork ?? true,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
       idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,
@@ -241,7 +261,7 @@ export class Engine {
    * @param config Optional configuration object.
    */
   async start(config: EngineConfig): Promise<void> {
-    if (this.mainWorker) {
+    if (this.mainWorker || this.inProcessRuntime) {
       logger("Engine").warn("Sidequest engine already started");
       return;
     }
@@ -254,6 +274,14 @@ export class Engine {
       for (const queue of nonNullConfig.queues) {
         await grantQueueConfig(dependencyRegistry.get(Dependency.Backend)!, queue, nonNullConfig.queueDefaults, true);
       }
+    }
+
+    if (!nonNullConfig.fork) {
+      logger("Engine").info("Starting Sidequest in-process (fork disabled)");
+      this.inProcessRuntime = new WorkerRuntime(dependencyRegistry.get(Dependency.Backend)!, nonNullConfig);
+      await this.inProcessRuntime.start();
+      gracefulShutdown(this.close.bind(this), "Engine", nonNullConfig.gracefulShutdown);
+      return;
     }
 
     return new Promise((resolve, reject) => {
@@ -323,12 +351,16 @@ export class Engine {
         this.mainWorker.send({ type: "shutdown" });
         await promise;
       }
+      if (this.inProcessRuntime) {
+        await this.inProcessRuntime.shutdown();
+      }
       try {
         await dependencyRegistry.get(Dependency.Backend)?.close();
       } catch (error) {
         logger("Engine").error("Error closing backend:", error);
       }
       this.mainWorker = undefined;
+      this.inProcessRuntime = undefined;
       // Reset the shutting down flag after closing
       // This allows the engine to be reconfigured or restarted later
       clearGracefulShutdown();
