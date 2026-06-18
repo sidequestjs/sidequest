@@ -3,11 +3,12 @@ import EventEmitter from "events";
 import Piscina from "piscina";
 import { DEFAULT_RUNNER_PATH } from "../constants";
 import { NonNullableEngineConfig } from "../engine";
+import { JobRunner } from "./job-runner";
 
 /**
  * A pool of worker threads for running jobs in parallel using Piscina.
  */
-export class RunnerPool {
+export class RunnerPool implements JobRunner {
   /** The underlying Piscina worker pool. */
   private readonly pool: Piscina;
 

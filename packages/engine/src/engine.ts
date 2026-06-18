@@ -53,6 +53,19 @@ export interface EngineConfig {
    * Defaults to `true`.
    */
   fork?: boolean;
+  /**
+   * How jobs are executed.
+   *
+   * - `"thread"` (default): jobs run in a pool of worker threads (piscina). Gives CPU isolation
+   *   and lets timeouts/cancellation forcibly abort a running job.
+   * - `"inline"`: jobs run in the current process/thread, with no worker pool. Timeouts and
+   *   cancellation become best-effort (a running job cannot be forcibly aborted) and a CPU-bound
+   *   job will block the event loop. Useful for single-process setups (serverless, tests, SQLite)
+   *   and required when jobs need access to live in-process state.
+   *
+   * Defaults to `"thread"`.
+   */
+  runner?: "thread" | "inline";
   /** Minimum number of worker threads to use. Defaults to number of CPUs */
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
@@ -175,6 +188,7 @@ export class Engine {
       },
       gracefulShutdown: config?.gracefulShutdown ?? true,
       fork: config?.fork ?? true,
+      runner: config?.runner ?? "thread",
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
       idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,

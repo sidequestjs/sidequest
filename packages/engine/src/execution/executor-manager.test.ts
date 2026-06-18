@@ -8,11 +8,18 @@ import { DummyJob } from "../test-jobs/dummy-job";
 import { ExecutorManager } from "./executor-manager";
 
 const runMock = vi.hoisted(() => vi.fn());
+const inlineRunMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../shared-runner", () => ({
   RunnerPool: vi.fn().mockImplementation(function () {
     return {
       run: runMock,
+      destroy: vi.fn(),
+    };
+  }),
+  InlineRunner: vi.fn().mockImplementation(function () {
+    return {
+      run: inlineRunMock,
       destroy: vi.fn(),
     };
   }),
@@ -69,6 +76,23 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
       await executorManager.destroy();
+    });
+
+    sidequestTest("uses the inline runner when runner is 'inline'", async ({ backend, config }) => {
+      inlineRunMock.mockResolvedValue({
+        __is_job_transition__: true,
+        type: "completed",
+        result: "result",
+      } satisfies CompletedResult);
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, { ...config, runner: "inline" });
+
+      await executorManager.execute(queryConfig, jobData);
+
+      expect(inlineRunMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).not.toHaveBeenCalled();
+      await executorManager.destroy();
+      inlineRunMock.mockReset();
     });
 
     sidequestTest("should abort job execution on job cancel", async ({ backend, config }) => {
