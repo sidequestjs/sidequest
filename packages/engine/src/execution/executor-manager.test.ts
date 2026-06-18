@@ -95,6 +95,26 @@ describe("ExecutorManager", () => {
       inlineRunMock.mockReset();
     });
 
+    sidequestTest("does not poll for cancellation in inline mode", async ({ backend, config }) => {
+      inlineRunMock.mockResolvedValue({
+        __is_job_transition__: true,
+        type: "completed",
+        result: "result",
+      } satisfies CompletedResult);
+      // The cancellation poll is the only thing that reads the job back during a run, so if inline
+      // skips it, getJob is never called.
+      const getJobSpy = vi.spyOn(backend, "getJob");
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, { ...config, runner: "inline" });
+
+      await executorManager.execute(queryConfig, jobData);
+
+      expect(getJobSpy).not.toHaveBeenCalled();
+      await executorManager.destroy();
+      getJobSpy.mockRestore();
+      inlineRunMock.mockReset();
+    });
+
     sidequestTest("should abort job execution on job cancel", async ({ backend, config }) => {
       await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 

@@ -101,19 +101,25 @@ export class ExecutorManager {
 
       isRunning = true;
       const signal = new EventEmitter();
-      const cancellationCheck = async () => {
-        while (isRunning) {
-          const watchedJob = await this.backend.getJob(job.id);
-          if (watchedJob!.state === "canceled") {
-            logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
-            signal.emit("abort");
-            isRunning = false;
-            return;
+      // Cancelling a running job works by aborting its worker thread. The inline runner has no
+      // separate thread to abort, so cancellation of an in-flight job is not supported there: we
+      // skip the polling loop entirely and let the job run to completion. (Pending jobs can still
+      // be cancelled — the dispatcher never claims them.)
+      if (this.nonNullConfig.runner !== "inline") {
+        const cancellationCheck = async () => {
+          while (isRunning) {
+            const watchedJob = await this.backend.getJob(job.id);
+            if (watchedJob!.state === "canceled") {
+              logger("Executor Manager").debug(`Emitting abort signal for job ${job.id}`);
+              signal.emit("abort");
+              isRunning = false;
+              return;
+            }
+            await new Promise((r) => setTimeout(r, 1000));
           }
-          await new Promise((r) => setTimeout(r, 1000));
-        }
-      };
-      void cancellationCheck();
+        };
+        void cancellationCheck();
+      }
 
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
 

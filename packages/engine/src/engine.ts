@@ -58,10 +58,11 @@ export interface EngineConfig {
    *
    * - `"thread"` (default): jobs run in a pool of worker threads (piscina). Gives CPU isolation
    *   and lets timeouts/cancellation forcibly abort a running job.
-   * - `"inline"`: jobs run in the current process/thread, with no worker pool. Timeouts and
-   *   cancellation become best-effort (a running job cannot be forcibly aborted) and a CPU-bound
-   *   job will block the event loop. Useful for single-process setups (serverless, tests, SQLite)
-   *   and required when jobs need access to live in-process state.
+   * - `"inline"`: jobs run in the current process/thread, with no worker pool. A running job
+   *   cannot be aborted, so timeouts are best-effort and cancelling an in-flight job is not
+   *   supported (it runs to completion; pending jobs can still be cancelled). A CPU-bound job will
+   *   block the event loop. Useful for single-process setups (serverless, tests, SQLite) and
+   *   required when jobs need access to live in-process state.
    *
    * Defaults to `"thread"`.
    */
