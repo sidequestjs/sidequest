@@ -11,8 +11,20 @@ import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG, resolveScriptPa
  * @param config The non-nullable engine configuration.
  * @returns A promise resolving to the job result.
  */
-export default async function run({ jobData, config }: { jobData: JobData; config: EngineConfig }): Promise<JobResult> {
-  await injectSidequestConfig(config);
+export default async function run({
+  jobData,
+  config,
+  inline,
+}: {
+  jobData: JobData;
+  config: EngineConfig;
+  inline?: boolean;
+}): Promise<JobResult> {
+  // In inline mode the job runs in the host process, where Sidequest is already configured, so
+  // re-injecting the config is redundant. In a worker thread the module is fresh and needs it.
+  if (!inline) {
+    await injectSidequestConfig(config);
+  }
 
   let script: Record<string, JobClassType> = {};
   try {

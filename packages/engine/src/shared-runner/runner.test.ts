@@ -52,6 +52,19 @@ describe("runner.ts", () => {
     expect(result).toEqual({ __is_job_transition__: true, type: "completed", result: "dummy job" });
   });
 
+  sidequestTest("injects the config when not inline", async ({ config }) => {
+    vi.mocked(importSidequest).mockClear();
+    await run({ jobData, config });
+    expect(importSidequest).toHaveBeenCalled();
+  });
+
+  sidequestTest("skips config injection when inline", async ({ config }) => {
+    vi.mocked(importSidequest).mockClear();
+    const result = await run({ jobData, config, inline: true });
+    expect(result).toEqual({ __is_job_transition__: true, type: "completed", result: "dummy job" });
+    expect(importSidequest).not.toHaveBeenCalled();
+  });
+
   sidequestTest("fails with invalid script", async ({ config }) => {
     jobData.script = "invalid!";
     const result = (await run({ jobData, config })) as FailedResult;
