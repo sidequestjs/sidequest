@@ -1,5 +1,6 @@
 import { Backend } from "@sidequest/backend";
 import {
+  CancelTransition,
   JobCanceled,
   JobData,
   JobTimeout,
@@ -100,7 +101,6 @@ export class ExecutorManager {
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
     let isRunning = false;
     const controller = new AbortController();
-    const inline = this.nonNullConfig.runner === "inline";
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
       logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
@@ -134,42 +134,32 @@ export class ExecutorManager {
       const runPromise = this.jobRunner.run(job, controller.signal);
 
       if (job.timeout) {
+        // Only signal the abort here. The terminal transition is decided when the run actually ends
+        // (resolve or reject) so a still-running job is never re-queued underneath itself.
         timeoutHandle = setTimeout(() => {
           logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
           controller.abort(new JobTimeout(job.timeout!));
-          // A thread worker is terminated on abort and rejects without a result, so the retry must be
-          // applied here. In inline mode the job cannot be force-stopped, so the timeout only signals:
-          // the terminal state is decided by the job's own result when it settles (below).
-          if (!inline) {
-            void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
-          }
         }, job.timeout);
       }
 
       const result = await runPromise;
 
       isRunning = false;
-      // Inline runs cannot be force-stopped, so the job's settled result is authoritative even when an
-      // abort (timeout/cancel) was requested: a job that honored the signal returns its own result, and
-      // one that ignored it simply completes. In thread mode the abort already decided the terminal
-      // state, so a job that ignored the signal must not overwrite the canceled/retry state.
-      if (inline || !controller.signal.aborted) {
-        logger("Executor Manager").debug(`Job ${job.id} completed with result: ${inspect(result)}`);
-        const transition = JobTransitionFactory.create(result);
-        await JobTransitioner.apply(this.backend, job, transition);
-      }
+      // The job ran to a conclusion and returned a state (even if a timeout/cancel was signaled);
+      // respect it and transition accordingly.
+      logger("Executor Manager").debug(`Job ${job.id} settled with result: ${inspect(result)}`);
+      await JobTransitioner.apply(this.backend, job, JobTransitionFactory.create(result));
     } catch (error: unknown) {
       isRunning = false;
       const err = error as Error;
-      // The thread runner rejects the run when its worker is aborted. Detect that via the signal
-      // rather than the rejection message (which varies). The terminal state was already set by the
-      // timeout (retry) or cancellation (canceled) path, so there is nothing more to do here.
       if (controller.signal.aborted) {
-        // The terminal state was already decided by the timeout (retry) or cancellation (canceled)
-        // path. Log the underlying rejection so a real error during an aborted run is not lost.
-        logger("Executor Manager").debug(
-          `Job ${job.id} was aborted (${String(controller.signal.reason)}); ignoring rejection: ${err.message}`,
-        );
+        // The run produced no result because the worker was hard-killed (thread). The abort reason
+        // decides the terminal state: a timeout becomes a retry, anything else (cancellation) becomes
+        // canceled. The rejection is logged so a real error during the abort is not lost.
+        const reason: unknown = controller.signal.reason;
+        logger("Executor Manager").debug(`Job ${job.id} was hard-killed (${String(reason)}): ${err.message}`);
+        const transition = reason instanceof JobTimeout ? new RetryTransition(reason) : new CancelTransition();
+        await JobTransitioner.apply(this.backend, job, transition);
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
         await JobTransitioner.apply(this.backend, job, new RetryTransition(err));
