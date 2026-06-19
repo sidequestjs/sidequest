@@ -113,11 +113,14 @@ export class ExecutorManager {
       isRunning = true;
       const cancellationCheck = async () => {
         while (isRunning) {
-          // The row can be missing transiently or if it was deleted; treat that as "not canceled"
-          // rather than dereferencing undefined and crashing the polling loop.
           const watchedJob = await this.backend.getJob(job.id);
-          if (watchedJob?.state === "canceled") {
-            logger("Executor Manager").debug(`Aborting job ${job.id}: canceled`);
+          // Abort when the job was canceled, and also when its row no longer exists (deleted or
+          // truncated): the record is gone, so the run must be stopped rather than left to block
+          // shutdown forever.
+          if (!watchedJob || watchedJob.state === "canceled") {
+            logger("Executor Manager").debug(
+              `Aborting job ${job.id}: ${watchedJob ? "canceled" : "row no longer exists"}`,
+            );
             controller.abort(new JobCanceled());
             isRunning = false;
             return;
