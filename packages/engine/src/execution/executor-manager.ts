@@ -4,6 +4,7 @@ import {
   JobCanceled,
   JobData,
   JobTimeout,
+  JobTransition,
   JobTransitionFactory,
   logger,
   QueueConfig,
@@ -151,7 +152,7 @@ export class ExecutorManager {
       // The job ran to a conclusion and returned a state (even if a timeout/cancel was signaled);
       // respect it and transition accordingly.
       logger("Executor Manager").debug(`Job ${job.id} settled with result: ${inspect(result)}`);
-      await JobTransitioner.apply(this.backend, job, JobTransitionFactory.create(result));
+      await this.applyTerminalTransition(job, JobTransitionFactory.create(result));
     } catch (error: unknown) {
       isRunning = false;
       const err = error as Error;
@@ -162,10 +163,10 @@ export class ExecutorManager {
         const reason: unknown = controller.signal.reason;
         logger("Executor Manager").debug(`Job ${job.id} was hard-killed (${String(reason)}): ${err.message}`);
         const transition = reason instanceof JobTimeout ? new RetryTransition(reason) : new CancelTransition();
-        await JobTransitioner.apply(this.backend, job, transition);
+        await this.applyTerminalTransition(job, transition);
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
-        await JobTransitioner.apply(this.backend, job, new RetryTransition(err));
+        await this.applyTerminalTransition(job, new RetryTransition(err));
       }
     } finally {
       isRunning = false;
@@ -174,6 +175,27 @@ export class ExecutorManager {
       }
       this.activeByQueue[queueConfig.name].delete(job.id);
       this.activeJobs.delete(job.id);
+    }
+  }
+
+  /**
+   * Applies a job's final transition, tolerating the job row having disappeared.
+   *
+   * A job's row can be deleted while it runs (cleanup routine, an explicit delete, or a test
+   * truncating the table). Recording its terminal state is then impossible and safe to skip. This
+   * must never throw: `execute` is fire-and-forget, so an error here would surface as an unhandled
+   * rejection.
+   *
+   * @param job The job being finalized.
+   * @param transition The terminal transition to apply.
+   */
+  private async applyTerminalTransition(job: JobData, transition: JobTransition): Promise<void> {
+    try {
+      await JobTransitioner.apply(this.backend, job, transition);
+    } catch (error) {
+      logger("Executor Manager").warn(
+        `Could not record terminal state for job ${job.id} (it may no longer exist): ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 

@@ -261,6 +261,30 @@ describe("ExecutorManager", () => {
       getJobSpy.mockRestore();
     });
 
+    sidequestTest("does not crash when the final transition fails (job row gone)", async ({ backend, config }) => {
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config);
+
+      // RunTransition succeeds; the terminal transition fails because the row was deleted mid-run.
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(JobTransitioner.apply)
+        .mockImplementationOnce((_backend: Backend, job: JobData) => job)
+        .mockImplementationOnce(() => {
+          throw new Error("Cannot update job, not found.");
+        });
+      runMock.mockResolvedValue({
+        __is_job_transition__: true,
+        type: "completed",
+        result: "ok",
+      } satisfies CompletedResult);
+
+      // The fire-and-forget executor must not reject, and must free the job from the active set.
+      await expect(executorManager.execute(queryConfig, jobData)).resolves.toBeUndefined();
+      expect(executorManager.totalActiveWorkers()).toBe(0);
+
+      await executorManager.destroy();
+    });
+
     sidequestTest("should abort job execution on timeout", async ({ backend, config }) => {
       jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date(), timeout: 100 });
 
