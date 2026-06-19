@@ -1,5 +1,4 @@
 import { JobData, JobResult } from "@sidequest/core";
-import EventEmitter from "events";
 
 /**
  * Abstraction over how a claimed job is actually executed.
@@ -12,10 +11,10 @@ export interface JobRunner {
   /**
    * Runs a job and resolves with its result.
    * @param job The job data to run.
-   * @param signal Optional event emitter used to request cancellation/abort. May be ignored by
-   * implementations that cannot forcibly abort a running job (e.g. the inline runner).
+   * @param signal Abort signal for the run. The thread runner uses it to terminate the worker; the
+   * inline runner forwards it to the job so it can stop cooperatively.
    */
-  run(job: JobData, signal?: EventEmitter): Promise<JobResult>;
+  run(job: JobData, signal?: AbortSignal): Promise<JobResult>;
 
   /**
    * Releases any resources held by the runner.

@@ -19,14 +19,16 @@ export class InlineRunner implements JobRunner {
   constructor(private nonNullConfig: NonNullableEngineConfig) {}
 
   /**
-   * Runs a job in the current process. The abort signal is intentionally not accepted: inline
-   * execution has no separate thread to terminate.
+   * Runs a job in the current process. The abort signal is forwarded to the job (as
+   * `this.abortSignal`) so it can stop cooperatively: inline execution has no separate thread to
+   * terminate, so this is the only way timeouts and cancellation can take effect.
    * @param job The job data to run.
+   * @param signal Abort signal handed to the job for cooperative cancellation.
    * @returns A promise resolving to the job result.
    */
-  run(job: JobData): Promise<JobResult> {
+  run(job: JobData, signal?: AbortSignal): Promise<JobResult> {
     logger("InlineRunner").debug(`Running job ${job.id} inline`);
-    return run({ jobData: job, config: this.nonNullConfig, inline: true });
+    return run({ jobData: job, config: this.nonNullConfig, inline: true, signal });
   }
 
   /**

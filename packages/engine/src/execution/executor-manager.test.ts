@@ -1,7 +1,6 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
-import { CompletedResult, JobData, RetryTransition, RunTransition } from "@sidequest/core";
-import EventEmitter from "events";
+import { CompletedResult, CompleteTransition, JobData, RetryTransition, RunTransition } from "@sidequest/core";
 import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 import { DummyJob } from "../test-jobs/dummy-job";
@@ -72,7 +71,7 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsGlobal()).toEqual(9);
 
       await execPromise;
-      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toBeCalledWith(jobData, expect.any(AbortSignal));
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
       await executorManager.destroy();
@@ -89,7 +88,7 @@ describe("ExecutorManager", () => {
 
       await executorManager.execute(queryConfig, jobData);
 
-      expect(inlineRunMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(inlineRunMock).toBeCalledWith(jobData, expect.any(AbortSignal));
       expect(runMock).not.toHaveBeenCalled();
       await executorManager.destroy();
       inlineRunMock.mockReset();
@@ -102,9 +101,9 @@ describe("ExecutorManager", () => {
       const executorManager = new ExecutorManager(backend, config);
 
       let expectedPromise;
-      runMock.mockImplementationOnce(async (job: JobData, signal: EventEmitter) => {
+      runMock.mockImplementationOnce(async (job: JobData, signal: AbortSignal) => {
         const promise = new Promise((_, reject) => {
-          signal.on("abort", () => {
+          signal.addEventListener("abort", () => {
             reject(new Error("The task has been aborted"));
           });
         });
@@ -119,7 +118,7 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsGlobal()).toEqual(9);
 
       await execPromise;
-      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toBeCalledWith(jobData, expect.any(AbortSignal));
       expect(runMock).toHaveReturnedWith(expectedPromise);
       await expect(expectedPromise).rejects.toThrow("The task has been aborted");
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
@@ -133,6 +132,33 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
+    sidequestTest(
+      "does not overwrite the canceled state when an aborted job ignores the signal",
+      async ({ backend, config }) => {
+        await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
+
+        const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+        const executorManager = new ExecutorManager(backend, config);
+
+        // The job is canceled mid-run but ignores the abort signal and runs to completion.
+        runMock.mockImplementationOnce(async (job: JobData, signal: AbortSignal) => {
+          await backend.updateJob({ ...job, state: "canceled" });
+          while (!signal.aborted) {
+            await new Promise((r) => setTimeout(r, 50));
+          }
+          return { __is_job_transition__: true, type: "completed", result: "result" } as CompletedResult;
+        });
+
+        await executorManager.execute(queryConfig, jobData);
+
+        // The terminal completion transition must be skipped so the canceled state is preserved.
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, expect.anything(), expect.any(CompleteTransition));
+
+        await executorManager.destroy();
+      },
+    );
+
     sidequestTest("should abort job execution on timeout", async ({ backend, config }) => {
       jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date(), timeout: 100 });
 
@@ -140,9 +166,9 @@ describe("ExecutorManager", () => {
       const executorManager = new ExecutorManager(backend, config);
 
       let expectedPromise;
-      runMock.mockImplementationOnce(async (job: JobData, signal: EventEmitter) => {
+      runMock.mockImplementationOnce(async (job: JobData, signal: AbortSignal) => {
         const promise = new Promise((_, reject) => {
-          signal.on("abort", () => {
+          signal.addEventListener("abort", () => {
             reject(new Error("The task has been aborted"));
           });
         });
@@ -156,7 +182,7 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsGlobal()).toEqual(9);
 
       await execPromise;
-      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toBeCalledWith(jobData, expect.any(AbortSignal));
       expect(runMock).toHaveReturnedWith(expectedPromise);
       await expect(expectedPromise).rejects.toThrow("The task has been aborted");
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
@@ -186,7 +212,7 @@ describe("ExecutorManager", () => {
       expect(executorManager.availableSlotsGlobal()).toEqual(9);
 
       await execPromise;
-      expect(runMock).toBeCalledWith(jobData, expect.any(EventEmitter));
+      expect(runMock).toBeCalledWith(jobData, expect.any(AbortSignal));
       expect(executorManager.availableSlotsByQueue(queryConfig)).toEqual(1);
       expect(executorManager.availableSlotsGlobal()).toEqual(10);
 

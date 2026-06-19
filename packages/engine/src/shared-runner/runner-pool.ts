@@ -1,9 +1,10 @@
-import { JobData, JobResult, logger } from "@sidequest/core";
-import EventEmitter from "events";
+import { JobData, JobResult, JobTimeout, logger } from "@sidequest/core";
+import { MessageChannel } from "node:worker_threads";
 import Piscina from "piscina";
 import { DEFAULT_RUNNER_PATH } from "../constants";
 import { NonNullableEngineConfig } from "../engine";
 import { JobRunner } from "./job-runner";
+import type { AbortPortMessage } from "./runner";
 
 /**
  * A pool of worker threads for running jobs in parallel using Piscina.
@@ -30,13 +31,54 @@ export class RunnerPool implements JobRunner {
 
   /**
    * Runs a job in the worker pool.
+   *
+   * With `abortGracePeriodMs === 0` (default), an abort terminates the worker immediately. With a
+   * positive grace period, the abort is delivered to the job cooperatively over a transferred port
+   * (so it can stop via `this.abortSignal`), and the worker is only forcibly terminated if it has
+   * not finished within the grace period.
+   *
    * @param job The job data to run.
-   * @param signal Optional event emitter for cancellation.
+   * @param signal Optional abort signal for cancellation/timeout.
    * @returns A promise resolving to the job result.
    */
-  run(job: JobData, signal?: EventEmitter): Promise<JobResult> {
+  run(job: JobData, signal?: AbortSignal): Promise<JobResult> {
     logger("RunnerPool").debug(`Running job ${job.id} in pool`);
-    return this.pool.run({ jobData: job, config: this.nonNullConfig }, { signal });
+    const grace = this.nonNullConfig.abortGracePeriodMs;
+
+    if (!signal || grace <= 0) {
+      // Abort terminates the worker immediately.
+      return this.pool.run({ jobData: job, config: this.nonNullConfig }, { signal });
+    }
+
+    // Deliver the abort cooperatively first, then hard-terminate after the grace period.
+    const channel = new MessageChannel();
+    const hardKill = new AbortController();
+    let graceTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const onAbort = () => {
+      const reason: unknown = signal.reason;
+      const message: AbortPortMessage =
+        reason instanceof JobTimeout ? { kind: "timeout", timeoutMs: reason.timeoutMs } : { kind: "canceled" };
+      channel.port1.postMessage(message);
+      graceTimer = setTimeout(() => hardKill.abort(), grace);
+    };
+
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+
+    return this.pool
+      .run(
+        { jobData: job, config: this.nonNullConfig, abortPort: channel.port2 },
+        { transferList: [channel.port2], signal: hardKill.signal },
+      )
+      .finally(() => {
+        if (graceTimer) clearTimeout(graceTimer);
+        signal.removeEventListener("abort", onAbort);
+        channel.port1.close();
+      });
   }
 
   /**

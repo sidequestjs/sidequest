@@ -58,14 +58,28 @@ export interface EngineConfig {
    *
    * - `"thread"` (default): jobs run in a pool of worker threads (piscina). Gives CPU isolation
    *   and lets timeouts/cancellation forcibly abort a running job.
-   * - `"inline"`: jobs run in the current process/thread, with no worker pool. Timeouts and
-   *   cancellation become best-effort (a running job cannot be forcibly aborted) and a CPU-bound
-   *   job will block the event loop. Useful for single-process setups (serverless, tests, SQLite)
-   *   and required when jobs need access to live in-process state.
+   * - `"inline"`: jobs run in the current process/thread, with no worker pool. A running job cannot
+   *   be forcibly terminated, so timeouts and cancellation are delivered cooperatively via
+   *   `this.abortSignal` inside the job (the job must honor it to stop early); a job that ignores it
+   *   runs to completion, and a CPU-bound job will block the event loop. Useful for single-process
+   *   setups (serverless, tests, SQLite) and required when jobs need access to live in-process state.
    *
    * Defaults to `"thread"`.
    */
   runner?: "thread" | "inline";
+  /**
+   * Grace period, in milliseconds, between cooperatively aborting a running job (timeout or
+   * cancellation) and forcibly terminating its worker thread.
+   *
+   * Only applies to `runner: "thread"`. When greater than `0`, the abort is first delivered to the
+   * job via `this.abortSignal` so it can stop and clean up; if it has not finished after this many
+   * milliseconds, the worker thread is terminated. When `0` (default), the worker is terminated
+   * immediately with no cooperative window, preserving the previous behavior. Has no effect in
+   * `runner: "inline"` (there is no thread to terminate).
+   *
+   * Defaults to `0`.
+   */
+  abortGracePeriodMs?: number;
   /** Minimum number of worker threads to use. Defaults to number of CPUs */
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
@@ -189,6 +203,7 @@ export class Engine {
       gracefulShutdown: config?.gracefulShutdown ?? true,
       fork: config?.fork ?? true,
       runner: config?.runner ?? "thread",
+      abortGracePeriodMs: config?.abortGracePeriodMs ?? 0,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
       idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,
