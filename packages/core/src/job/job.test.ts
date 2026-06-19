@@ -37,6 +37,21 @@ describe("job.ts", () => {
     expect(transition.result).toBe("foo bar");
   });
 
+  it("exposes a non-aborting abortSignal by default", () => {
+    const job = new DummyJob();
+    expect(job.abortSignal).toBeInstanceOf(AbortSignal);
+    expect(job.abortSignal.aborted).toBe(false);
+  });
+
+  it("injects the abort signal at runtime", () => {
+    const job = new DummyJob();
+    const controller = new AbortController();
+    job.injectAbortSignal(controller.signal);
+    expect(job.abortSignal).toBe(controller.signal);
+    controller.abort();
+    expect(job.abortSignal.aborted).toBe(true);
+  });
+
   it("creates a fail transition", () => {
     const job = new DummyJob();
     const transition = job.fail("error");

@@ -40,9 +40,10 @@ describe("InlineRunner", () => {
     expect(result).toEqual({ __is_job_transition__: true, type: "completed", result: "dummy job" });
   });
 
-  sidequestTest("delegates to the runner with inline enabled (skips config injection)", async ({ config }) => {
-    await runner.run(jobData);
-    expect(run).toHaveBeenCalledWith({ jobData, config, inline: true });
+  sidequestTest("delegates to the runner with inline enabled and forwards the signal", async ({ config }) => {
+    const signal = new AbortController().signal;
+    await runner.run(jobData, signal);
+    expect(run).toHaveBeenCalledWith({ jobData, config, inline: true, signal });
   });
 
   sidequestTest("destroy is a no-op and does not throw", () => {

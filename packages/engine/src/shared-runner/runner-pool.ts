@@ -1,5 +1,4 @@
 import { JobData, JobResult, logger } from "@sidequest/core";
-import EventEmitter from "events";
 import Piscina from "piscina";
 import { DEFAULT_RUNNER_PATH } from "../constants";
 import { NonNullableEngineConfig } from "../engine";
@@ -31,10 +30,10 @@ export class RunnerPool implements JobRunner {
   /**
    * Runs a job in the worker pool.
    * @param job The job data to run.
-   * @param signal Optional event emitter for cancellation.
+   * @param signal Optional abort signal; when it aborts, piscina terminates the worker thread.
    * @returns A promise resolving to the job result.
    */
-  run(job: JobData, signal?: EventEmitter): Promise<JobResult> {
+  run(job: JobData, signal?: AbortSignal): Promise<JobResult> {
     logger("RunnerPool").debug(`Running job ${job.id} in pool`);
     return this.pool.run({ jobData: job, config: this.nonNullConfig }, { signal });
   }

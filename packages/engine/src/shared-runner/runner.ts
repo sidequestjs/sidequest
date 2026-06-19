@@ -15,10 +15,12 @@ export default async function run({
   jobData,
   config,
   inline,
+  signal,
 }: {
   jobData: JobData;
   config: EngineConfig;
   inline?: boolean;
+  signal?: AbortSignal;
 }): Promise<JobResult> {
   // In inline mode the job runs in the host process, where Sidequest is already configured, so
   // re-injecting the config is redundant. In a worker thread the module is fresh and needs it.
@@ -77,6 +79,9 @@ export default async function run({
 
   const job: Job = new JobClass(...jobData.constructor_args);
   job.injectJobData(jobData);
+  if (signal) {
+    job.injectAbortSignal(signal);
+  }
 
   logger("Runner").debug(`Executing job class "${jobData.class}" with args:`, jobData.args);
   return job.perform(...jobData.args);

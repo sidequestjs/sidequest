@@ -65,6 +65,21 @@ describe("runner.ts", () => {
     expect(importSidequest).not.toHaveBeenCalled();
   });
 
+  sidequestTest("injects the abort signal into the job when provided", async ({ config }) => {
+    const injectSpy = vi.spyOn(DummyJob.prototype, "injectAbortSignal");
+    const signal = new AbortController().signal;
+    await run({ jobData, config, signal });
+    expect(injectSpy).toHaveBeenCalledWith(signal);
+    injectSpy.mockRestore();
+  });
+
+  sidequestTest("does not inject an abort signal when none is provided", async ({ config }) => {
+    const injectSpy = vi.spyOn(DummyJob.prototype, "injectAbortSignal");
+    await run({ jobData, config });
+    expect(injectSpy).not.toHaveBeenCalled();
+    injectSpy.mockRestore();
+  });
+
   sidequestTest("fails with invalid script", async ({ config }) => {
     jobData.script = "invalid!";
     const result = (await run({ jobData, config })) as FailedResult;
