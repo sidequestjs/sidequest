@@ -100,6 +100,8 @@ export class ExecutorManager {
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
     let isRunning = false;
     const controller = new AbortController();
+    const inline = this.nonNullConfig.runner === "inline";
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
       logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
       // We call prepareJob here again to make sure the jobs are in the queues.
@@ -128,22 +130,26 @@ export class ExecutorManager {
       const runPromise = this.jobRunner.run(job, controller.signal);
 
       if (job.timeout) {
-        void new Promise(() => {
-          setTimeout(() => {
-            logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
-            controller.abort(new JobTimeout(job.timeout!));
+        timeoutHandle = setTimeout(() => {
+          logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
+          controller.abort(new JobTimeout(job.timeout!));
+          // A thread worker is terminated on abort and rejects without a result, so the retry must be
+          // applied here. In inline mode the job cannot be force-stopped, so the timeout only signals:
+          // the terminal state is decided by the job's own result when it settles (below).
+          if (!inline) {
             void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
-          }, job.timeout!);
-        });
+          }
+        }, job.timeout);
       }
 
       const result = await runPromise;
 
       isRunning = false;
-      // If the job was aborted (canceled or timed out) the terminal state was already decided by that
-      // path. Skip the terminal transition so a job that ignored the signal and ran to completion does
-      // not overwrite the canceled/retry state.
-      if (!controller.signal.aborted) {
+      // Inline runs cannot be force-stopped, so the job's settled result is authoritative even when an
+      // abort (timeout/cancel) was requested: a job that honored the signal returns its own result, and
+      // one that ignored it simply completes. In thread mode the abort already decided the terminal
+      // state, so a job that ignored the signal must not overwrite the canceled/retry state.
+      if (inline || !controller.signal.aborted) {
         logger("Executor Manager").debug(`Job ${job.id} completed with result: ${inspect(result)}`);
         const transition = JobTransitionFactory.create(result);
         await JobTransitioner.apply(this.backend, job, transition);
@@ -162,6 +168,9 @@ export class ExecutorManager {
       }
     } finally {
       isRunning = false;
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
       this.activeByQueue[queueConfig.name].delete(job.id);
       this.activeJobs.delete(job.id);
     }

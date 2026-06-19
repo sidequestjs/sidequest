@@ -94,6 +94,54 @@ describe("ExecutorManager", () => {
       inlineRunMock.mockReset();
     });
 
+    sidequestTest(
+      "inline: a job that ignores the timeout completes instead of being retried",
+      async ({ backend, config }) => {
+        jobData = await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date(), timeout: 20 });
+        const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+        const executorManager = new ExecutorManager(backend, { ...config, runner: "inline" });
+
+        // The job ignores the abort signal and completes after the timeout has already fired.
+        inlineRunMock.mockImplementationOnce(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ __is_job_transition__: true, type: "completed", result: "done" }), 60),
+            ),
+        );
+
+        await executorManager.execute(queryConfig, jobData);
+
+        // Timeout fired (signal aborted) but inline applies the job's own result: completed, not a retry.
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(CompleteTransition));
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
+        await executorManager.destroy();
+        inlineRunMock.mockReset();
+      },
+    );
+
+    sidequestTest(
+      "inline: a job that ignores cancellation completes (its result wins)",
+      async ({ backend, config }) => {
+        // Pre-cancel in the DB so the first cancellation poll observes it immediately. JobTransitioner is
+        // mocked here, so the RunTransition does not overwrite the persisted state.
+        jobData = await backend.updateJob({ ...jobData, state: "canceled" });
+        const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+        const executorManager = new ExecutorManager(backend, { ...config, runner: "inline" });
+
+        inlineRunMock.mockResolvedValue({ __is_job_transition__: true, type: "completed", result: "done" });
+
+        await executorManager.execute(queryConfig, jobData);
+
+        // Inline cannot force-stop the job; it completed, so its result is applied.
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(CompleteTransition));
+        await executorManager.destroy();
+        inlineRunMock.mockReset();
+      },
+    );
+
     sidequestTest("should abort job execution on job cancel", async ({ backend, config }) => {
       await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
 
