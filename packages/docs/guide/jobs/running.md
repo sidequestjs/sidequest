@@ -35,15 +35,16 @@ When you need finer control — fail without retrying, retry with a custom delay
 
 Before `run()` executes, Sidequest injects read-only properties onto `this`:
 
-| Property            | Type        | Description                      |
-| ------------------- | ----------- | -------------------------------- |
-| `this.id`           | `string`    | Job ID                           |
-| `this.attempt`      | `number`    | Current attempt number (1-based) |
-| `this.max_attempts` | `number`    | Maximum allowed attempts         |
-| `this.queue`        | `string`    | Queue the job is running in      |
-| `this.state`        | `string`    | Current state (`"running"`)      |
-| `this.inserted_at`  | `Date`      | When the job was first enqueued  |
-| `this.args`         | `unknown[]` | The run arguments                |
+| Property            | Type          | Description                                                                                         |
+| ------------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `this.id`           | `string`      | Job ID                                                                                              |
+| `this.attempt`      | `number`      | Current attempt number (1-based)                                                                    |
+| `this.max_attempts` | `number`      | Maximum allowed attempts                                                                            |
+| `this.queue`        | `string`      | Queue the job is running in                                                                         |
+| `this.state`        | `string`      | Current state (`"running"`)                                                                         |
+| `this.inserted_at`  | `Date`        | When the job was first enqueued                                                                     |
+| `this.args`         | `unknown[]`   | The run arguments                                                                                   |
+| `this.abortSignal`  | `AbortSignal` | Aborts when the job times out or is canceled. See [below](#responding-to-timeout-and-cancellation). |
 
 ::: warning
 These properties are only available inside `run()`. They are `undefined` in the constructor.
@@ -57,9 +58,10 @@ These methods let you explicitly transition the job to a specific lifecycle stat
 You must **`return`** the result of every flow control method. Calling one without returning it is a no-op — the transition won't happen.
 
 ```typescript
-this.fail("reason");        // ❌ does nothing
+this.fail("reason"); // ❌ does nothing
 return this.fail("reason"); // ✅ transitions to failed
 ```
+
 :::
 
 ### `return this.complete(result)`
@@ -129,15 +131,42 @@ async run(payload: unknown) {
 
 Use `snooze` for time-based deferrals: rate limit windows, maintenance modes, business hours.
 
+## Responding to timeout and cancellation
+
+When a job exceeds its `timeout`, or is canceled (via the dashboard or `Sidequest.job.cancel(id)`), Sidequest aborts `this.abortSignal`. Use it to stop your work promptly:
+
+```typescript
+async run(url: string) {
+  // Pass it to any abort-aware API; it cancels automatically.
+  const res = await fetch(url, { signal: this.abortSignal });
+
+  // Or check it cooperatively in loops / between steps.
+  for (const item of await res.json()) {
+    this.abortSignal.throwIfAborted(); // throws if timed out / canceled
+    await process(item);
+  }
+}
+```
+
+`this.abortSignal.reason` is a `JobTimeout` or `JobCanceled` (both exported from `sidequest`) so you can react differently to each.
+
+::: danger Whether the signal can actually stop the job depends on the execution mode
+
+- In the default thread pool with `abortGracePeriodMs: 0`, the worker is terminated, so honoring the signal is optional (it just lets you clean up; set a grace period to get a cooperative window).
+- In **`runner: "inline"` mode there is no way to forcibly stop a job.** If your job ignores `this.abortSignal`, timeouts and cancellation **will not stop it**: it runs to completion. Honoring the signal is mandatory for long-running inline jobs.
+
+See [Execution Modes](/production/execution-modes#cooperative-timeout-and-cancellation) for the full behavior across modes.
+:::
+
 ## Choosing the right method
 
-| Situation | Use |
-|---|---|
-| Normal completion | `return result` or `return this.complete(result)` |
-| Permanent, unrecoverable error | `return this.fail(reason)` |
-| Transient error, controlled retry delay | `return this.retry(reason, delay)` |
-| Not the right time — try again later | `return this.snooze(delay)` |
-| Unexpected error — let Sidequest decide | `throw error` |
+| Situation                               | Use                                               |
+| --------------------------------------- | ------------------------------------------------- |
+| Normal completion                       | `return result` or `return this.complete(result)` |
+| Permanent, unrecoverable error          | `return this.fail(reason)`                        |
+| Transient error, controlled retry delay | `return this.retry(reason, delay)`                |
+| Not the right time — try again later    | `return this.snooze(delay)`                       |
+| Unexpected error — let Sidequest decide | `throw error`                                     |
 
 ## Best practices
 
