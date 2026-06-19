@@ -67,7 +67,11 @@ Jobs can be manually canceled at any point before completion:
 
 - Waiting jobs are immediately marked as `canceled`
 - Claimed jobs are marked as `canceled` before execution an are prevented from running
-- Running jobs receive a cancellation signal and transition to `canceled`
+- Running jobs receive a cancellation signal via `this.abortSignal` and transition to `canceled`
+
+::: warning
+Stopping a _running_ job depends on the [execution mode](/production/execution-modes#cooperative-timeout-and-cancellation). With the default thread pool the worker is terminated. In `runner: "inline"` mode the job cannot be force-stopped, so it must honor `this.abortSignal`; a running inline job that ignores it finishes with its own result instead of `canceled`. The same applies to job timeouts.
+:::
 
 ## Best Practices
 

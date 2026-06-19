@@ -30,6 +30,10 @@ Your app process
 
 Because the engine is a separate process, a job that calls `process.exit()` or throws an unhandled exception will kill the engine process but **not your app**. The engine restarts automatically.
 
+::: tip
+This forked, worker-thread model is the default and the right choice for most deployments. For serverless runtimes, test suites, or framework integrations that need jobs to share live in-process state, you can run the engine in-process and/or run jobs inline. See [Execution Modes](/production/execution-modes).
+:::
+
 ## How jobs are claimed
 
 The Dispatcher polls the database at a configurable interval (default: **100 ms**). When it finds waiting jobs that fit within queue concurrency limits, it claims them atomically:
