@@ -34,7 +34,7 @@ Use `fork: false` when:
 
 - You can't spawn child processes (many **serverless / edge** runtimes).
 - You're running an **integration test** and want to avoid IPC and process teardown flakiness.
-- Your jobs need access to **live, in-process state** that can't cross a process boundary, for example a dependency-injection container (this is what `@sidequest/nestjs` relies on).
+- Your jobs need access to **live, in-process state** that can't cross a process boundary, for example a dependency-injection container.
 
 ::: danger No crash isolation with `fork: false`
 With the default `fork: true`, a job that throws an unhandled exception or calls `process.exit()` only takes down the engine fork, and Sidequest restarts it. With `fork: false`, the engine shares your application's process: **a misbehaving job can crash your whole app.** Only use it when you understand and accept that.
@@ -72,7 +72,7 @@ There is no separate thread to terminate, so Sidequest **cannot** kill a running
 | `true`  | `thread` | ✅               | ✅            | **Default.** Production.                                                |
 | `true`  | `inline` | ✅ (engine fork) | ❌            | Lighter execution with crash isolation kept; e.g. SQLite single-writer. |
 | `false` | `thread` | ❌               | ✅            | Run in-process but still isolate CPU per job.                           |
-| `false` | `inline` | ❌               | ❌            | Serverless, tests, and DI/framework integrations (e.g. NestJS).         |
+| `false` | `inline` | ❌               | ❌            | Serverless, tests, and integrations that need live in-process state.    |
 
 ::: code-group
 
