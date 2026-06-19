@@ -1,10 +1,10 @@
 import {
+  AbortReasonMessage,
+  deserializeAbortReason,
   Job,
-  JobCanceled,
   JobClassType,
   JobData,
   JobResult,
-  JobTimeout,
   logger,
   resolveScriptPathForJob,
   toErrorData,
@@ -16,21 +16,17 @@ import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG, resolveScriptPath } from "./manual-loader";
 
-/** Message posted by the engine over the abort port to cooperatively abort a worker-thread job. */
-export type AbortPortMessage = { kind: "timeout"; timeoutMs: number } | { kind: "canceled" };
-
 /**
  * Builds an {@link AbortSignal} for a worker-thread job from an abort port.
  *
  * The thread runner cannot receive a live `AbortSignal` across the worker boundary, so the engine
  * transfers a {@link MessagePort} and posts an abort message on it; this turns that message into a
- * local signal carrying the proper {@link JobTimeout}/{@link JobCanceled} reason.
+ * local signal carrying the proper `JobTimeout`/`JobCanceled` reason.
  */
 function signalFromAbortPort(port: MessagePort): AbortSignal {
   const controller = new AbortController();
-  port.on("message", (message: AbortPortMessage) => {
-    const reason = message.kind === "timeout" ? new JobTimeout(message.timeoutMs) : new JobCanceled();
-    controller.abort(reason);
+  port.on("message", (message: AbortReasonMessage) => {
+    controller.abort(deserializeAbortReason(message));
   });
   return controller.signal;
 }
@@ -111,8 +107,14 @@ export default async function run({
 
   const job: Job = new JobClass(...jobData.constructor_args);
   job.injectJobData(jobData);
-  // Inline passes a live signal directly; the thread runner gets an abort port it turns into one.
-  const abortSignal = signal ?? (abortPort ? signalFromAbortPort(abortPort) : undefined);
+  // Exactly one of these is provided: inline passes a live signal; the thread runner passes an abort
+  // port it turns into one.
+  let abortSignal: AbortSignal | undefined;
+  if (signal) {
+    abortSignal = signal;
+  } else if (abortPort) {
+    abortSignal = signalFromAbortPort(abortPort);
+  }
   if (abortSignal) {
     job.injectAbortSignal(abortSignal);
   }

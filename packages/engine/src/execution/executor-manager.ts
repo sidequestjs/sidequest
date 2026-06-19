@@ -113,8 +113,10 @@ export class ExecutorManager {
       isRunning = true;
       const cancellationCheck = async () => {
         while (isRunning) {
+          // The row can be missing transiently or if it was deleted; treat that as "not canceled"
+          // rather than dereferencing undefined and crashing the polling loop.
           const watchedJob = await this.backend.getJob(job.id);
-          if (watchedJob!.state === "canceled") {
+          if (watchedJob?.state === "canceled") {
             logger("Executor Manager").debug(`Aborting job ${job.id}: canceled`);
             controller.abort(new JobCanceled());
             isRunning = false;
@@ -123,7 +125,9 @@ export class ExecutorManager {
           await new Promise((r) => setTimeout(r, 1000));
         }
       };
-      void cancellationCheck();
+      void cancellationCheck().catch((error) => {
+        logger("Executor Manager").error(`Cancellation watcher for job ${job.id} failed:`, error);
+      });
 
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
 
@@ -161,7 +165,11 @@ export class ExecutorManager {
       // rather than the rejection message (which varies). The terminal state was already set by the
       // timeout (retry) or cancellation (canceled) path, so there is nothing more to do here.
       if (controller.signal.aborted) {
-        logger("Executor Manager").debug(`Job ${job.id} was aborted: ${String(controller.signal.reason)}`);
+        // The terminal state was already decided by the timeout (retry) or cancellation (canceled)
+        // path. Log the underlying rejection so a real error during an aborted run is not lost.
+        logger("Executor Manager").debug(
+          `Job ${job.id} was aborted (${String(controller.signal.reason)}); ignoring rejection: ${err.message}`,
+        );
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
         await JobTransitioner.apply(this.backend, job, new RetryTransition(err));

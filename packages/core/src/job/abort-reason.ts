@@ -29,3 +29,26 @@ export class JobCanceled extends Error {
     this.name = "JobCanceled";
   }
 }
+
+/**
+ * Structured-clone-safe wire form of an {@link AbortReason}, used to convey the reason to a job
+ * running in a worker thread (a live {@link AbortSignal} cannot cross the thread boundary).
+ */
+export type AbortReasonMessage = { kind: "timeout"; timeoutMs: number } | { kind: "canceled" };
+
+/**
+ * Encodes an abort reason into its wire form. Anything that is not a {@link JobTimeout} is treated
+ * as a cancellation.
+ * @param reason The abort reason (typically `signal.reason`).
+ */
+export function serializeAbortReason(reason: unknown): AbortReasonMessage {
+  return reason instanceof JobTimeout ? { kind: "timeout", timeoutMs: reason.timeoutMs } : { kind: "canceled" };
+}
+
+/**
+ * Rebuilds the proper {@link AbortReason} instance from its wire form.
+ * @param message The wire-form message.
+ */
+export function deserializeAbortReason(message: AbortReasonMessage): AbortReason {
+  return message.kind === "timeout" ? new JobTimeout(message.timeoutMs) : new JobCanceled();
+}

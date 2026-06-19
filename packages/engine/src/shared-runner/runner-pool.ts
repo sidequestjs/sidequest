@@ -1,10 +1,9 @@
-import { JobData, JobResult, JobTimeout, logger } from "@sidequest/core";
+import { JobData, JobResult, logger, serializeAbortReason } from "@sidequest/core";
 import { MessageChannel } from "node:worker_threads";
 import Piscina from "piscina";
 import { DEFAULT_RUNNER_PATH } from "../constants";
 import { NonNullableEngineConfig } from "../engine";
 import { JobRunner } from "./job-runner";
-import type { AbortPortMessage } from "./runner";
 
 /**
  * A pool of worker threads for running jobs in parallel using Piscina.
@@ -56,10 +55,7 @@ export class RunnerPool implements JobRunner {
     let graceTimer: ReturnType<typeof setTimeout> | undefined;
 
     const onAbort = () => {
-      const reason: unknown = signal.reason;
-      const message: AbortPortMessage =
-        reason instanceof JobTimeout ? { kind: "timeout", timeoutMs: reason.timeoutMs } : { kind: "canceled" };
-      channel.port1.postMessage(message);
+      channel.port1.postMessage(serializeAbortReason(signal.reason));
       graceTimer = setTimeout(() => hardKill.abort(), grace);
     };
 
