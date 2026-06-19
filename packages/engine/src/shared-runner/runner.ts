@@ -1,9 +1,39 @@
-import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPathForJob, toErrorData } from "@sidequest/core";
+import {
+  Job,
+  JobCanceled,
+  JobClassType,
+  JobData,
+  JobResult,
+  JobTimeout,
+  logger,
+  resolveScriptPathForJob,
+  toErrorData,
+} from "@sidequest/core";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { MessagePort } from "node:worker_threads";
 import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG, resolveScriptPath } from "./manual-loader";
+
+/** Message posted by the engine over the abort port to cooperatively abort a worker-thread job. */
+export type AbortPortMessage = { kind: "timeout"; timeoutMs: number } | { kind: "canceled" };
+
+/**
+ * Builds an {@link AbortSignal} for a worker-thread job from an abort port.
+ *
+ * The thread runner cannot receive a live `AbortSignal` across the worker boundary, so the engine
+ * transfers a {@link MessagePort} and posts an abort message on it; this turns that message into a
+ * local signal carrying the proper {@link JobTimeout}/{@link JobCanceled} reason.
+ */
+function signalFromAbortPort(port: MessagePort): AbortSignal {
+  const controller = new AbortController();
+  port.on("message", (message: AbortPortMessage) => {
+    const reason = message.kind === "timeout" ? new JobTimeout(message.timeoutMs) : new JobCanceled();
+    controller.abort(reason);
+  });
+  return controller.signal;
+}
 
 /**
  * Runs a job by dynamically importing its script and executing the specified class.
@@ -16,11 +46,13 @@ export default async function run({
   config,
   inline,
   signal,
+  abortPort,
 }: {
   jobData: JobData;
   config: EngineConfig;
   inline?: boolean;
   signal?: AbortSignal;
+  abortPort?: MessagePort;
 }): Promise<JobResult> {
   // In inline mode the job runs in the host process, where Sidequest is already configured, so
   // re-injecting the config is redundant. In a worker thread the module is fresh and needs it.
@@ -79,12 +111,18 @@ export default async function run({
 
   const job: Job = new JobClass(...jobData.constructor_args);
   job.injectJobData(jobData);
-  if (signal) {
-    job.injectAbortSignal(signal);
+  // Inline passes a live signal directly; the thread runner gets an abort port it turns into one.
+  const abortSignal = signal ?? (abortPort ? signalFromAbortPort(abortPort) : undefined);
+  if (abortSignal) {
+    job.injectAbortSignal(abortSignal);
   }
 
   logger("Runner").debug(`Executing job class "${jobData.class}" with args:`, jobData.args);
-  return job.perform(...jobData.args);
+  try {
+    return await job.perform(...jobData.args);
+  } finally {
+    abortPort?.close();
+  }
 }
 
 /**

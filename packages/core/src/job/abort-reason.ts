@@ -10,9 +10,13 @@ export type AbortReason = JobTimeout | JobCanceled;
  * Set as the `abortSignal.reason` when a job is aborted because it exceeded its `timeout`.
  */
 export class JobTimeout extends Error {
+  /** The timeout, in milliseconds, that was exceeded. */
+  readonly timeoutMs: number;
+
   constructor(timeoutMs: number) {
     super(`Job timed out after ${timeoutMs}ms`);
     this.name = "JobTimeout";
+    this.timeoutMs = timeoutMs;
   }
 }
 
