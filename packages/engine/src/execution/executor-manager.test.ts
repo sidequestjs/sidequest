@@ -153,7 +153,11 @@ describe("ExecutorManager", () => {
 
         // The terminal completion transition must be skipped so the canceled state is preserved.
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, expect.anything(), expect.any(CompleteTransition));
+        expect(JobTransitioner.apply).not.toHaveBeenCalledWith(
+          backend,
+          expect.anything(),
+          expect.any(CompleteTransition),
+        );
 
         await executorManager.destroy();
       },
