@@ -1,9 +1,8 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
-import { JobData, JobTimeout } from "@sidequest/core";
+import { AbortReasonMessage, JobData, JobTimeout } from "@sidequest/core";
 import { MessagePort } from "node:worker_threads";
 import { beforeEach, describe, expect, vi } from "vitest";
 import { DummyJob } from "../test-jobs/dummy-job";
-import { AbortPortMessage } from "./runner";
 import { RunnerPool } from "./runner-pool";
 
 const piscinaMockInstance = {
@@ -71,8 +70,8 @@ describe("RunnerPool", () => {
         const controller = new AbortController();
         const runPromise = gracePool.run(jobData, controller.signal);
 
-        const message = new Promise<AbortPortMessage>((resolve) =>
-          capturedPort!.once("message", (m: AbortPortMessage) => resolve(m)),
+        const message = new Promise<AbortReasonMessage>((resolve) =>
+          capturedPort!.once("message", (m: AbortReasonMessage) => resolve(m)),
         );
 
         controller.abort(new JobTimeout(5000));

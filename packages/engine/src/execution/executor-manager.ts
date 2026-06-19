@@ -1,5 +1,6 @@
 import { Backend } from "@sidequest/backend";
 import {
+  CancelTransition,
   JobCanceled,
   JobData,
   JobTimeout,
@@ -100,6 +101,7 @@ export class ExecutorManager {
   async execute(queueConfig: QueueConfig, job: JobData): Promise<void> {
     let isRunning = false;
     const controller = new AbortController();
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
       logger("Executor Manager").debug(`Submitting job ${job.id} for execution in queue ${queueConfig.name}`);
       // We call prepareJob here again to make sure the jobs are in the queues.
@@ -111,8 +113,10 @@ export class ExecutorManager {
       isRunning = true;
       const cancellationCheck = async () => {
         while (isRunning) {
+          // The row can be missing transiently or if it was deleted; treat that as "not canceled"
+          // rather than dereferencing undefined and crashing the polling loop.
           const watchedJob = await this.backend.getJob(job.id);
-          if (watchedJob!.state === "canceled") {
+          if (watchedJob?.state === "canceled") {
             logger("Executor Manager").debug(`Aborting job ${job.id}: canceled`);
             controller.abort(new JobCanceled());
             isRunning = false;
@@ -121,47 +125,50 @@ export class ExecutorManager {
           await new Promise((r) => setTimeout(r, 1000));
         }
       };
-      void cancellationCheck();
+      void cancellationCheck().catch((error) => {
+        logger("Executor Manager").error(`Cancellation watcher for job ${job.id} failed:`, error);
+      });
 
       logger("Executor Manager").debug(`Running job ${job.id} in queue ${queueConfig.name}`);
 
       const runPromise = this.jobRunner.run(job, controller.signal);
 
       if (job.timeout) {
-        void new Promise(() => {
-          setTimeout(() => {
-            logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
-            controller.abort(new JobTimeout(job.timeout!));
-            void JobTransitioner.apply(this.backend, job, new RetryTransition(`Job timed out after ${job.timeout}ms`));
-          }, job.timeout!);
-        });
+        // Only signal the abort here. The terminal transition is decided when the run actually ends
+        // (resolve or reject) so a still-running job is never re-queued underneath itself.
+        timeoutHandle = setTimeout(() => {
+          logger("Executor Manager").debug(`Job ${job.id} timed out after ${job.timeout}ms, aborting.`);
+          controller.abort(new JobTimeout(job.timeout!));
+        }, job.timeout);
       }
 
       const result = await runPromise;
 
       isRunning = false;
-      // If the job was aborted (canceled or timed out) the terminal state was already decided by that
-      // path. Skip the terminal transition so a job that ignored the signal and ran to completion does
-      // not overwrite the canceled/retry state.
-      if (!controller.signal.aborted) {
-        logger("Executor Manager").debug(`Job ${job.id} completed with result: ${inspect(result)}`);
-        const transition = JobTransitionFactory.create(result);
-        await JobTransitioner.apply(this.backend, job, transition);
-      }
+      // The job ran to a conclusion and returned a state (even if a timeout/cancel was signaled);
+      // respect it and transition accordingly.
+      logger("Executor Manager").debug(`Job ${job.id} settled with result: ${inspect(result)}`);
+      await JobTransitioner.apply(this.backend, job, JobTransitionFactory.create(result));
     } catch (error: unknown) {
       isRunning = false;
       const err = error as Error;
-      // The thread runner rejects the run when its worker is aborted. Detect that via the signal
-      // rather than the rejection message (which varies). The terminal state was already set by the
-      // timeout (retry) or cancellation (canceled) path, so there is nothing more to do here.
       if (controller.signal.aborted) {
-        logger("Executor Manager").debug(`Job ${job.id} was aborted: ${String(controller.signal.reason)}`);
+        // The run produced no result because the worker was hard-killed (thread). The abort reason
+        // decides the terminal state: a timeout becomes a retry, anything else (cancellation) becomes
+        // canceled. The rejection is logged so a real error during the abort is not lost.
+        const reason: unknown = controller.signal.reason;
+        logger("Executor Manager").debug(`Job ${job.id} was hard-killed (${String(reason)}): ${err.message}`);
+        const transition = reason instanceof JobTimeout ? new RetryTransition(reason) : new CancelTransition();
+        await JobTransitioner.apply(this.backend, job, transition);
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);
         await JobTransitioner.apply(this.backend, job, new RetryTransition(err));
       }
     } finally {
       isRunning = false;
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
       this.activeByQueue[queueConfig.name].delete(job.id);
       this.activeJobs.delete(job.id);
     }
