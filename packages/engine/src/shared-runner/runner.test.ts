@@ -3,6 +3,7 @@ import { FailedResult, JobCanceled, JobData, JobTimeout } from "@sidequest/core"
 import { existsSync, unlinkSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { MessageChannel } from "node:worker_threads";
 import { vi } from "vitest";
 import { AbortAwareJob } from "../test-jobs/abort-aware-job";
 import { DummyJob } from "../test-jobs/dummy-job";
@@ -128,6 +129,31 @@ describe("runner.ts", () => {
     })) as FailedResult;
     expect(result.type).toBe("failed");
     expect(result.error.message).toContain("aborted before start: JobTimeout");
+  });
+
+  sidequestTest("a thread job is aborted via the abort port (rebuilds the reason)", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const channel = new MessageChannel();
+    // Thread path: no live signal, the abort arrives over the transferred port.
+    const resultPromise = run({ jobData: abortJobData, config, abortPort: channel.port2 });
+    channel.port1.postMessage({ kind: "timeout", timeoutMs: 1234 });
+
+    const result = (await resultPromise) as FailedResult;
+    expect(result.type).toBe("failed");
+    // The worker reconstructs the JobTimeout reason from the port message.
+    expect(result.error.message).toContain("JobTimeout");
+    channel.port1.close();
   });
 
   sidequestTest("fails with invalid script", async ({ config }) => {
