@@ -67,6 +67,19 @@ export interface EngineConfig {
    * Defaults to `"thread"`.
    */
   runner?: "thread" | "inline";
+  /**
+   * Grace period, in milliseconds, between cooperatively aborting a running job (timeout or
+   * cancellation) and forcibly terminating its worker thread.
+   *
+   * Only applies to `runner: "thread"`. When greater than `0`, the abort is first delivered to the
+   * job via `this.abortSignal` so it can stop and clean up; if it has not finished after this many
+   * milliseconds, the worker thread is terminated. When `0` (default), the worker is terminated
+   * immediately with no cooperative window, preserving the previous behavior. Has no effect in
+   * `runner: "inline"` (there is no thread to terminate).
+   *
+   * Defaults to `0`.
+   */
+  abortGracePeriodMs?: number;
   /** Minimum number of worker threads to use. Defaults to number of CPUs */
   minThreads?: number;
   /** Maximum number of worker threads to use. Defaults to `minThreads * 2` */
@@ -190,6 +203,7 @@ export class Engine {
       gracefulShutdown: config?.gracefulShutdown ?? true,
       fork: config?.fork ?? true,
       runner: config?.runner ?? "thread",
+      abortGracePeriodMs: config?.abortGracePeriodMs ?? 0,
       minThreads: config?.minThreads ?? cpus().length,
       maxThreads: config?.maxThreads ?? cpus().length * 2,
       idleWorkerTimeout: config?.idleWorkerTimeout ?? 10_000,

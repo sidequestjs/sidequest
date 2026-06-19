@@ -1,9 +1,10 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
-import { FailedResult, JobData } from "@sidequest/core";
+import { FailedResult, JobCanceled, JobData, JobTimeout } from "@sidequest/core";
 import { existsSync, unlinkSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { vi } from "vitest";
+import { AbortAwareJob } from "../test-jobs/abort-aware-job";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { DummyJobWithArgs } from "../test-jobs/dummy-job-with-args";
 import { importSidequest } from "../utils/import";
@@ -78,6 +79,55 @@ describe("runner.ts", () => {
     await run({ jobData, config });
     expect(injectSpy).not.toHaveBeenCalled();
     injectSpy.mockRestore();
+  });
+
+  sidequestTest("a job receives the abort signal and its reason and stops", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const controller = new AbortController();
+    const resultPromise = run({ jobData: abortJobData, config, inline: true, signal: controller.signal });
+    controller.abort(new JobCanceled());
+
+    // The job resolves once it observes the abort (whether before it starts or while awaiting it).
+    const result = (await resultPromise) as FailedResult;
+    expect(result.type).toBe("failed");
+    expect(result.error.message).toContain("JobCanceled");
+  });
+
+  sidequestTest("a job sees an already-aborted signal before it starts", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const controller = new AbortController();
+    controller.abort(new JobTimeout(50));
+
+    const result = (await run({
+      jobData: abortJobData,
+      config,
+      inline: true,
+      signal: controller.signal,
+    })) as FailedResult;
+    expect(result.type).toBe("failed");
+    expect(result.error.message).toContain("aborted before start: JobTimeout");
   });
 
   sidequestTest("fails with invalid script", async ({ config }) => {

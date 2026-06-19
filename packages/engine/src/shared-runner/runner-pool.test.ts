@@ -1,8 +1,9 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
-import { JobData } from "@sidequest/core";
-import EventEmitter from "events";
+import { JobData, JobTimeout } from "@sidequest/core";
+import { MessagePort } from "node:worker_threads";
 import { beforeEach, describe, expect, vi } from "vitest";
 import { DummyJob } from "../test-jobs/dummy-job";
+import { AbortPortMessage } from "./runner";
 import { RunnerPool } from "./runner-pool";
 
 const piscinaMockInstance = {
@@ -39,13 +40,56 @@ describe("RunnerPool", () => {
     pool = new RunnerPool(config);
   });
 
-  sidequestTest("should call pool.run with job data", async ({ config }) => {
-    const emiter = new EventEmitter();
-    const result = await pool.run(jobData, emiter);
+  sidequestTest("passes the abort signal straight to piscina when grace is 0", async ({ config }) => {
+    const signal = new AbortController().signal;
+    const result = await pool.run(jobData, signal);
 
     expect(result).toEqual({ type: "completed", result: "ok" });
-    expect(piscinaMockInstance.run).toHaveBeenCalledWith({ jobData, config }, { signal: emiter });
+    expect(piscinaMockInstance.run).toHaveBeenCalledWith({ jobData, config }, { signal });
   });
+
+  sidequestTest(
+    "with a grace period, delivers the abort over a port and hard-kills after the grace",
+    async ({ config }) => {
+      vi.useFakeTimers();
+      try {
+        const gracePool = new RunnerPool({ ...config, abortGracePeriodMs: 1000 });
+
+        let capturedPort: MessagePort | undefined;
+        let hardKillSignal: AbortSignal | undefined;
+        piscinaMockInstance.run.mockImplementationOnce(
+          (value: { abortPort: MessagePort }, opts: { signal: AbortSignal }) => {
+            capturedPort = value.abortPort;
+            hardKillSignal = opts.signal;
+            // Resolve only once piscina is asked to terminate (hard kill).
+            return new Promise((resolve) =>
+              opts.signal.addEventListener("abort", () => resolve({ type: "completed", result: "killed" })),
+            );
+          },
+        );
+
+        const controller = new AbortController();
+        const runPromise = gracePool.run(jobData, controller.signal);
+
+        const message = new Promise<AbortPortMessage>((resolve) =>
+          capturedPort!.once("message", (m: AbortPortMessage) => resolve(m)),
+        );
+
+        controller.abort(new JobTimeout(5000));
+
+        expect(await message).toEqual({ kind: "timeout", timeoutMs: 5000 });
+        expect(hardKillSignal!.aborted).toBe(false);
+
+        // Grace elapses -> piscina is asked to terminate the worker.
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(hardKillSignal!.aborted).toBe(true);
+
+        await runPromise;
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
 
   sidequestTest("should call pool.destroy", () => {
     pool.destroy();
