@@ -36,10 +36,6 @@ Use `fork: false` when:
 - You're running an **integration test** and want to avoid IPC and process teardown flakiness.
 - Your jobs need access to **live, in-process state** that can't cross a process boundary, for example a dependency-injection container.
 
-::: danger No crash isolation with `fork: false`
-With the default `fork: true`, a job that throws an unhandled exception or calls `process.exit()` only takes down the engine fork, and Sidequest restarts it. With `fork: false`, the engine shares your application's process: **a misbehaving job can crash your whole app.** Only use it when you understand and accept that.
-:::
-
 ## `runner`: thread pool vs inline
 
 ```typescript
@@ -159,9 +155,7 @@ this.abortSignal.addEventListener("abort", () => {
 | `runner: "thread"`, `abortGracePeriodMs: 0` (default) | No (worker is killed immediately) | Killed right away.                            |
 | `runner: "thread"`, `abortGracePeriodMs > 0`          | Yes, for the grace window         | Killed after the grace period.                |
 
-::: danger Inline timeout/cancel only work if your job honors the signal
-In `runner: "inline"` there is no way to forcibly stop a job. If your job does not pass `this.abortSignal` to its async work or check `this.abortSignal.aborted` / `throwIfAborted()`, then **timeouts and cancellation have no effect**: the job keeps running until it returns on its own. Treat `this.abortSignal` as mandatory for any long-running inline job.
-:::
+So in inline mode `this.abortSignal` is effectively mandatory for any long-running job: a job that does not honor it keeps running until it returns on its own (timeouts and cancellation cannot stop it).
 
 ### `abortGracePeriodMs`: graceful kill for thread jobs
 

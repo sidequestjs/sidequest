@@ -115,13 +115,8 @@ export class ExecutorManager {
       const cancellationCheck = async () => {
         while (isRunning) {
           const watchedJob = await this.backend.getJob(job.id);
-          // Abort when the job was canceled, and also when its row no longer exists (deleted or
-          // truncated): the record is gone, so the run must be stopped rather than left to block
-          // shutdown forever.
-          if (!watchedJob || watchedJob.state === "canceled") {
-            logger("Executor Manager").debug(
-              `Aborting job ${job.id}: ${watchedJob ? "canceled" : "row no longer exists"}`,
-            );
+          if (watchedJob?.state === "canceled") {
+            logger("Executor Manager").debug(`Aborting job ${job.id}: canceled`);
             controller.abort(new JobCanceled());
             isRunning = false;
             return;
@@ -157,12 +152,15 @@ export class ExecutorManager {
       isRunning = false;
       const err = error as Error;
       if (controller.signal.aborted) {
-        // The run produced no result because the worker was hard-killed (thread). The abort reason
-        // decides the terminal state: a timeout becomes a retry, anything else (cancellation) becomes
-        // canceled. The rejection is logged so a real error during the abort is not lost.
+        // The run produced no result because the worker was hard-killed (thread). Only a clear
+        // cancellation maps to canceled; every other abort reason (timeout, or anything else) defaults
+        // to a retry as a failsafe. The rejection is logged so a real error during the abort is kept.
         const reason: unknown = controller.signal.reason;
         logger("Executor Manager").debug(`Job ${job.id} was hard-killed (${String(reason)}): ${err.message}`);
-        const transition = reason instanceof JobTimeout ? new RetryTransition(reason) : new CancelTransition();
+        const transition =
+          reason instanceof JobCanceled
+            ? new CancelTransition()
+            : new RetryTransition(reason instanceof Error ? reason : new Error(`Job aborted: ${String(reason)}`));
         await this.applyTerminalTransition(job, transition);
       } else {
         logger("Executor Manager").error(`Unhandled error while executing job ${job.id}: ${err.message}`);

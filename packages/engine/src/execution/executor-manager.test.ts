@@ -236,31 +236,6 @@ describe("ExecutorManager", () => {
       await executorManager.destroy();
     });
 
-    sidequestTest("aborts a running job when its row no longer exists", async ({ backend, config }) => {
-      await backend.updateJob({ ...jobData, state: "claimed", claimed_at: new Date() });
-
-      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
-      const executorManager = new ExecutorManager(backend, config);
-
-      // Simulate the row being deleted/truncated while the job runs: the watcher must still stop it.
-      const getJobSpy = vi.spyOn(backend, "getJob").mockResolvedValue(undefined);
-      runMock.mockImplementationOnce(
-        (_job: JobData, signal: AbortSignal) =>
-          new Promise((_, reject) => {
-            signal.addEventListener("abort", () => reject(new Error("The task has been aborted")));
-          }),
-      );
-
-      await executorManager.execute(queryConfig, jobData);
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(CancelTransition));
-      expect(executorManager.totalActiveWorkers()).toBe(0);
-
-      await executorManager.destroy();
-      getJobSpy.mockRestore();
-    });
-
     sidequestTest("does not crash when the final transition fails (job row gone)", async ({ backend, config }) => {
       const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
       const executorManager = new ExecutorManager(backend, config);

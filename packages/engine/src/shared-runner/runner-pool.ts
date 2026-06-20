@@ -42,6 +42,12 @@ export class RunnerPool implements JobRunner {
    */
   run(job: JobData, signal?: AbortSignal): Promise<JobResult> {
     logger("RunnerPool").debug(`Running job ${job.id} in pool`);
+
+    // Already aborted before we could start (e.g. canceled between claim and dispatch): don't run it.
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason instanceof Error ? signal.reason : new Error("Job aborted before execution"));
+    }
+
     const grace = this.nonNullConfig.abortGracePeriodMs;
 
     if (!signal || grace <= 0) {
@@ -59,11 +65,7 @@ export class RunnerPool implements JobRunner {
       graceTimer = setTimeout(() => hardKill.abort(), grace);
     };
 
-    if (signal.aborted) {
-      onAbort();
-    } else {
-      signal.addEventListener("abort", onAbort, { once: true });
-    }
+    signal.addEventListener("abort", onAbort, { once: true });
 
     return this.pool
       .run(
