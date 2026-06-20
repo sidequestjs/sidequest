@@ -33,8 +33,14 @@ function signalFromAbortPort(port: MessagePort): AbortSignal {
 
 /**
  * Runs a job by dynamically importing its script and executing the specified class.
- * @param jobData The job data containing script and class information
+ * @param jobData The job data containing script and class information.
  * @param config The non-nullable engine configuration.
+ * @param inline Whether the job runs inline in the host process. When true, the Sidequest config is
+ * not re-injected (the host process is already configured).
+ * @param signal Abort signal handed to the job as `this.abortSignal` (used by the inline runner,
+ * which executes in the same process).
+ * @param abortPort Port the thread runner uses to receive the abort cooperatively across the worker
+ * boundary; it is turned into the job's `this.abortSignal`. Mutually exclusive with `signal`.
  * @returns A promise resolving to the job result.
  */
 export default async function run({
