@@ -47,6 +47,14 @@ describe("RunnerPool", () => {
     expect(piscinaMockInstance.run).toHaveBeenCalledWith({ jobData, config }, { signal });
   });
 
+  sidequestTest("rejects without running the job when the signal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("already gone"));
+
+    await expect(pool.run(jobData, controller.signal)).rejects.toThrow("already gone");
+    expect(piscinaMockInstance.run).not.toHaveBeenCalled();
+  });
+
   sidequestTest(
     "with a grace period, delivers the abort over a port and hard-kills after the grace",
     async ({ config }) => {
