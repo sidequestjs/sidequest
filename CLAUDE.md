@@ -116,6 +116,7 @@ These are the things that aren't visually loud in either code or docs:
 - **Don't wrap things "just in case."** No backwards-compat shims, no feature flags for hypothetical use cases, no validation at internal boundaries.
 - **Match existing structure.** New engine concerns go under `packages/engine/src/<area>`; cross-cutting types belong in `@sidequest/core`. Don't create a new package for a small piece.
 - **Tests live next to the code.** `foo.ts` + `foo.test.ts` in the same folder; integration tests under `tests/integration/`. Backend changes must keep `@sidequest/backend-test` green for every driver.
+- **JSDoc every exported entity.** `CONTRIBUTING.md` requires JSDoc-style docstrings on all exports; match that when adding public API.
 - **Commits follow Conventional Commits** (commitlint + Husky enforce it). semantic-release publishes from `master`.
 
 ## Scope guard
