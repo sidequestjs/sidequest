@@ -1,18 +1,66 @@
-import { Job, JobClassType, JobData, JobResult, logger, resolveScriptPathForJob, toErrorData } from "@sidequest/core";
+import {
+  AbortReasonMessage,
+  deserializeAbortReason,
+  Job,
+  JobClassType,
+  JobData,
+  JobResult,
+  logger,
+  resolveScriptPathForJob,
+  toErrorData,
+} from "@sidequest/core";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { MessagePort } from "node:worker_threads";
 import { EngineConfig } from "../engine";
 import { importSidequest } from "../utils";
 import { findSidequestJobsScriptInParentDirs, MANUAL_SCRIPT_TAG, resolveScriptPath } from "./manual-loader";
 
 /**
+ * Builds an {@link AbortSignal} for a worker-thread job from an abort port.
+ *
+ * The thread runner cannot receive a live `AbortSignal` across the worker boundary, so the engine
+ * transfers a {@link MessagePort} and posts an abort message on it; this turns that message into a
+ * local signal carrying the proper `JobTimeout`/`JobCanceled` reason.
+ */
+function signalFromAbortPort(port: MessagePort): AbortSignal {
+  const controller = new AbortController();
+  port.on("message", (message: AbortReasonMessage) => {
+    controller.abort(deserializeAbortReason(message));
+  });
+  return controller.signal;
+}
+
+/**
  * Runs a job by dynamically importing its script and executing the specified class.
- * @param jobData The job data containing script and class information
+ * @param jobData The job data containing script and class information.
  * @param config The non-nullable engine configuration.
+ * @param inline Whether the job runs inline in the host process. When true, the Sidequest config is
+ * not re-injected (the host process is already configured).
+ * @param signal Abort signal handed to the job as `this.abortSignal` (used by the inline runner,
+ * which executes in the same process).
+ * @param abortPort Port the thread runner uses to receive the abort cooperatively across the worker
+ * boundary; it is turned into the job's `this.abortSignal`. Mutually exclusive with `signal`.
  * @returns A promise resolving to the job result.
  */
-export default async function run({ jobData, config }: { jobData: JobData; config: EngineConfig }): Promise<JobResult> {
-  await injectSidequestConfig(config);
+export default async function run({
+  jobData,
+  config,
+  inline,
+  signal,
+  abortPort,
+}: {
+  jobData: JobData;
+  config: EngineConfig;
+  inline?: boolean;
+  signal?: AbortSignal;
+  abortPort?: MessagePort;
+}): Promise<JobResult> {
+  // In inline mode the job runs in the host process, where Sidequest is already configured, so
+  // re-injecting the config is redundant. In a worker thread the module is fresh and needs it.
+  if (!inline) {
+    await injectSidequestConfig(config);
+  }
 
   let script: Record<string, JobClassType> = {};
   try {
@@ -65,9 +113,24 @@ export default async function run({ jobData, config }: { jobData: JobData; confi
 
   const job: Job = new JobClass(...jobData.constructor_args);
   job.injectJobData(jobData);
+  // Exactly one of these is provided: inline passes a live signal; the thread runner passes an abort
+  // port it turns into one.
+  let abortSignal: AbortSignal | undefined;
+  if (signal) {
+    abortSignal = signal;
+  } else if (abortPort) {
+    abortSignal = signalFromAbortPort(abortPort);
+  }
+  if (abortSignal) {
+    job.injectAbortSignal(abortSignal);
+  }
 
   logger("Runner").debug(`Executing job class "${jobData.class}" with args:`, jobData.args);
-  return job.perform(...jobData.args);
+  try {
+    return await job.perform(...jobData.args);
+  } finally {
+    abortPort?.close();
+  }
 }
 
 /**

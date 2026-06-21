@@ -80,6 +80,18 @@ export abstract class Job implements JobData {
   readonly retry_delay!: number | null;
 
   /**
+   * Signal that fires when the engine aborts this run (timeout or cancellation). Available inside
+   * `run`. Pass it to abort-aware APIs (e.g. `fetch(url, { signal: this.abortSignal })`) or check it
+   * cooperatively (`this.abortSignal.throwIfAborted()`, `this.abortSignal.aborted`). The reason is a
+   * `JobTimeout` or `JobCanceled` (see `abortSignal.reason`).
+   *
+   * In `runner: "inline"` mode this is the only way a running job can be stopped. In `"thread"` mode
+   * the worker is also terminated, so honoring the signal is optional (but enables graceful cleanup).
+   * Defaults to a signal that never aborts when no run is in progress.
+   */
+  readonly abortSignal: AbortSignal = new AbortController().signal;
+
+  /**
    * Initializes the job and resolves its script path.
    */
   constructor() {
@@ -100,6 +112,14 @@ export abstract class Job implements JobData {
   injectJobData(jobData: JobData): void {
     logger("Job").debug(`Injecting job data into ${this.className}:`, jobData);
     Object.assign(this, jobData);
+  }
+
+  /**
+   * Injects the abort signal for this run into the job instance at runtime.
+   * @param signal The abort signal the engine controls for this execution.
+   */
+  injectAbortSignal(signal: AbortSignal): void {
+    Object.assign(this, { abortSignal: signal });
   }
 
   /**

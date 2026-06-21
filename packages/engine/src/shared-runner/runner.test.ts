@@ -1,9 +1,11 @@
 import { sidequestTest, SidequestTestFixture } from "@/tests/fixture";
-import { FailedResult, JobData } from "@sidequest/core";
+import { FailedResult, JobCanceled, JobData, JobTimeout } from "@sidequest/core";
 import { existsSync, unlinkSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { MessageChannel } from "node:worker_threads";
 import { vi } from "vitest";
+import { AbortAwareJob } from "../test-jobs/abort-aware-job";
 import { DummyJob } from "../test-jobs/dummy-job";
 import { DummyJobWithArgs } from "../test-jobs/dummy-job-with-args";
 import { importSidequest } from "../utils/import";
@@ -50,6 +52,108 @@ describe("runner.ts", () => {
   sidequestTest("runs a job", async ({ config }) => {
     const result = await run({ jobData, config });
     expect(result).toEqual({ __is_job_transition__: true, type: "completed", result: "dummy job" });
+  });
+
+  sidequestTest("injects the config when not inline", async ({ config }) => {
+    vi.mocked(importSidequest).mockClear();
+    await run({ jobData, config });
+    expect(importSidequest).toHaveBeenCalled();
+  });
+
+  sidequestTest("skips config injection when inline", async ({ config }) => {
+    vi.mocked(importSidequest).mockClear();
+    const result = await run({ jobData, config, inline: true });
+    expect(result).toEqual({ __is_job_transition__: true, type: "completed", result: "dummy job" });
+    expect(importSidequest).not.toHaveBeenCalled();
+  });
+
+  sidequestTest("injects the abort signal into the job when provided", async ({ config }) => {
+    const injectSpy = vi.spyOn(DummyJob.prototype, "injectAbortSignal");
+    const signal = new AbortController().signal;
+    await run({ jobData, config, signal });
+    expect(injectSpy).toHaveBeenCalledWith(signal);
+    injectSpy.mockRestore();
+  });
+
+  sidequestTest("does not inject an abort signal when none is provided", async ({ config }) => {
+    const injectSpy = vi.spyOn(DummyJob.prototype, "injectAbortSignal");
+    await run({ jobData, config });
+    expect(injectSpy).not.toHaveBeenCalled();
+    injectSpy.mockRestore();
+  });
+
+  sidequestTest("a job receives the abort signal and its reason and stops", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const controller = new AbortController();
+    const resultPromise = run({ jobData: abortJobData, config, inline: true, signal: controller.signal });
+    controller.abort(new JobCanceled());
+
+    // The job resolves once it observes the abort (whether before it starts or while awaiting it).
+    const result = (await resultPromise) as FailedResult;
+    expect(result.type).toBe("failed");
+    expect(result.error.message).toContain("JobCanceled");
+  });
+
+  sidequestTest("a job sees an already-aborted signal before it starts", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const controller = new AbortController();
+    controller.abort(new JobTimeout(50));
+
+    const result = (await run({
+      jobData: abortJobData,
+      config,
+      inline: true,
+      signal: controller.signal,
+    })) as FailedResult;
+    expect(result.type).toBe("failed");
+    expect(result.error.message).toContain("aborted before start: JobTimeout");
+  });
+
+  sidequestTest("a thread job is aborted via the abort port (rebuilds the reason)", async ({ backend, config }) => {
+    const job = new AbortAwareJob();
+    await job.ready();
+    const abortJobData = await backend.createNewJob({
+      class: job.className,
+      script: job.script,
+      args: [],
+      attempt: 0,
+      queue: "default",
+      constructor_args: [],
+      state: "waiting",
+    });
+
+    const channel = new MessageChannel();
+    // Thread path: no live signal, the abort arrives over the transferred port.
+    const resultPromise = run({ jobData: abortJobData, config, abortPort: channel.port2 });
+    channel.port1.postMessage({ kind: "timeout", timeoutMs: 1234 });
+
+    const result = (await resultPromise) as FailedResult;
+    expect(result.type).toBe("failed");
+    // The worker reconstructs the JobTimeout reason from the port message.
+    expect(result.error.message).toContain("JobTimeout");
+    channel.port1.close();
   });
 
   sidequestTest("fails with invalid script", async ({ config }) => {

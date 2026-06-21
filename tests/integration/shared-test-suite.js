@@ -310,7 +310,9 @@ export function createIntegrationTestSuite(Sidequest, jobs, moduleType = "ESM") 
           queues: [{ name: "default" }],
         });
 
-        const jobData = await Sidequest.build(TimeoutJob).enqueue(1000000);
+        // A few seconds: long enough to reliably cancel while running, short enough that it cannot
+        // outlive the suite's teardown (which truncates the table) if the cancel watcher is mid-poll.
+        const jobData = await Sidequest.build(TimeoutJob).enqueue(3000);
 
         await vi.waitUntil(() => Sidequest.job.get(jobData.id).then((job) => job?.state === "running"), 5000);
         // Cancel the job while it's running

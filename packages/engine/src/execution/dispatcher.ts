@@ -60,8 +60,11 @@ export class Dispatcher {
           // because the execution is not awaited. This way we ensure that available slots
           // are correctly calculated.
           this.executorManager.queueJob(queue, job);
-          // does not await for job execution.
-          void this.executorManager.execute(queue, job);
+          // does not await for job execution. Guard against any unexpected rejection so a single
+          // job can never crash the engine with an unhandled promise rejection.
+          void this.executorManager.execute(queue, job).catch((error: unknown) => {
+            logger("Dispatcher").error(`Unexpected error executing job ${job.id}:`, error);
+          });
         }
       }
 

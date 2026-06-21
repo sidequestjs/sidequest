@@ -99,6 +99,7 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: "Backends", link: "/backends" },
+          { text: "Execution Modes", link: "/execution-modes" },
           { text: "Graceful Shutdown", link: "/graceful-shutdown" },
           { text: "Cleanup", link: "/cleanup" },
           { text: "Manual Job Resolution", link: "/manual-resolution" },
