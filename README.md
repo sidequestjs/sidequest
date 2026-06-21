@@ -9,7 +9,15 @@
 
 ![Sidequest.js Logo](./packages/docs/public/logo-full.png "Sidequest.js Logo")
 
-**Sidequest** is a modern, scalable background job processor for Node.js applications. Built with TypeScript and designed for production use, it provides reliable job processing with multiple database backends, a beautiful web dashboard, and comprehensive monitoring capabilities.
+**Sidequest** is a Redis-free background job processor for **Node.js**. It persists jobs in the database you already run (PostgreSQL, MySQL, SQLite, or MongoDB), so you get durable, distributed background processing without standing up Redis. It is a production-grade [BullMQ](https://docs.sidequestjs.com/getting-started/migrating-from-bullmq) and pg-boss alternative, with a built-in web dashboard.
+
+### At a glance
+
+- **Runtime:** Node.js (>= 22.6.0). _Does not run on Bun yet._
+- **Storage:** PostgreSQL, MySQL, SQLite, or MongoDB. Jobs are **durable and persisted in your database**, not in memory. SQLite is recommended for local development and tests.
+- **Distribution:** runs across multiple nodes against one shared database. Jobs are claimed atomically (`SELECT ... FOR UPDATE SKIP LOCKED` on Postgres/MySQL), so each job runs once.
+- **Isolation:** the engine runs in a forked child process; jobs execute in worker threads. Inline and no-fork [execution modes](https://docs.sidequestjs.com/production/execution-modes) are also available.
+- **Built in:** web dashboard, retries with exponential/fixed backoff, job uniqueness, cron scheduling, and automatic stale-job recovery.
 
 For the complete documentation, visit [docs.sidequestjs.com](https://docs.sidequestjs.com).
 
