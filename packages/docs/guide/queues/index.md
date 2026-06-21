@@ -1,7 +1,7 @@
 ---
 outline: deep
 title: Queues
-description: Queues guide for Sidequest.js
+description: Manage queues in Sidequest. Configure concurrency, priority, and states to control how background jobs are processed.
 ---
 
 # Queues in Sidequest

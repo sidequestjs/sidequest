@@ -1,3 +1,9 @@
+---
+outline: deep
+title: Queue Priority
+description: Configure queue priority in Sidequest to control which queues get worker capacity first when jobs compete for resources.
+---
+
 # Queue Priority in Sidequest
 
 This document provides a detailed explanation of **queue priority** in Sidequest, its purpose, how it works, and best practices for configuring priorities effectively.

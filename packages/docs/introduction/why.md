@@ -31,7 +31,7 @@ Sidequest persists jobs in your existing Postgres, MySQL, SQLite, or MongoDB dat
 
 ## Who this is for
 
-Sidequest is aimed at startups and small product teams who want reliable background processing without the operational overhead of an additional service. If you are already running Postgres (and most teams are), adding Sidequest requires zero extra infrastructure.
+Sidequest is aimed at teams that already run a database and want reliable background processing without the operational overhead of an additional service, from startups to larger product teams. If you are already running Postgres (and most teams are), adding Sidequest requires zero extra infrastructure.
 
 This is the same thesis as [Solid Queue](https://dev.37signals.com/introducing-solid-queue/) in Rails and [Oban](https://getoban.pro/) in Elixir: use the database you already trust, leverage its guarantees, and keep your system simple.
 

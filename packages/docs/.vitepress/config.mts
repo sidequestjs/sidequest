@@ -3,9 +3,14 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Sidequest.js",
-  description: "Robust distributed job processing for Node.js",
+  description:
+    "Redis-free background jobs for Node.js. Persist jobs in your existing PostgreSQL, MySQL, SQLite, or MongoDB. A durable, distributed BullMQ alternative.",
   lang: "en-US",
   cleanUrls: true,
+  srcExclude: ["README.md"],
+  sitemap: {
+    hostname: "https://docs.sidequestjs.com",
+  },
   head: [
     ["link", { rel: "icon", href: "/logo-modern.png" }],
     ["script", { async: "", src: `https://www.googletagmanager.com/gtag/js?id=${process.env.VITE_GA_TAG}` }],
