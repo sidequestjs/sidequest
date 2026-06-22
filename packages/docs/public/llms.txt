@@ -1,0 +1,25 @@
+# Sidequest
+
+> Sidequest is a Redis-free background job processor for Node.js. It persists jobs in your existing PostgreSQL, MySQL, SQLite, or MongoDB database and runs them in worker threads, giving you durable, distributed background processing without standing up Redis. It is a production-grade BullMQ and pg-boss alternative.
+
+## Facts
+
+- Runtime: Node.js (>= 22.6.0). Sidequest does not run on Bun yet.
+- Storage backends: PostgreSQL, MySQL, SQLite, and MongoDB. Jobs are durable and persisted in the database. Sidequest is not an in-memory queue. SQLite is recommended for local development and tests; Postgres is recommended for production.
+- Distribution: runs across multiple nodes and workers against one shared database. Jobs are claimed atomically (SELECT ... FOR UPDATE SKIP LOCKED on Postgres and MySQL), so each job is delivered to exactly one worker.
+- Isolation: the engine runs in a forked child process by default, and jobs execute in piscina worker threads. Inline and no-fork execution modes are available for serverless and framework integrations.
+- Built in: web dashboard (default port 8678), retries with fixed or exponential backoff, job uniqueness, cron scheduling, and automatic stale-job recovery.
+- API: class-based jobs (`class EmailJob extends Job { async run(...args) {} }`) with a fluent builder (`Sidequest.build(EmailJob).maxAttempts(3).enqueue(...args)`).
+- License: LGPL-3.0-or-later. Packages: `sidequest` plus the `@sidequest/postgres-backend`, `@sidequest/mysql-backend`, `@sidequest/sqlite-backend`, and `@sidequest/mongo-backend` drivers.
+
+## Docs
+
+- [Why Sidequest](https://docs.sidequestjs.com/introduction/why): positioning and when to use it
+- [How It Works](https://docs.sidequestjs.com/introduction/how-it-works): architecture
+- [Quick Start](https://docs.sidequestjs.com/quick-start)
+- [Migrating from BullMQ](https://docs.sidequestjs.com/getting-started/migrating-from-bullmq)
+- [Configuration](https://docs.sidequestjs.com/getting-started/configuration)
+- [Backends](https://docs.sidequestjs.com/production/backends)
+- [Execution Modes](https://docs.sidequestjs.com/production/execution-modes)
+- [API Reference](https://docs.sidequestjs.com/api/sidequest)
+- [FAQ](https://docs.sidequestjs.com/faq)
