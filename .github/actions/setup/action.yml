@@ -1,5 +1,5 @@
 name: Setup Project
-description: Setup Node.js, restore build cache, and setup Yarn
+description: Setup Node.js, install dependencies, and build the workspace
 
 inputs:
   node-version:
@@ -15,7 +15,12 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Restore build outputs
+    # Cache dependencies only (not build outputs). Keyed on the lockfile, so it is
+    # stable and reused across commits. Build outputs are intentionally NOT cached
+    # across jobs: every job builds its own dist below. Relying on a cross-job cache
+    # to carry **/dist proved unreliable (read-after-write inconsistency between the
+    # build job and downstream lint/test jobs left them with missing dist).
+    - name: Restore dependencies
       id: cache
       uses: actions/cache@v4
       with:
@@ -23,8 +28,7 @@ runs:
           .yarn
           node_modules
           **/node_modules
-          **/dist
-        key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/yarn.lock') }}
 
     - name: Enable Corepack
       shell: bash
@@ -33,4 +37,8 @@ runs:
     - name: Install Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: yarn install --frozen-lockfile
+      run: yarn install --immutable
+
+    - name: Build workspace
+      shell: bash
+      run: yarn build
