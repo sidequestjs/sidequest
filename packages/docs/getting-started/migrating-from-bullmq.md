@@ -12,22 +12,22 @@ If you are weighing the move before committing to it, read [Why Sidequest](/intr
 
 ## Mental model
 
-| BullMQ                                            | Sidequest                                                                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------ |
-| Redis connection (`ioredis`)                      | A [backend driver](/production/backends) pointed at your existing DB     |
-| `new Queue('emails', { connection })`             | A queue is just a name. It is created on demand; no object to hold.       |
-| `queue.add('send', data, opts)`                   | `Sidequest.build(EmailJob).enqueue(...args)`                             |
-| `new Worker('emails', processor, { connection })` | A [`Job` class](/guide/jobs/class) with an `async run(...args)` method   |
-| `job.data` (one payload object)                   | Positional arguments to `run(...args)`                                    |
-| `{ attempts: 3 }`                                 | `.maxAttempts(3)`                                                         |
-| `{ backoff: { type, delay } }`                    | `.backoffStrategy("fixed" \| "exponential")` + `.retryDelay(ms)`        |
-| `{ delay: 60000 }`                                | `.availableAt(new Date(Date.now() + 60000))`                            |
-| `{ repeat: { pattern } }`                         | `.schedule(cronExpression, ...args)`                                     |
-| `{ jobId }` for deduplication                     | `.unique(...)`                                                            |
-| `{ removeOnComplete }`                            | Automatic [cleanup routine](/production/cleanup)                         |
-| `QueueEvents` / `worker.on(...)`                  | [Dashboard](/resources/dashboard) + job lifecycle states                |
-| `FlowProducer` (parent/child)                     | [Job chaining](/recipes/chaining)                                        |
-| `Worker({ concurrency })`                         | Per-queue [concurrency](/guide/queues/concurrency)                       |
+| BullMQ                                            | Sidequest                                                              |
+| ------------------------------------------------- | ---------------------------------------------------------------------- |
+| Redis connection (`ioredis`)                      | A [backend driver](/production/backends) pointed at your existing DB   |
+| `new Queue('emails', { connection })`             | A queue is just a name. It is created on demand; no object to hold.    |
+| `queue.add('send', data, opts)`                   | `Sidequest.build(EmailJob).enqueue(...args)`                           |
+| `new Worker('emails', processor, { connection })` | A [`Job` class](/guide/jobs/class) with an `async run(...args)` method |
+| `job.data` (one payload object)                   | Positional arguments to `run(...args)`                                 |
+| `{ attempts: 3 }`                                 | `.maxAttempts(3)`                                                      |
+| `{ backoff: { type, delay } }`                    | `.backoffStrategy("fixed" \| "exponential")` + `.retryDelay(ms)`       |
+| `{ delay: 60000 }`                                | `.availableAt(new Date(Date.now() + 60000))`                           |
+| `{ repeat: { pattern } }`                         | `.schedule(cronExpression, ...args)`                                   |
+| `{ jobId }` for deduplication                     | `.unique(...)`                                                         |
+| `{ removeOnComplete }`                            | Automatic [cleanup routine](/production/cleanup)                       |
+| `QueueEvents` / `worker.on(...)`                  | [Dashboard](/resources/dashboard) + job lifecycle states               |
+| `FlowProducer` (parent/child)                     | [Job chaining](/recipes/chaining)                                      |
+| `Worker({ concurrency })`                         | Per-queue [concurrency](/guide/queues/concurrency)                     |
 
 ## 1. Swap the dependencies
 
@@ -107,9 +107,13 @@ export class EmailJob extends Job {
 
 The value you return is recorded as the job result. To control the outcome explicitly from inside `run`, you can `return this.complete(result)`, `this.fail(reason)`, `this.retry(reason, delay?)`, or `this.snooze(delay)` (see [Execution and Control](/guide/jobs/running)).
 
+::: tip Arguments are strongly typed
+`.enqueue(...)` is typed as the parameters of your job's `run` method, so the call is type-checked end to end: pass the wrong number or type of arguments and TypeScript errors at the enqueue site. With BullMQ, `job.data` is only as typed as the generic you thread through the `Queue` and `Worker`.
+:::
+
 ## 4. Adding jobs
 
-`queue.add(name, data, opts)` becomes `Sidequest.build(JobClass)...enqueue(...args)`. The fluent builder replaces the options object.
+`queue.add(name, data, opts)` becomes `Sidequest.build(JobClass).queue("my-queue").enqueue(...args)`. The fluent builder replaces the options object.
 
 ::: code-group
 
@@ -144,7 +148,11 @@ await Sidequest.build(EmailJob)
 await queue.add("send", data, { attempts: 5, backoff: { type: "fixed", delay: 3000 } });
 
 // Sidequest
-await Sidequest.build(EmailJob).maxAttempts(5).backoffStrategy("fixed").retryDelay(3000).enqueue(...args);
+await Sidequest.build(EmailJob)
+  .maxAttempts(5)
+  .backoffStrategy("fixed")
+  .retryDelay(3000)
+  .enqueue(...args);
 ```
 
 BullMQ's `attempts` counts the total number of tries, and so does Sidequest's [`maxAttempts`](/guide/jobs/enqueueing#maxattempts-count-number). Sidequest defaults to `"exponential"` backoff with a `1000` ms base, the same spirit as BullMQ's recommended default.
