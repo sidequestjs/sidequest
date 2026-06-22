@@ -24,7 +24,13 @@ runs:
           node_modules
           **/node_modules
           **/dist
-        key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.sha }}
+        # Scope the cache to a single workflow run attempt. The build job and the
+        # downstream jobs (lint/test/integration) share build outputs within one run,
+        # but a re-run gets a fresh key. Previously the key was scoped to the commit
+        # SHA only, so a corrupted/partial cache upload (e.g. a job cancelled mid-upload
+        # by cancel-in-progress) would stick: actions/cache never overwrites an existing
+        # key, so every re-run of that SHA restored the broken cache and failed.
+        key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     - name: Enable Corepack
       shell: bash
