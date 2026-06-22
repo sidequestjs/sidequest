@@ -1,3 +1,9 @@
+---
+outline: deep
+title: Queue States
+description: Understand queue states in Sidequest, what they mean, and how to manage them for reliable job processing.
+---
+
 # Queue States in Sidequest
 
 This document provides a detailed explanation of **queue states** in Sidequest, their meanings, use cases, and operational considerations. Understanding and managing queue states properly is essential to maintaining a reliable job processing system.

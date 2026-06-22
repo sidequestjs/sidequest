@@ -1,7 +1,7 @@
 ---
 outline: deep
 title: FAQ
-description: Frequently Asked Questions for Sidequest.js
+description: "FAQ: Does Sidequest need Redis? Does it run on Bun? Is it production-ready? How does it compare to BullMQ and pg-boss? Common questions answered."
 ---
 
 # Frequently Asked Questions (FAQ)
@@ -10,7 +10,23 @@ This page offers answers to some of the most common questions about Sidequest.js
 
 ## What is Sidequest.js?
 
-Sidequest is an open-source, modern, scalable distributed background job processor for Node.js applications.
+Sidequest is an open-source, production-grade, distributed background job processor for Node.js. Instead of requiring Redis, it persists jobs in the database you already run (PostgreSQL, MySQL, SQLite, or MongoDB). It is a [BullMQ](https://docs.sidequestjs.com/getting-started/migrating-from-bullmq) and pg-boss alternative, with a built-in web dashboard.
+
+## Does Sidequest need Redis?
+
+No. That is the whole point. Most Node.js job queues (Bull, BullMQ, Bee-Queue) require Redis. Sidequest stores jobs in your existing SQL or document database instead, so there is no separate Redis service to provision, secure, pay for, or monitor. See [Why Sidequest](/introduction/why).
+
+## Does Sidequest run on Bun?
+
+Not yet. Sidequest targets **Node.js (>= 22.6.0)**. Bun support is [tracked here](https://github.com/sidequestjs/sidequest/issues/72). It is not a Bun-only or Bun-first library.
+
+## Is Sidequest production-ready, or only for small apps?
+
+It is built for production. Jobs are durably persisted in your database and claimed atomically (`SELECT ... FOR UPDATE SKIP LOCKED` on Postgres/MySQL), so each job runs exactly once even across multiple instances. The engine runs in a forked process and executes jobs in worker threads. It scales from a single node to a distributed multi-node deployment. PostgreSQL is recommended for production; SQLite is intended for local development and tests.
+
+## How does Sidequest compare to BullMQ, pg-boss, Solid Queue, or Oban?
+
+Sidequest shares the "skip Redis, reuse your database" thesis of [Solid Queue](https://dev.37signals.com/introducing-solid-queue/) (Rails) and [Oban](https://getoban.pro/) (Elixir). Compared to **BullMQ** (Redis-based), Sidequest removes the dedicated Redis instance; BullMQ has a higher throughput ceiling on a dedicated cluster, while Sidequest optimizes for operational simplicity. Compared to **pg-boss** (Postgres-only) and **Agenda** (Mongo-only), Sidequest supports multiple databases, ships a dashboard, and isolates jobs in worker threads. See the [comparison](https://sidequestjs.com/vs-bullmq) and the [migration guide](https://docs.sidequestjs.com/getting-started/migrating-from-bullmq).
 
 ## What is a Queue?
 

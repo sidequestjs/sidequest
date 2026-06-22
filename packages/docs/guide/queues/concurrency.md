@@ -1,3 +1,9 @@
+---
+outline: deep
+title: Queue Concurrency
+description: Control how many jobs run in parallel per queue in Sidequest with the concurrency setting, and how it interacts with the global maxConcurrentJobs limit.
+---
+
 # Queue Concurrency in Sidequest
 
 This document provides a detailed explanation of **queue concurrency** in Sidequest, its purpose, how it works, and best practices for configuring concurrency effectively.
@@ -28,7 +34,7 @@ queues: [
 ];
 ```
 
-In this example, at most 2 jobs from the `default` queue, 5 jobs from `critical`, and 1 job from `low` can run concurrently, provided the `maxConcurrentJobs` limit (a global Sidequest Engine configuration) limit is not exceeded.
+In this example, at most 2 jobs from the `default` queue, 5 jobs from `critical`, and 1 job from `low` can run concurrently, provided the `maxConcurrentJobs` limit (a global Sidequest Engine configuration) is not exceeded.
 
 ## Best practices for concurrency
 
