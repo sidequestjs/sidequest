@@ -44,7 +44,7 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
-    "node-cron": "^4.2.1",
+    "node-cron": "^4.5.0",
     "piscina": "^5.1.4"
   },
   "peerDependencies": {

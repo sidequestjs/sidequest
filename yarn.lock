@@ -2978,7 +2978,7 @@ __metadata:
   dependencies:
     "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
-    node-cron: "npm:^4.2.1"
+    node-cron: "npm:^4.5.0"
     piscina: "npm:^5.1.4"
   peerDependencies:
     sidequest: "workspace:*"
@@ -9090,10 +9090,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-cron@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "node-cron@npm:4.2.1"
-  checksum: 10c0/804df01df230e96fd2f8ffcde004f4d5af953bccdf3ccf993dc450526dd65f553a2f2ad4bc0faf55c90c38cbc99c9ddbb88ee16cba3fc6bc74e606da6efb249e
+"node-cron@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "node-cron@npm:4.5.0"
+  checksum: 10c0/b0b8aa52740a96fd3fcae629d072fdcdc94e56f910b88a035e1fbd7bd5525f6ff6f87d30699b62b9bc270def928573b548f4d9339d88552b20360f601f507cf6
   languageName: node
   linkType: hard
 
