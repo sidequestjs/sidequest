@@ -1,0 +1,96 @@
+name: Release
+
+# Replaces semantic-release. Instead of publishing on every qualifying merge,
+# release-please maintains a single "Release PR" that accumulates the Conventional
+# Commits landing on master (bumping every package to the same version and updating
+# CHANGELOG.md). Merging that PR creates the git tag (vX.Y.Z) and GitHub Release,
+# which then triggers the publish job below.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      # App token (not GITHUB_TOKEN) so the Release PR triggers the Build and Test
+      # checks; PRs opened by GITHUB_TOKEN do not start workflows.
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          # Reads release-please-config.json and .release-please-manifest.json from
+          # the repo root. The root package drives one version/tag/changelog and the
+          # config's extra-files bump every published package in lockstep.
+          token: ${{ steps.generate_token.outputs.token }}
+
+  # Runs only when merging the Release PR just cut a release. Publishing reuses the
+  # exact steps from the previous semantic-release setup (yarn npm publish, which
+  # rewrites the workspace:* dependency ranges to concrete versions). At this point
+  # the package versions are already bumped by the merged Release PR, so there is no
+  # version step here.
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          persist-credentials: false
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn build
+
+      - name: Configure Yarn authentication and settings
+        run: |
+          cat <<EOF > .yarnrc.yml
+          nodeLinker: node-modules
+
+          npmRegistryServer: "https://registry.npmjs.org"
+
+          npmScopes:
+            sidequest:
+              npmRegistryServer: "https://registry.npmjs.org"
+          EOF
+
+      - name: Publish packages
+        run: yarn workspaces foreach -A --no-private npm publish --access public --tag latest

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "sidequest",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "include-v-in-tag": true,
+      "changelog-sections": [
+        { "type": "feat", "section": "Features" },
+        { "type": "fix", "section": "Bug Fixes" },
+        { "type": "perf", "section": "Performance Improvements" },
+        { "type": "refactor", "section": "Code Refactoring" },
+        { "type": "revert", "section": "Reverts" },
+        { "type": "docs", "section": "Documentation", "hidden": true },
+        { "type": "chore", "hidden": true },
+        { "type": "ci", "hidden": true },
+        { "type": "test", "hidden": true },
+        { "type": "build", "hidden": true },
+        { "type": "style", "hidden": true }
+      ],
+      "extra-files": [
+        { "type": "json", "path": "packages/sidequest/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/engine/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/core/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/dashboard/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/cli/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/backend/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/backend-test/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/postgres/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/mysql/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/sqlite/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/backends/mongo/package.json", "jsonpath": "$.version" }
+      ]
+    }
+  }
+}

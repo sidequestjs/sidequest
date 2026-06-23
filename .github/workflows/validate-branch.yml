@@ -15,7 +15,7 @@ jobs:
         run: |
           PR_TITLE=$(printf "%s" "${{ github.event.pull_request.title }}")
           echo "PR title: $PR_TITLE"
-          if [[ ! "$PR_TITLE" =~ ^(feat|fix|chore|docs|refactor|style|test|tests|perf|build)(\(.+\))?:\ .+ ]]; then
+          if [[ ! "$PR_TITLE" =~ ^(feat|fix|chore|docs|refactor|style|test|tests|perf|build|revert|ci)(\(.+\))?:\ .+ ]]; then
             echo "::error::Invalid PR title: $PR_TITLE"
             echo "::error::PR title must follow Conventional Commits, e.g., 'feat(api): add user login'"
             exit 1
