@@ -5,6 +5,13 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.1](https://github.com/sidequestjs/sidequest/compare/v1.16.0...v1.16.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* bump node-cron to ^4.5.0 ([#195](https://github.com/sidequestjs/sidequest/issues/195)) ([02547d9](https://github.com/sidequestjs/sidequest/commit/02547d9081367da92d0c0faf877091aa8e46a132))
+
 ## [1.15.1](https://github.com/sidequestjs/sidequest/compare/v1.15.0...v1.15.1) (2026-06-18)
 
 
