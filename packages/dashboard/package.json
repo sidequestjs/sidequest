@@ -28,16 +28,25 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "types": "./dist/index.d.ts",
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npx rollup -c",
-    "dev": "npx rollup -c -w"
+    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts",
+    "dev": "npx rollup -c -w",
+    "test": "yarn vitest run",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "license": "LGPL-3.0-or-later",
   "dependencies": {
@@ -52,11 +61,38 @@
   },
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
+    "@storybook/react-vite": "^10.4.6",
+    "@tailwindcss/vite": "^4.3.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/feather-icons": "^4.29.4",
     "@types/morgan": "^1.9.10",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
     "chart.js": "^4.5.1",
     "daisyui": "5.1.7",
     "feather-icons": "^4.29.2",
-    "htmx.org": "^2.0.8"
+    "htmx.org": "^2.0.8",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "storybook": "^10.4.6",
+    "vite": "^8.1.3",
+    "vite-plugin-dts": "^5.0.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   }
 }
