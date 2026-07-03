@@ -1,17 +1,11 @@
-@import "tailwindcss";
-
-/*
- * Placeholder design tokens. These are replaced by the user's Claude design
- * system via DesignSync (run /design-login first). Tailwind v4 turns each
- * token into utilities, e.g. --color-surface -> bg-surface / border-surface.
+/* @sidequest/dashboard/ui — global stylesheet.
+ * Link this once. It is a manifest of @imports: every design token (fonts, colors,
+ * typography, spacing, radii) plus the small base layer with the `.sq-*` interaction
+ * classes. Synced from the Sidequest.js design system. Order matters.
  */
-@theme {
-  --color-surface: oklch(0.23 0.02 260);
-  --color-surface-muted: oklch(0.19 0.02 260);
-  --color-border: oklch(0.32 0.02 260);
-  --color-content: oklch(0.93 0.01 260);
-  --color-content-muted: oklch(0.72 0.02 260);
-  --color-accent: oklch(0.62 0.19 275);
-
-  --radius-card: 0.75rem;
-}
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/radii.css";
+@import "./tokens/base.css";

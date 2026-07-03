@@ -36,7 +36,8 @@
     "./ui": {
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"
-    }
+    },
+    "./ui/styles.css": "./dist/ui/styles.css"
   },
   "files": [
     "dist"
@@ -62,7 +63,6 @@
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
     "@storybook/react-vite": "^10.4.6",
-    "@tailwindcss/vite": "^4.3.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

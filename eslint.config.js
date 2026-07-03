@@ -18,6 +18,7 @@ export default tseslint.config(
       "**/public/**",
       "**/views/**",
       "**/migrations/**",
+      "**/storybook-static/**",
       "packages/docs/.vitepress/cache/**",
       "packages/dashboard/vite.lib.config.ts",
       "packages/dashboard/vitest.setup.ts",

@@ -1,0 +1,32 @@
+/* Sidequest.js — Radii & shadow tokens
+ * Radii lifted from DaisyUI theme: --radius-field .25rem, --radius-box/selector .5rem.
+ * Shadows are restrained — the product is flat/dark with hairline borders; elevation
+ * comes from surface lightness first, shadow second.
+ */
+
+:root {
+  /* ---- Corner radii ---- */
+  --radius-xs: 0.125rem;  /* 2  */
+  --radius-sm: 0.25rem;   /* 4  — inputs, selects, badges (radius-field) */
+  --radius-md: 0.5rem;    /* 8  — cards, buttons, panels (radius-box) */
+  --radius-lg: 0.75rem;   /* 12 — large panels */
+  --radius-xl: 1rem;      /* 16 */
+  --radius-full: 9999px;  /* pills, node dots, avatars */
+
+  /* ---- Elevation (tuned for dark navy surfaces) ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px var(--brand-ring), 0 6px 20px rgba(43, 124, 211, 0.25);
+
+  /* ---- Focus ring ---- */
+  --focus-ring: 0 0 0 3px var(--brand-ring);
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+}

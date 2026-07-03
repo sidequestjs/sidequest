@@ -3,32 +3,48 @@ import { describe, expect, it } from "vitest";
 import { Card } from "./Card";
 
 describe("Card", () => {
-  it("renders children inside a solid surface by default", () => {
-    render(<Card>hello</Card>);
+  it("renders a bare panel (no header) with default padding", () => {
+    const { container } = render(<Card>body</Card>);
 
-    const el = screen.getByText("hello");
-    expect(el).toHaveClass("bg-surface");
-    expect(el).toHaveClass("rounded-card");
-    expect(el).toHaveClass("border-border");
+    const root = container.querySelector(".sq-card");
+    expect(root).not.toBeNull();
+    expect(screen.getByText("body")).toBeInTheDocument();
+    // no header when neither title nor actions are given
+    expect(screen.queryByRole("heading")).toBeNull();
   });
 
-  it("applies the muted variant", () => {
-    render(<Card variant="muted">muted</Card>);
-
-    expect(screen.getByText("muted")).toHaveClass("bg-surface-muted");
-  });
-
-  it("merges a custom className and forwards native div attributes", () => {
-    render(
-      <Card className="extra" data-testid="card" role="group">
-        content
+  it("renders title, actions, and honors custom padding/className/style/bodyStyle", () => {
+    const { container } = render(
+      <Card
+        title="Recent jobs"
+        actions={<button>refresh</button>}
+        padding="10px"
+        className="extra"
+        style={{ color: "rgb(1, 2, 3)" }}
+        bodyStyle={{ gap: "1px" }}
+      >
+        body
       </Card>,
     );
 
-    const el = screen.getByTestId("card");
-    expect(el).toHaveClass("extra");
-    expect(el).toHaveClass("bg-surface");
-    expect(el).toHaveAttribute("role", "group");
-    expect(el).toHaveTextContent("content");
+    const root = container.querySelector(".sq-card");
+    expect(root).toHaveClass("extra");
+    expect(root).toHaveStyle({ color: "rgb(1, 2, 3)" });
+    expect(screen.getByRole("heading", { name: "Recent jobs" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "refresh" })).toBeInTheDocument();
+  });
+
+  it("renders a header with only a title", () => {
+    render(<Card title="Only title">body</Card>);
+
+    expect(screen.getByRole("heading", { name: "Only title" })).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("renders a header with only actions", () => {
+    render(<Card actions={<button>go</button>}>body</Card>);
+
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.getByRole("button", { name: "go" })).toBeInTheDocument();
   });
 });

@@ -1,0 +1,64 @@
+/* Sidequest.js — Base layer
+ * Minimal resets + the ambient defaults specimen cards & kits rely on. Kept small;
+ * components style themselves via tokens. Applying `.sq-surface` to a preview root
+ * paints the app background + primary text so cards read like the real product.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.sq-surface,
+body.sq-surface {
+  margin: 0;
+  background: var(--surface-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.sq-brand-text {
+  font-family: var(--font-brand);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.sq-mono { font-family: var(--font-mono); }
+
+/* Brand gradient text (wordmark / hero accents) */
+.sq-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Uppercase eyebrow / column-header treatment */
+.sq-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+}
+
+::selection { background: var(--brand-ring); color: #fff; }
+
+/* ---- Component interaction states (inline styles can't express :hover/:focus) ---- */
+.sq-btn:not(:disabled):active { transform: translateY(0.5px); }
+.sq-btn--primary:not(:disabled):hover { background: var(--brand-primary-hover) !important; border-color: var(--brand-primary-hover) !important; }
+.sq-btn--default:not(:disabled):hover { background: var(--surface-hover) !important; }
+.sq-btn--outline:not(:disabled):hover { background: var(--surface-hover) !important; }
+.sq-btn--ghost:not(:disabled):hover { background: var(--surface-hover) !important; }
+.sq-btn--danger:not(:disabled):hover { background: rgba(183, 82, 82, 0.12) !important; border-color: var(--status-failed) !important; }
+.sq-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.sq-input:focus, .sq-select:focus { outline: none; border-color: var(--brand-primary) !important; box-shadow: var(--focus-ring); }
+.sq-input::placeholder { color: var(--text-muted); }
+
+.sq-row { transition: background var(--duration-fast) var(--ease-standard); }
+.sq-row:hover { background: var(--surface-hover); }
+
+.sq-navitem { transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.sq-navitem:hover { background: var(--surface-hover); color: var(--text-strong); }

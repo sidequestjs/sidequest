@@ -1,0 +1,43 @@
+/* Sidequest.js — Typography tokens
+ * Product UI renders in the platform system-ui stack (faithful to the dashboard).
+ * Poppins is reserved for the brand wordmark + display; JetBrains Mono for code/data.
+ */
+
+:root {
+  /* ---- Families ---- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-brand: "Poppins", var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* ---- Type scale (px in rem) ---- */
+  --text-2xs: 0.6875rem;  /* 11px — micro labels, stack traces */
+  --text-xs:  0.75rem;    /* 12px — badges, table meta */
+  --text-sm:  0.875rem;   /* 14px — body, table cells, controls */
+  --text-base:1rem;       /* 16px — default */
+  --text-lg:  1.125rem;   /* 18px — card titles */
+  --text-xl:  1.25rem;    /* 20px — sidebar brand */
+  --text-2xl: 1.5rem;     /* 24px — page headings */
+  --text-3xl: 1.875rem;   /* 30px — stat numbers / marketing */
+  --text-4xl: 2.5rem;     /* 40px — hero */
+  --text-5xl: 3.5rem;     /* 56px — hero display */
+
+  /* ---- Weights ---- */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---- Line heights ---- */
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
+
+  /* ---- Letter spacing ---- */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.06em;   /* uppercase eyebrows / table headers */
+}
