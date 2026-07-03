@@ -14,7 +14,7 @@ export const Play: Story = { args: { name: "play" } };
 
 export const Large: Story = { args: { name: "refresh-ccw", size: 32 } };
 
-const NAMES = ["play", "x", "refresh-ccw", "trash-2", "clock", "activity", "check-circle", "x-circle", "pause"];
+const NAMES = ["play", "x", "refresh-ccw", "trash-2", "clock", "activity", "circle-check", "circle-x", "pause"];
 
 export const Gallery: Story = {
   render: () => (
