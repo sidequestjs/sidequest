@@ -29,19 +29,30 @@
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"
     },
-    "./ui/styles.css": "./dist/ui/styles.css"
+    "./ui/styles.css": "./dist/ui/styles.css",
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api/index.js",
+      "require": "./dist/api/index.cjs"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
-    "dev": "npx vite build --watch --config vite.lib.config.ts",
+    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
+    "dev": "npx rollup -c -w",
     "test": "yarn vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "license": "LGPL-3.0-or-later",
+  "dependencies": {
+    "@sidequest/backend": "workspace:*",
+    "@sidequest/core": "workspace:*",
+    "@sidequest/engine": "workspace:*",
+    "hono": "^4.12.0"
+  },
   "devDependencies": {
     "@storybook/react-vite": "^10.4.6",
     "@testing-library/dom": "^10.4.1",

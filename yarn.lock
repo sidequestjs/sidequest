@@ -4038,6 +4038,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sidequest/web@workspace:packages/web"
   dependencies:
+    "@sidequest/backend": "workspace:*"
+    "@sidequest/core": "workspace:*"
+    "@sidequest/engine": "workspace:*"
     "@storybook/react-vite": "npm:^10.4.6"
     "@testing-library/dom": "npm:^10.4.1"
     "@testing-library/jest-dom": "npm:^6.9.1"
@@ -4048,6 +4051,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.3"
     clsx: "npm:^2.1.1"
     daisyui: "npm:5.1.7"
+    hono: "npm:^4.12.0"
     jsdom: "npm:^29.1.1"
     lucide-react: "npm:^1.23.0"
     react: "npm:^19.2.7"
@@ -9341,6 +9345,13 @@ __metadata:
   version: 10.7.3
   resolution: "highlight.js@npm:10.7.3"
   checksum: 10c0/073837eaf816922427a9005c56c42ad8786473dc042332dfe7901aa065e92bc3d94ebf704975257526482066abb2c8677cc0326559bb8621e046c21c5991c434
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.12.0":
+  version: 4.12.27
+  resolution: "hono@npm:4.12.27"
+  checksum: 10c0/1c62a52ccafde751656d065bbdacffbd421d3cfaedfbffefe80ecdb8ccf96c2209af732a74064cd33ac6d187a91ec32b1dc7ddde2416a53052fe7c0a94352a89
   languageName: node
   linkType: hard
 
