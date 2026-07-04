@@ -1,5 +1,4 @@
 import { JobClassType, logger } from "@sidequest/core";
-import { SidequestDashboard } from "@sidequest/dashboard";
 import { Engine } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
@@ -9,17 +8,14 @@ import { KnownDrivers, SidequestConfig, SidequestEngineConfig } from "./types";
  * Main entry point for the Sidequest job processing system.
  *
  * The Sidequest class provides static methods to configure, start, and build jobs
- * within the Sidequest ecosystem. It serves as a high-level interface that coordinates
- * the underlying Engine and Dashboard components.
+ * within the Sidequest ecosystem. It serves as a high-level interface over the
+ * underlying Engine.
  *
  * @example
  * ```typescript
- * // Configure and start Sidequest with dashboard
- * const engine = await Sidequest.start({
+ * // Configure and start Sidequest
+ * await Sidequest.start({
  *   // engine configuration
- *   dashboard: {
- *     // dashboard configuration
- *   }
  * });
  *
  * // Build and execute a job
@@ -32,12 +28,6 @@ export class Sidequest {
    * This allows access to the underlying engine for advanced operations.
    */
   private static engine = new Engine();
-
-  /**
-   * Static reference to the SidequestDashboard instance.
-   * This provides access to the dashboard for monitoring and managing jobs and queues.
-   */
-  private static dashboard = new SidequestDashboard();
 
   /**
    * Provides access to the singleton QueueOperations instance for managing queues.
@@ -84,21 +74,15 @@ export class Sidequest {
   }
 
   /**
-   * Starts the Sidequest engine and dashboard with the provided configuration.
+   * Starts the Sidequest engine with the provided configuration.
    *
-   * @param config - Optional configuration object that includes engine settings and dashboard configuration
-   * @param config.dashboard - Dashboard-specific configuration, excluding backendConfig which is automatically provided
-   * based on the engine configuration.
-   * @returns A promise that resolves when the engine and dashboard are fully started.
+   * @param config - Optional configuration object with engine settings.
+   * @returns A promise that resolves when the engine is fully started.
    *
    * @example
    * ```typescript
-   * const engine = await Sidequest.start({
+   * await Sidequest.start({
    *   // engine config...
-   *   dashboard: {
-   *     port: 3000,
-   *     // other dashboard options...
-   *   }
    * });
    * ```
    */
@@ -106,11 +90,7 @@ export class Sidequest {
     try {
       const engineConfig = await this.configure(config);
 
-      const engine = this.engine.start(engineConfig);
-      const dashboard = this.dashboard.start({ ...config?.dashboard, backendConfig: engineConfig.backend });
-
-      await engine;
-      await dashboard;
+      await this.engine.start(engineConfig);
     } catch (error) {
       logger().error("Failed to start Sidequest:", error);
       await this.stop(); // Ensure cleanup on error
@@ -125,7 +105,6 @@ export class Sidequest {
    * - Closing the engine
    * - Clearing the job backend
    * - Clearing the queue backend
-   * - Closing the dashboard
    *
    * @returns A promise that resolves when all cleanup operations are complete
    */
@@ -133,7 +112,6 @@ export class Sidequest {
     await this.engine.close();
     this.job.setBackend(undefined);
     this.queue.setBackend(undefined);
-    await this.dashboard.close();
   }
 
   /**

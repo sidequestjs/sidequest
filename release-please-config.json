@@ -24,7 +24,7 @@
         { "type": "json", "path": "packages/sidequest/package.json", "jsonpath": "$.version" },
         { "type": "json", "path": "packages/engine/package.json", "jsonpath": "$.version" },
         { "type": "json", "path": "packages/core/package.json", "jsonpath": "$.version" },
-        { "type": "json", "path": "packages/dashboard/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "packages/web/package.json", "jsonpath": "$.version" },
         { "type": "json", "path": "packages/cli/package.json", "jsonpath": "$.version" },
         { "type": "json", "path": "packages/backends/backend/package.json", "jsonpath": "$.version" },
         { "type": "json", "path": "packages/backends/backend-test/package.json", "jsonpath": "$.version" },

@@ -17,7 +17,7 @@ Monorepo on **Yarn 4 (Berry, via Corepack) + Turbo**. Workspaces declared in roo
 | `packages/sidequest`                              | `sidequest`                 | Umbrella package end users install. Exposes `Sidequest`, re-exports the rest. Source is intentionally thin — mostly the `Sidequest` static class and operations facade.                    |
 | `packages/engine`                                 | `@sidequest/engine`         | Orchestration. Owns the `Engine`, `Dispatcher`, `QueueManager`, `ExecutorManager`, `JobBuilder`, `JobTransitioner`, cron registry, routines (cleanup, stale recovery), shared runner pool. |
 | `packages/core`                                   | `@sidequest/core`           | Shared primitives: `Job` base class, schema/types (`JobData`, `QueueConfig`, etc.), state transitions, logger (Winston), uniqueness, tools.                                                |
-| `packages/dashboard`                              | `@sidequest/dashboard`      | Express + EJS + HTMX + Tailwind/DaisyUI web UI. Can run standalone via `SidequestDashboard`.                                                                                               |
+| `packages/web`                                    | `@sidequest/web`            | Web layer (v2 rewrite, React + Vite). Currently ships the `/ui` design-system component library; the OSS dashboard app, the Hono management API, and a boot façade are being added.        |
 | `packages/cli`                                    | `@sidequest/cli`            | `sidequest` / `sq` CLI for `config`, `migrate`, `rollback`.                                                                                                                                |
 | `packages/docs`                                   | (private)                   | VitePress site → docs.sidequestjs.com.                                                                                                                                                     |
 | `packages/backends/backend`                       | `@sidequest/backend`        | Backend interface + `SQLBackend` base (Knex-based).                                                                                                                                        |
@@ -96,7 +96,7 @@ Node ≥ 22.6.0 required. TypeScript jobs run natively on Node ≥ 23.6.0.
 - `Sidequest.job` — `.get`, `.list`, `.count`, `.cancel`, `.run`, `.snooze`, `.findStale`, `.deleteFinished`.
 - `Sidequest.queue` — `.get`, `.list`, `.create`, `.pause`, `.activate`, `.toggle`, `.setConcurrency`, `.setPriority`.
 - `Job` class (`@sidequest/core`) with `async run(...args)`. Runtime metadata (`this.id`, `this.attempt`, etc.) is injected **after construction**, only available inside `run`. Convenience methods inside `run`: `return this.complete(result)` / `this.fail(reason)` / `this.retry(reason, delay?)` / `this.snooze(delay)`. **You must `return` them** — calling without returning is a no-op.
-- `SidequestDashboard` (`@sidequest/dashboard`) — standalone dashboard against a shared backend.
+- Dashboard: under v2 rewrite. The old Express/EJS `SidequestDashboard` and the `Sidequest.start({ dashboard })` option have been removed; `@sidequest/web` currently exposes only the `/ui` component library. Booting a dashboard will return via the `@sidequest/web` façade.
 
 ## Behavioral nuances that bite
 
