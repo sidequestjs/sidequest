@@ -50,8 +50,8 @@ export default tseslint.config(
     },
   },
   {
-    // React UI library lives in its own tsconfig (JSX, DOM libs, bundler resolution).
-    files: ["packages/web/src/ui/**/*.{ts,tsx}"],
+    // React UI + dashboard app live in their own tsconfig (JSX, DOM libs, bundler resolution).
+    files: ["packages/web/src/ui/**/*.{ts,tsx}", "packages/web/src/dashboard/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks, "jsx-a11y": jsxA11y },
     languageOptions: {
       globals: { ...globals.browser },

@@ -11,7 +11,7 @@ export default {
   test: {
     ...base.test,
     environment: "jsdom",
-    include: ["src/ui/**/*.test.tsx"],
+    include: ["src/ui/**/*.test.tsx", "src/dashboard/**/*.test.tsx"],
     coverage: {
       ...base.test.coverage,
       include: ["src/ui/**/*.tsx"],

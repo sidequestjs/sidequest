@@ -9,5 +9,5 @@
     "noEmit": true,
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src/ui/**/*.ts", "src/ui/**/*.tsx"]
+  "include": ["src/ui/**/*.ts", "src/ui/**/*.tsx", "src/dashboard/**/*.ts", "src/dashboard/**/*.tsx"]
 }
