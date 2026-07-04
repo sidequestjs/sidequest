@@ -29,9 +29,7 @@ export function CodeBlock({ code, language, maxHeight = "15rem", className = "",
         fontFamily: "var(--font-mono)",
         fontSize: "var(--text-xs)",
         lineHeight: 1.6,
-        // The code surface is always near-black (terminal-style) in both themes, so the
-        // text stays light regardless of the active theme.
-        color: "var(--sq-gray-300)",
+        color: "var(--text-primary)",
         maxHeight,
         overflow: "auto",
         ...style,
