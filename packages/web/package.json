@@ -42,6 +42,7 @@
   "scripts": {
     "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
     "dev": "npx rollup -c -w",
+    "dev:app": "npx vite --config vite.app.config.ts",
     "test": "yarn vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
