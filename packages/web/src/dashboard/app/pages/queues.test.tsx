@@ -4,11 +4,19 @@ import { jsonResponse, renderWithClient } from "../../testing/harness";
 import { QueuesPage } from "./queues";
 
 describe("QueuesPage", () => {
-  it("renders queues with a pause/resume toggle", async () => {
+  it("renders a queue card with its load-bar counts and a pause action", async () => {
     const client = {
       queues: {
         $get: vi.fn().mockResolvedValue(
-          jsonResponse([{ name: "email", state: "active", concurrency: 2, priority: 20, jobs: { total: 8 } }]),
+          jsonResponse([
+            {
+              name: "email",
+              state: "active",
+              concurrency: 2,
+              priority: 20,
+              jobs: { total: 8, waiting: 3, running: 1, completed: 4, failed: 0 },
+            },
+          ]),
         ),
       },
     } as unknown as ApiClient;
@@ -16,7 +24,8 @@ describe("QueuesPage", () => {
     renderWithClient(<QueuesPage />, client);
 
     await waitFor(() => expect(screen.getByText("email")).toBeInTheDocument());
-    // an active queue offers a "Pause" action
+    // an active queue offers a "Pause" action, and shows its concurrency chip
     expect(screen.getByText("Pause")).toBeInTheDocument();
+    expect(screen.getByText("concurrency 2")).toBeInTheDocument();
   });
 });

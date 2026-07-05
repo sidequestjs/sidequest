@@ -1,86 +1,98 @@
-import type { JobData } from "@sidequest/core";
 import { useState } from "react";
-import { Badge, type JobState } from "../../../ui/Badge";
-import { Button } from "../../../ui/Button";
-import { Input } from "../../../ui/Input";
-import { Pagination } from "../../../ui/Pagination";
-import { Select } from "../../../ui/Select";
-import { type Column, Table } from "../../../ui/Table";
-import { type JobsFilter, useJobActions, useJobs, useJobsMeta } from "../../hooks/use-jobs";
+import { JobDetailView } from "../../components/JobDetailView";
+import { JobsTable } from "../../components/JobsTable";
+import { JobsToolbar } from "../../components/JobsToolbar";
+import { SegmentedFilter, type Segment } from "../../components/SegmentedFilter";
+import { useJob, useJobActions, useJobs } from "../../hooks/use-jobs";
+import { useOverview } from "../../hooks/use-overview";
+import { useHashRoute } from "../router";
 
-const STATES = ["waiting", "running", "completed", "failed", "canceled"];
+const PAGE_SIZE = 11;
 
-/** The jobs screen: filters, a paginated table, and per-row actions. */
+/** The jobs screen: routes between the list and a single job's detail (`#/jobs/<id>`). */
 export function JobsPage() {
-  const [filters, setFilters] = useState<JobsFilter>({ page: 1, pageSize: 20 });
-  const { data, refetch } = useJobs(filters, { refetchInterval: 3000 });
-  const { data: meta } = useJobsMeta();
+  const { path, navigate } = useHashRoute();
+  const match = /^\/jobs\/(\d+)$/.exec(path);
+  if (match) {
+    return <JobDetailContainer id={Number(match[1])} onBack={() => navigate("/jobs")} />;
+  }
+  return <JobsListView onOpenJob={(id) => navigate(`/jobs/${id}`)} />;
+}
+
+/** Loads a job by id and renders its detail, wiring the rerun/cancel actions. */
+function JobDetailContainer({ id, onBack }: { id: number; onBack: () => void }) {
+  const { data: job, refetch } = useJob(id, { refetchInterval: 3000 });
   const actions = useJobActions();
+  if (!job) {
+    return <div className="font-mono text-sm text-fg-muted py-10">Loading job #{id}…</div>;
+  }
+  const act = (promise: Promise<unknown>) => void promise.then(refetch);
+  return (
+    <JobDetailView
+      job={job}
+      onBack={onBack}
+      onRerun={(jobId) => act(actions.rerun(jobId))}
+      onCancel={(jobId) => act(actions.cancel(jobId))}
+    />
+  );
+}
 
-  const patch = (next: Partial<JobsFilter>) => setFilters((f) => ({ ...f, page: 1, ...next }));
-  const act = (fn: Promise<unknown>) => void fn.then(refetch);
-
-  const columns: Column<JobData>[] = [
-    { key: "id", label: "ID", mono: true, width: "60px" },
-    { key: "class", label: "Class" },
-    { key: "queue", label: "Queue" },
-    { key: "state", label: "State", render: (job) => <Badge state={job.state as JobState} /> },
-    { key: "attempt", label: "Attempt", render: (job) => `${job.attempt}/${job.max_attempts}` },
-    {
-      key: "actions",
-      label: "",
-      align: "right",
-      render: (job) => (
-        <div style={{ display: "flex", gap: "0.35rem", justifyContent: "flex-end" }}>
-          <Button size="sm" variant="ghost" onClick={() => act(actions.run(job.id))}>
-            Run
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => act(actions.rerun(job.id))}>
-            Rerun
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => act(actions.cancel(job.id))}>
-            Cancel
-          </Button>
-        </div>
-      ),
-    },
+const SEGMENTS: { key: string; label: string; countKey: "total" | "running" | "completed" | "failed" | "waiting" | "canceled" }[] =
+  [
+    { key: "all", label: "All", countKey: "total" },
+    { key: "running", label: "Running", countKey: "running" },
+    { key: "completed", label: "Completed", countKey: "completed" },
+    { key: "failed", label: "Failed", countKey: "failed" },
+    { key: "waiting", label: "Waiting", countKey: "waiting" },
+    { key: "canceled", label: "Canceled", countKey: "canceled" },
   ];
 
+/** The jobs list: search, segmented status filters, and the paginated table. */
+function JobsListView({ onOpenJob }: { onOpenJob: (id: number) => void }) {
+  const [status, setStatus] = useState("all");
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const { data, refetch } = useJobs(
+    { state: status === "all" ? undefined : status, class: query || undefined, page, pageSize: PAGE_SIZE },
+    { refetchInterval: 3000 },
+  );
+  const { data: counts } = useOverview(undefined, { refetchInterval: 5000 });
+  const actions = useJobActions();
+
+  const changeStatus = (key: string) => {
+    setStatus(key);
+    setPage(1);
+  };
+  const changeQuery = (value: string) => {
+    setQuery(value);
+    setPage(1);
+  };
+  const act = (promise: Promise<unknown>) => void promise.then(refetch);
+
+  const segments: Segment[] = SEGMENTS.map((segment) => ({
+    key: segment.key,
+    label: segment.label,
+    count: counts ? Number(counts[segment.countKey] ?? 0) : 0,
+  }));
+
+  const jobs = data?.jobs ?? [];
+  const total = counts ? Number(counts[status === "all" ? "total" : (status as "running")] ?? jobs.length) : jobs.length;
+
   return (
-    <div>
-      <h1 style={{ fontSize: "var(--text-xl)", marginBottom: "1.25rem" }}>Jobs</h1>
-
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-        <Select
-          size="sm"
-          value={filters.state ?? ""}
-          onChange={(e) => patch({ state: e.target.value || undefined })}
-          options={[{ value: "", label: "All states" }, ...STATES.map((s) => ({ value: s, label: s }))]}
-        />
-        <Select
-          size="sm"
-          value={filters.queue ?? ""}
-          onChange={(e) => patch({ queue: e.target.value || undefined })}
-          options={[{ value: "", label: "All queues" }, ...(meta?.queues ?? []).map((q) => ({ value: q, label: q }))]}
-        />
-        <Input
-          size="sm"
-          placeholder="Filter by class…"
-          value={filters.class ?? ""}
-          onChange={(e) => patch({ class: e.target.value || undefined })}
-        />
-      </div>
-
-      <Table columns={columns} rows={data?.jobs ?? []} rowKey="id" empty="No jobs match these filters." />
-
-      <div style={{ marginTop: "1rem" }}>
-        <Pagination
-          page={filters.page ?? 1}
-          hasNext={data?.pagination.hasNextPage ?? false}
-          onPrev={() => setFilters((f) => ({ ...f, page: Math.max(1, (f.page ?? 1) - 1) }))}
-          onNext={() => setFilters((f) => ({ ...f, page: (f.page ?? 1) + 1 }))}
-        />
-      </div>
+    <div className="flex flex-col gap-4">
+      <JobsToolbar query={query} onQuery={changeQuery} />
+      <SegmentedFilter segments={segments} value={status} onChange={changeStatus} />
+      <JobsTable
+        jobs={jobs}
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+        hasNext={data?.pagination.hasNextPage ?? false}
+        onPage={(delta) => setPage((current) => Math.max(1, current + delta))}
+        onOpenJob={onOpenJob}
+        onRerun={(id) => act(actions.rerun(id))}
+        onCancel={(id) => act(actions.cancel(id))}
+      />
     </div>
   );
 }

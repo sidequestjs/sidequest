@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "../../ui/styles.css";
+import "../dashboard.css";
 import { DashboardApp } from "./app";
 
 const root = document.getElementById("root");
