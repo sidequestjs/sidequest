@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
 /** Props for the {@link Sidebar} app rail. */
 export interface SidebarProps {
@@ -28,63 +29,21 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <aside
-      className={`sq-sidebar ${className}`}
-      style={{
-        width: "var(--sidebar-width)",
-        flexShrink: 0,
-        display: "flex",
-        flexDirection: "column",
-        background: "var(--surface-card)",
-        borderRight: "1px solid var(--border-default)",
-        ...style,
-      }}
+      className={cn("sq-sidebar w-sidebar shrink-0 flex flex-col bg-surface-card border-r border-edge", className)}
+      style={style}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.6rem",
-          padding: "var(--space-4)",
-          borderBottom: "1px solid var(--border-subtle)",
-        }}
-      >
+      <div className="flex items-center gap-[0.6rem] p-4 border-b border-edge-subtle">
         {logoSrc ? (
-          <img src={logoSrc} alt="" style={{ height: 40, width: "auto" }} />
+          <img src={logoSrc} alt="" className="h-10 w-auto" />
         ) : (
-          <span
-            aria-hidden
-            style={{ fontFamily: "var(--font-brand)", fontSize: "var(--text-xl)", fontWeight: 600, color: "var(--text-strong)" }}
-          >
+          <span aria-hidden className="font-brand text-xl font-semibold text-fg-strong">
             ◆
           </span>
         )}
-        <span
-          style={{
-            fontFamily: "var(--font-brand)",
-            fontSize: "var(--text-xl)",
-            fontWeight: "var(--weight-semibold)",
-            color: "var(--text-strong)",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {brand}
-        </span>
+        <span className="font-brand text-xl font-semibold text-fg-strong tracking-[-0.01em]">{brand}</span>
       </div>
-      <nav style={{ flex: 1, padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-        {children}
-      </nav>
-      {footer && (
-        <div
-          style={{
-            padding: "var(--space-4)",
-            borderTop: "1px solid var(--border-subtle)",
-            fontSize: "var(--text-xs)",
-            color: "var(--text-muted)",
-          }}
-        >
-          {footer}
-        </div>
-      )}
+      <nav className="flex-1 p-4 flex flex-col gap-1">{children}</nav>
+      {footer && <div className="p-4 border-t border-edge-subtle text-xs text-fg-muted">{footer}</div>}
     </aside>
   );
 }

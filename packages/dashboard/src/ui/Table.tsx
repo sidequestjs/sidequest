@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
 /** A column definition for {@link Table}. */
 export interface Column<Row = Record<string, unknown>> {
@@ -27,6 +28,12 @@ export interface TableProps<Row = Record<string, unknown>> {
   style?: CSSProperties;
 }
 
+const ALIGN: Record<NonNullable<Column["align"]>, string> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+
 /**
  * Table — dense dark data table for the jobs and queues lists. Columns describe cells
  * (alignment, monospace, custom render); rows get a hover highlight and optional click.
@@ -41,23 +48,18 @@ export function Table<Row extends Record<string, unknown> = Record<string, unkno
   style = {},
 }: TableProps<Row>) {
   return (
-    <div style={{ overflowX: "auto", ...style }} className={className}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--text-sm)" }}>
+    <div className={cn("overflow-x-auto", className)} style={style}>
+      <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
             {columns.map((c) => (
               <th
                 key={c.key}
-                style={{
-                  textAlign: c.align ?? "left",
-                  padding: "0.6rem 0.75rem",
-                  fontSize: "var(--text-xs)",
-                  fontWeight: "var(--weight-semibold)",
-                  color: "var(--text-secondary)",
-                  borderBottom: "1px solid var(--border-default)",
-                  whiteSpace: "nowrap",
-                  width: c.width,
-                }}
+                className={cn(
+                  "px-3 py-[0.6rem] text-xs font-semibold text-fg-secondary border-b border-edge whitespace-nowrap",
+                  ALIGN[c.align ?? "left"],
+                )}
+                style={{ width: c.width }}
               >
                 {c.label}
               </th>
@@ -67,7 +69,7 @@ export function Table<Row extends Record<string, unknown> = Record<string, unkno
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length} style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
+              <td colSpan={columns.length} className="p-8 text-center text-fg-muted">
                 {empty}
               </td>
             </tr>
@@ -75,21 +77,21 @@ export function Table<Row extends Record<string, unknown> = Record<string, unkno
           {rows.map((row, i) => (
             <tr
               key={(row[rowKey] as string | number | undefined) ?? i}
-              className="sq-row"
+              className={cn(
+                "sq-row transition-colors duration-[120ms] hover:bg-surface-hover",
+                onRowClick ? "cursor-pointer" : "cursor-default",
+              )}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              style={{ cursor: onRowClick ? "pointer" : "default" }}
             >
               {columns.map((c) => (
                 <td
                   key={c.key}
-                  style={{
-                    textAlign: c.align ?? "left",
-                    padding: "0.65rem 0.75rem",
-                    color: "var(--text-primary)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    fontFamily: c.mono ? "var(--font-mono)" : "inherit",
-                    whiteSpace: c.wrap ? "normal" : "nowrap",
-                  }}
+                  className={cn(
+                    "px-3 py-[0.65rem] text-fg border-b border-edge-subtle",
+                    ALIGN[c.align ?? "left"],
+                    c.mono ? "font-mono" : "",
+                    c.wrap ? "whitespace-normal" : "whitespace-nowrap",
+                  )}
                 >
                   {c.render ? c.render(row) : (row[c.key] as ReactNode)}
                 </td>

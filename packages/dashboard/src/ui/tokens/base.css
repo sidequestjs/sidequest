@@ -45,20 +45,6 @@ body.sq-surface {
 
 ::selection { background: var(--brand-ring); color: #fff; }
 
-/* ---- Component interaction states (inline styles can't express :hover/:focus) ---- */
-.sq-btn:not(:disabled):active { transform: translateY(0.5px); }
-.sq-btn--primary:not(:disabled):hover { background: var(--brand-primary-hover) !important; border-color: var(--brand-primary-hover) !important; }
-.sq-btn--default:not(:disabled):hover { background: var(--surface-hover) !important; }
-.sq-btn--outline:not(:disabled):hover { background: var(--surface-hover) !important; }
-.sq-btn--ghost:not(:disabled):hover { background: var(--surface-hover) !important; }
-.sq-btn--danger:not(:disabled):hover { background: rgba(183, 82, 82, 0.12) !important; border-color: var(--status-failed) !important; }
-.sq-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-
-.sq-input:focus, .sq-select:focus { outline: none; border-color: var(--brand-primary) !important; box-shadow: var(--focus-ring); }
-.sq-input::placeholder { color: var(--text-muted); }
-
-.sq-row { transition: background var(--duration-fast) var(--ease-standard); }
-.sq-row:hover { background: var(--surface-hover); }
-
-.sq-navitem { transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
-.sq-navitem:hover { background: var(--surface-hover); color: var(--text-strong); }
+/* Interaction states (:hover / :focus-visible / :active) and layout now live on the
+ * components as Tailwind utility variants. The `.sq-*` class names remain on the
+ * elements as stable styling hooks, but carry no CSS here. */

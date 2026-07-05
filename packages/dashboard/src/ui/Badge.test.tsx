@@ -8,7 +8,7 @@ describe("Badge", () => {
 
     const el = container.querySelector(".sq-badge");
     expect(el).toHaveTextContent("Completed");
-    expect(el).toHaveStyle({ color: "var(--status-completed)" });
+    expect(el).toHaveClass("text-status-completed", "bg-status-completed/15");
     // no dot by default
     expect(el?.querySelector("span")).toBeNull();
   });
@@ -34,6 +34,6 @@ describe("Badge", () => {
     const el = container.querySelector(".sq-badge");
     // neutral label is empty
     expect(el).toHaveTextContent("");
-    expect(el).toHaveStyle({ color: "var(--text-secondary)" });
+    expect(el).toHaveClass("text-fg-secondary", "bg-fg-secondary/15");
   });
 });

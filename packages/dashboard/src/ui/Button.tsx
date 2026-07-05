@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, CSSProperties } from "react";
+import type { ButtonHTMLAttributes } from "react";
+import { cn } from "./cn";
 import { Icon } from "./Icon";
 
 /** Visual treatments for {@link Button}. */
@@ -22,18 +23,22 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
 }
 
-interface SizeSpec {
-  height: string;
-  padding: string;
-  font: string;
-  gap: string;
-  icon: number;
-}
+const BASE =
+  "inline-flex items-center justify-center whitespace-nowrap select-none font-sans font-medium leading-none rounded-sm border border-transparent cursor-pointer transition-[background-color,border-color,transform] duration-[120ms] ease-standard disabled:opacity-50 disabled:cursor-not-allowed enabled:active:translate-y-[0.5px] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-ring";
 
-const SIZES: Record<ButtonSize, SizeSpec> = {
-  sm: { height: "var(--control-height-sm)", padding: "0 0.7rem", font: "var(--text-xs)", gap: "0.35rem", icon: 14 },
-  md: { height: "var(--control-height)", padding: "0 1rem", font: "var(--text-sm)", gap: "0.45rem", icon: 16 },
-  lg: { height: "2.75rem", padding: "0 1.35rem", font: "var(--text-base)", gap: "0.5rem", icon: 18 },
+const SIZES: Record<ButtonSize, { class: string; icon: number }> = {
+  sm: { class: "h-control-sm px-[0.7rem] gap-[0.35rem] text-xs", icon: 14 },
+  md: { class: "h-control px-4 gap-[0.45rem] text-sm", icon: 16 },
+  lg: { class: "h-11 px-[1.35rem] gap-2 text-base", icon: 18 },
+};
+
+const VARIANTS: Record<ButtonVariant, string> = {
+  primary: "bg-brand text-on-brand border-brand enabled:hover:bg-brand-hover enabled:hover:border-brand-hover",
+  default: "text-fg border-edge-strong enabled:hover:bg-surface-hover",
+  outline: "bg-transparent text-fg border-edge-strong enabled:hover:bg-surface-hover",
+  ghost: "text-fg border-transparent enabled:hover:bg-surface-hover",
+  danger:
+    "bg-transparent text-status-failed border-edge-strong enabled:hover:bg-status-failed/10 enabled:hover:border-status-failed",
 };
 
 /**
@@ -52,55 +57,27 @@ export function Button({
   active = false,
   type = "button",
   className = "",
-  style = {},
   ...rest
 }: ButtonProps) {
   const s = SIZES[size];
-
-  const base: CSSProperties = {
-    display: block ? "flex" : "inline-flex",
-    width: block ? "100%" : "auto",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: s.gap,
-    height: s.height,
-    padding: s.padding,
-    fontFamily: "var(--font-sans)",
-    fontSize: s.font,
-    fontWeight: "var(--weight-medium)",
-    lineHeight: 1,
-    whiteSpace: "nowrap",
-    borderRadius: "var(--radius-sm)",
-    border: "1px solid transparent",
-    cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.5 : 1,
-    transition:
-      "background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard)",
-    userSelect: "none",
-  };
-
-  const variants: Record<ButtonVariant, CSSProperties> = {
-    primary: { background: "var(--brand-primary)", color: "var(--on-brand)", borderColor: "var(--brand-primary)" },
-    default: {
-      background: active ? "var(--surface-hover)" : "var(--surface-raised)",
-      color: "var(--text-primary)",
-      borderColor: "var(--border-strong)",
-    },
-    outline: { background: "transparent", color: "var(--text-primary)", borderColor: "var(--border-strong)" },
-    ghost: {
-      background: active ? "var(--surface-hover)" : "transparent",
-      color: "var(--text-primary)",
-      borderColor: "transparent",
-    },
-    danger: { background: "transparent", color: "var(--status-failed)", borderColor: "var(--border-strong)" },
-  };
+  // `active` fills default/ghost with the hover surface to read as pressed/selected.
+  const activeFill = active && (variant === "default" || variant === "ghost") ? "bg-surface-hover" : "";
+  const defaultRaised = variant === "default" && !active ? "bg-surface-raised" : "";
 
   return (
     <button
       type={type}
       disabled={disabled}
-      className={`sq-btn sq-btn--${variant} ${className}`}
-      style={{ ...base, ...variants[variant], ...style }}
+      className={cn(
+        `sq-btn sq-btn--${variant}`,
+        BASE,
+        s.class,
+        VARIANTS[variant],
+        defaultRaised,
+        activeFill,
+        block ? "flex w-full" : "inline-flex w-auto",
+        className,
+      )}
       {...rest}
     >
       {icon && <Icon name={icon} size={s.icon} />}

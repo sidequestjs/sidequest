@@ -1,25 +1,15 @@
 import react from "@vitejs/plugin-react";
-import { cpSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 const pkgDir = import.meta.dirname;
 
-// The design tokens ship as plain CSS (consumers link `@sidequest/dashboard/ui/styles.css`).
-// The lib entry stays JS-only, so copy the token stylesheet tree into dist after the build.
-function copyTokenCss() {
-  return {
-    name: "sq-copy-ui-css",
-    closeBundle() {
-      cpSync(resolve(pkgDir, "src/ui/styles.css"), resolve(pkgDir, "dist/ui/styles.css"));
-      cpSync(resolve(pkgDir, "src/ui/tokens"), resolve(pkgDir, "dist/ui/tokens"), { recursive: true });
-    },
-  };
-}
-
-// Vite builds the `@sidequest/dashboard/ui` component library. The Express
-// server keeps its own Rollup build (see rollup.config.js) untouched.
+// Vite builds the `@sidequest/dashboard/ui` component library (JS only). The shipped
+// stylesheet (`@sidequest/dashboard/ui/styles.css`) is compiled separately by the
+// Tailwind CLI in the build script — it inlines the design tokens and the utilities
+// the components use into a single self-contained file. The Express server keeps its
+// own Rollup build (see rollup.config.js) untouched.
 export default defineConfig({
   plugins: [
     react(),
@@ -30,7 +20,6 @@ export default defineConfig({
       exclude: ["src/ui/**/*.test.tsx", "src/ui/**/*.stories.tsx"],
       outDir: resolve(pkgDir, "dist/ui"),
     }),
-    copyTokenCss(),
   ],
   build: {
     outDir: resolve(pkgDir, "dist/ui"),

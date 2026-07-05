@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
 /** Job lifecycle states with a badge preset. */
 export type JobState = "completed" | "failed" | "running" | "claimed" | "waiting" | "scheduled" | "canceled";
@@ -11,9 +12,9 @@ export interface BadgeProps {
   state?: JobState | QueueState | "neutral";
   /** Show a leading status dot. */
   dot?: boolean;
-  /** Override background. */
+  /** Override background (caller escape hatch, applied inline). */
   bg?: string;
-  /** Override foreground. */
+  /** Override foreground (caller escape hatch, applied inline). */
   fg?: string;
   children?: ReactNode;
   className?: string;
@@ -21,23 +22,25 @@ export interface BadgeProps {
 }
 
 interface StatePreset {
-  /** Theme-aware status color token; the pill fill is a soft tint of it. */
-  color: string;
+  /** Foreground text utility (theme-aware status token). */
+  text: string;
+  /** Soft-tint fill utility (same token at low alpha). */
+  fill: string;
   label: string;
 }
 
 const STATE: Record<string, StatePreset> = {
-  completed: { color: "var(--status-completed)", label: "Completed" },
-  failed: { color: "var(--status-failed)", label: "Failed" },
-  running: { color: "var(--status-running)", label: "Running" },
-  claimed: { color: "var(--status-running)", label: "Claimed" },
-  waiting: { color: "var(--status-scheduled)", label: "Waiting" },
-  scheduled: { color: "var(--status-scheduled)", label: "Scheduled" },
-  canceled: { color: "var(--text-secondary)", label: "Canceled" },
-  active: { color: "var(--status-completed)", label: "Active" },
-  paused: { color: "var(--status-scheduled)", label: "Paused" },
-  disabled: { color: "var(--status-failed)", label: "Disabled" },
-  neutral: { color: "var(--text-secondary)", label: "" },
+  completed: { text: "text-status-completed", fill: "bg-status-completed/15", label: "Completed" },
+  failed: { text: "text-status-failed", fill: "bg-status-failed/15", label: "Failed" },
+  running: { text: "text-status-running", fill: "bg-status-running/15", label: "Running" },
+  claimed: { text: "text-status-running", fill: "bg-status-running/15", label: "Claimed" },
+  waiting: { text: "text-status-scheduled", fill: "bg-status-scheduled/15", label: "Waiting" },
+  scheduled: { text: "text-status-scheduled", fill: "bg-status-scheduled/15", label: "Scheduled" },
+  canceled: { text: "text-fg-secondary", fill: "bg-fg-secondary/15", label: "Canceled" },
+  active: { text: "text-status-completed", fill: "bg-status-completed/15", label: "Active" },
+  paused: { text: "text-status-scheduled", fill: "bg-status-scheduled/15", label: "Paused" },
+  disabled: { text: "text-status-failed", fill: "bg-status-failed/15", label: "Disabled" },
+  neutral: { text: "text-fg-secondary", fill: "bg-fg-secondary/15", label: "" },
 };
 
 /**
@@ -48,28 +51,21 @@ const STATE: Record<string, StatePreset> = {
  */
 export function Badge({ state = "neutral", children, dot = false, className = "", style = {}, bg, fg }: BadgeProps) {
   const preset = STATE[state] ?? STATE.neutral;
-  const foreground = fg ?? preset.color;
-  const background = bg ?? `color-mix(in srgb, ${preset.color} 18%, transparent)`;
+  const override: CSSProperties = {};
+  if (bg) override.background = bg;
+  if (fg) override.color = fg;
+
   return (
     <span
-      className={`sq-badge ${className}`}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.35rem",
-        height: "1.5rem",
-        padding: "0 0.6rem",
-        fontSize: "var(--text-xs)",
-        fontWeight: "var(--weight-semibold)",
-        lineHeight: 1,
-        borderRadius: "var(--radius-full)",
-        background,
-        color: foreground,
-        whiteSpace: "nowrap",
-        ...style,
-      }}
+      className={cn(
+        "sq-badge inline-flex items-center gap-[0.35rem] h-6 px-[0.6rem] text-xs font-semibold leading-none rounded-full whitespace-nowrap",
+        !fg && preset.text,
+        !bg && preset.fill,
+        className,
+      )}
+      style={{ ...override, ...style }}
     >
-      {dot && <span style={{ width: 6, height: 6, borderRadius: "var(--radius-full)", background: "currentColor" }} />}
+      {dot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
       {children ?? preset.label}
     </span>
   );

@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 import { Icon } from "./Icon";
 
 /** Number tone for {@link StatCard}. */
@@ -20,12 +21,12 @@ export interface StatCardProps {
   style?: CSSProperties;
 }
 
-const TONES: Record<StatTone, string> = {
-  running: "var(--status-running)",
-  completed: "var(--status-completed)",
-  failed: "var(--status-failed)",
-  scheduled: "var(--status-scheduled)",
-  neutral: "var(--text-strong)",
+const TONE_TEXT: Record<StatTone, string> = {
+  running: "text-status-running",
+  completed: "text-status-completed",
+  failed: "text-status-failed",
+  scheduled: "text-status-scheduled",
+  neutral: "text-fg-strong",
 };
 
 /**
@@ -35,25 +36,16 @@ const TONES: Record<StatTone, string> = {
 export function StatCard({ label, value, tone = "neutral", icon, delta, className = "", style = {} }: StatCardProps) {
   return (
     <div
-      className={`sq-statcard ${className}`}
-      style={{
-        background: "var(--surface-raised)",
-        border: "1px solid var(--border-default)",
-        borderRadius: "var(--radius-md)",
-        padding: "var(--space-4) var(--space-4)",
-        boxShadow: "var(--shadow-sm)",
-        ...style,
-      }}
+      className={cn("sq-statcard bg-surface-raised border border-edge rounded-md p-4 shadow-sm", className)}
+      style={style}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>{label}</span>
-        {icon && <Icon name={icon} size={16} style={{ color: TONES[tone] }} />}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-fg-secondary">{label}</span>
+        {icon && <Icon name={icon} size={16} className={TONE_TEXT[tone]} />}
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginTop: "0.4rem" }}>
-        <span style={{ fontSize: "var(--text-3xl)", fontWeight: "var(--weight-bold)", color: TONES[tone], lineHeight: 1 }}>
-          {value}
-        </span>
-        {delta && <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{delta}</span>}
+      <div className="flex items-baseline gap-2 mt-[0.4rem]">
+        <span className={cn("text-3xl font-bold leading-none", TONE_TEXT[tone])}>{value}</span>
+        {delta && <span className="text-xs text-fg-muted">{delta}</span>}
       </div>
     </div>
   );

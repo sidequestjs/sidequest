@@ -1,4 +1,5 @@
 import { type ButtonHTMLAttributes, useEffect, useState } from "react";
+import { cn } from "./cn";
 import { Icon } from "./Icon";
 
 /** The two themes the design system ships. */
@@ -16,15 +17,10 @@ export interface ThemeToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonEl
 
 const STORAGE_KEY = "sq-theme";
 
-interface SizeSpec {
-  box: string;
-  icon: number;
-}
-
-const SIZES: Record<ThemeToggleSize, SizeSpec> = {
-  sm: { box: "var(--control-height-sm)", icon: 15 },
-  md: { box: "var(--control-height)", icon: 17 },
-  lg: { box: "2.75rem", icon: 19 },
+const SIZES: Record<ThemeToggleSize, { box: string; icon: number }> = {
+  sm: { box: "w-control-sm h-control-sm", icon: 15 },
+  md: { box: "w-control h-control", icon: 17 },
+  lg: { box: "w-11 h-11", icon: 19 },
 };
 
 function isTheme(value: string | null): value is Theme {
@@ -64,7 +60,7 @@ function applyTheme(theme: Theme): void {
  * setting `data-theme` on `<html>`, and persists the choice to localStorage. The
  * sun/moon glyph reflects the theme it will switch TO.
  */
-export function ThemeToggle({ size = "md", onChange, className = "", style = {}, ...rest }: ThemeToggleProps) {
+export function ThemeToggle({ size = "md", onChange, className = "", ...rest }: ThemeToggleProps) {
   const [theme, setTheme] = useState<Theme>(readInitial);
   const s = SIZES[size];
 
@@ -88,23 +84,11 @@ export function ThemeToggle({ size = "md", onChange, className = "", style = {},
       aria-label={`Switch to ${isLight ? "dark" : "light"} theme`}
       title={`Switch to ${isLight ? "dark" : "light"} theme`}
       onClick={toggle}
-      className={`sq-btn sq-btn--default ${className}`}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: s.box,
-        height: s.box,
-        padding: 0,
-        color: "var(--text-primary)",
-        background: "var(--surface-raised)",
-        border: "1px solid var(--border-strong)",
-        borderRadius: "var(--radius-sm)",
-        cursor: "pointer",
-        transition:
-          "background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)",
-        ...style,
-      }}
+      className={cn(
+        "sq-btn sq-btn--default inline-flex items-center justify-center p-0 rounded-sm border border-edge-strong bg-surface-raised text-fg cursor-pointer transition-[background-color,border-color,color] duration-[120ms] ease-standard enabled:hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-ring",
+        s.box,
+        className,
+      )}
       {...rest}
     >
       <Icon name={isLight ? "moon" : "sun"} size={s.icon} />

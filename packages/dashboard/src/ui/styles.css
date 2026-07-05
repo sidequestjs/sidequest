@@ -1,7 +1,13 @@
 /* @sidequest/dashboard/ui — global stylesheet.
- * Link this once. It is a manifest of @imports: every design token (fonts, colors,
- * typography, spacing, radii) plus the small base layer with the `.sq-*` interaction
- * classes. Synced from the Sidequest.js design system. Order matters.
+ * Link this once. It wires the design tokens (fonts, colors, typography, spacing,
+ * radii — the source of truth, kept in ./tokens/*.css) into Tailwind CSS v4 via a
+ * `@theme inline` bridge, then pulls in Tailwind itself. The components style
+ * themselves with the resulting utilities (bg-surface-raised, text-fg, rounded-md, …).
+ *
+ * `@theme inline` substitutes the token `var()` straight into the generated utilities
+ * instead of re-declaring the variable, so the semantic color tokens stay theme-aware
+ * (they flip under [data-theme]) and the scale tokens don't collide with themselves.
+ * Order matters: tokens first so their :root vars exist, then Tailwind.
  */
 @import "./tokens/fonts.css";
 @import "./tokens/colors.css";
@@ -9,3 +15,95 @@
 @import "./tokens/spacing.css";
 @import "./tokens/radii.css";
 @import "./tokens/base.css";
+@import "tailwindcss";
+
+/* Scan the component sources for utility usage. */
+@source "./";
+
+@theme inline {
+  /* ---- Surfaces (bg-surface, bg-surface-raised, …) ---- */
+  --color-surface: var(--surface-app);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-card: var(--surface-card);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-code: var(--surface-code);
+  --color-surface-inset: var(--surface-inset);
+
+  /* ---- Foreground / text (text-fg, text-fg-muted, …) ---- */
+  --color-fg: var(--text-primary);
+  --color-fg-strong: var(--text-strong);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-muted: var(--text-muted);
+  --color-fg-inverse: var(--text-inverse);
+  --color-fg-link: var(--text-link);
+
+  /* ---- Borders (border-edge, border-edge-strong, …) ---- */
+  --color-edge: var(--border-default);
+  --color-edge-strong: var(--border-strong);
+  --color-edge-subtle: var(--border-subtle);
+
+  /* ---- Brand (bg-brand, hover:bg-brand-hover, text-on-brand) ---- */
+  --color-brand: var(--brand-primary);
+  --color-brand-hover: var(--brand-primary-hover);
+  --color-brand-active: var(--brand-primary-active);
+  --color-on-brand: var(--on-brand);
+  --color-brand-ring: var(--brand-ring);
+
+  /* ---- Status (text-status-failed, bg-status-completed, …) ---- */
+  --color-status-running: var(--status-running);
+  --color-status-completed: var(--status-completed);
+  --color-status-failed: var(--status-failed);
+  --color-status-scheduled: var(--status-scheduled);
+
+  /* ---- Fonts (font-sans, font-brand, font-mono) ---- */
+  --font-sans: var(--font-sans);
+  --font-brand: var(--font-brand);
+  --font-mono: var(--font-mono);
+
+  /* ---- Type scale (text-2xs … text-5xl) ---- */
+  --text-2xs: var(--text-2xs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+  --text-3xl: var(--text-3xl);
+  --text-4xl: var(--text-4xl);
+  --text-5xl: var(--text-5xl);
+
+  /* ---- Line height (leading-tight … leading-relaxed) ---- */
+  --leading-tight: var(--leading-tight);
+  --leading-snug: var(--leading-snug);
+  --leading-normal: var(--leading-normal);
+  --leading-relaxed: var(--leading-relaxed);
+
+  /* ---- Letter spacing (tracking-tight … tracking-caps) ---- */
+  --tracking-tight: var(--tracking-tight);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: var(--tracking-wide);
+  --tracking-caps: var(--tracking-caps);
+
+  /* ---- Radii (rounded-xs … rounded-xl) ---- */
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* ---- Elevation (shadow-xs … shadow-lg, shadow-glow) ---- */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-glow: var(--shadow-glow);
+
+  /* ---- Motion (ease-standard, ease-out) ---- */
+  --ease-standard: var(--ease-standard);
+  --ease-out: var(--ease-out);
+
+  /* ---- Layout sizes (w-sidebar, h-control, h-control-sm) ---- */
+  --spacing-sidebar: var(--sidebar-width);
+  --spacing-control: var(--control-height);
+  --spacing-control-sm: var(--control-height-sm);
+}

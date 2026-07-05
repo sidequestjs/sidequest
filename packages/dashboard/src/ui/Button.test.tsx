@@ -38,4 +38,22 @@ describe("Button", () => {
     // leading + trailing icons
     expect(btn.querySelectorAll("svg")).toHaveLength(2);
   });
+
+  it("fills the default and ghost variants with the hover surface when active", () => {
+    const { rerender } = render(
+      <Button variant="default" active>
+        D
+      </Button>,
+    );
+    const def = screen.getByRole("button", { name: "D" });
+    expect(def).toHaveClass("bg-surface-hover");
+    expect(def).not.toHaveClass("bg-surface-raised");
+
+    rerender(
+      <Button variant="ghost" active>
+        G
+      </Button>,
+    );
+    expect(screen.getByRole("button", { name: "G" })).toHaveClass("bg-surface-hover");
+  });
 });

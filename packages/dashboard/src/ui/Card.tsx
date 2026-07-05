@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
 /** Props for the {@link Card} panel primitive. */
 export interface CardProps {
@@ -6,7 +7,7 @@ export interface CardProps {
   title?: ReactNode;
   /** Right-aligned header actions (buttons). */
   actions?: ReactNode;
-  /** Body padding. @default "var(--space-6)" */
+  /** Body padding (CSS length). @default "var(--space-6)" */
   padding?: string;
   children?: ReactNode;
   className?: string;
@@ -29,39 +30,16 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`sq-card ${className}`}
-      style={{
-        background: "var(--surface-card)",
-        border: "1px solid var(--border-default)",
-        borderRadius: "var(--radius-md)",
-        boxShadow: "var(--shadow-md)",
-        overflow: "hidden",
-        ...style,
-      }}
+      className={cn("sq-card overflow-hidden bg-surface-card border border-edge rounded-md shadow-md", className)}
+      style={style}
     >
       {(title != null || actions != null) && (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: `var(--space-4) ${padding}`,
-            borderBottom: "1px solid var(--border-subtle)",
-          }}
+          className="flex items-center justify-between border-b border-edge-subtle"
+          style={{ padding: `var(--space-4) ${padding}` }}
         >
-          {title && (
-            <h3
-              style={{
-                margin: 0,
-                fontSize: "var(--text-lg)",
-                fontWeight: "var(--weight-semibold)",
-                color: "var(--text-strong)",
-              }}
-            >
-              {title}
-            </h3>
-          )}
-          {actions && <div style={{ display: "flex", gap: "0.5rem" }}>{actions}</div>}
+          {title && <h3 className="m-0 text-lg font-semibold text-fg-strong">{title}</h3>}
+          {actions && <div className="flex gap-2">{actions}</div>}
         </div>
       )}
       <div style={{ padding, ...bodyStyle }}>{children}</div>

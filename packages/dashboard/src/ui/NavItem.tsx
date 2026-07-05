@@ -1,4 +1,5 @@
 import type { CSSProperties, MouseEvent } from "react";
+import { cn } from "./cn";
 import { Icon } from "./Icon";
 
 /** Props for the {@link NavItem} sidebar link. */
@@ -15,30 +16,23 @@ export interface NavItemProps {
 
 /**
  * NavItem — a single sidebar link. The active state gets a subtle raised fill and a
- * brand left-accent; hover lightens (see `.sq-navitem` in the base layer).
+ * brand left-accent; hover lightens.
  */
 export function NavItem({ label, icon, active = false, href = "#", onClick, className = "", style = {} }: NavItemProps) {
   return (
     <a
       href={href}
       onClick={onClick}
-      className={`sq-navitem ${className}`}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.65rem",
-        padding: "0.5rem 0.75rem",
-        borderRadius: "var(--radius-sm)",
-        fontSize: "var(--text-sm)",
-        fontWeight: active ? "var(--weight-semibold)" : "var(--weight-medium)",
-        color: active ? "var(--text-strong)" : "var(--text-primary)",
-        background: active ? "var(--surface-hover)" : "transparent",
-        borderLeft: active ? "2px solid var(--brand-primary)" : "2px solid transparent",
-        textDecoration: "none",
-        ...style,
-      }}
+      className={cn(
+        "sq-navitem flex items-center gap-[0.65rem] px-3 py-2 rounded-sm text-sm no-underline border-l-2 transition-[background-color,color] duration-[120ms] ease-standard hover:bg-surface-hover hover:text-fg-strong",
+        active
+          ? "font-semibold text-fg-strong bg-surface-hover border-brand"
+          : "font-medium text-fg bg-transparent border-transparent",
+        className,
+      )}
+      style={style}
     >
-      {icon && <Icon name={icon} size={16} style={{ color: active ? "var(--brand-primary)" : "var(--text-secondary)" }} />}
+      {icon && <Icon name={icon} size={16} className={active ? "text-brand" : "text-fg-secondary"} />}
       {label}
     </a>
   );

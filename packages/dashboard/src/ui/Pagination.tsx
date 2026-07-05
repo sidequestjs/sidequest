@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
 /** Props for the {@link Pagination} control. */
 export interface PaginationProps {
@@ -20,29 +21,18 @@ export function Pagination({ page, hasNext = false, onPrev, onNext, className = 
       type="button"
       disabled={!enabled}
       onClick={enabled ? onClick : undefined}
-      style={{
-        height: "var(--control-height-sm)",
-        minWidth: "2rem",
-        padding: "0 0.7rem",
-        fontSize: "var(--text-xs)",
-        fontWeight: "var(--weight-medium)",
-        fontFamily: "var(--font-sans)",
-        color: active ? "var(--on-brand)" : "var(--text-primary)",
-        background: active ? "var(--brand-primary)" : "var(--surface-raised)",
-        border: "1px solid var(--border-strong)",
-        cursor: enabled ? "pointer" : "not-allowed",
-        opacity: enabled ? 1 : 0.4,
-      }}
+      className={cn(
+        "h-control-sm min-w-8 px-[0.7rem] text-xs font-medium font-sans border border-edge-strong",
+        active ? "text-on-brand bg-brand" : "text-fg bg-surface-raised",
+        enabled ? "cursor-pointer opacity-100 enabled:hover:bg-surface-hover" : "cursor-not-allowed opacity-40",
+      )}
     >
       {content}
     </button>
   );
 
   return (
-    <div
-      className={`sq-pagination ${className}`}
-      style={{ display: "inline-flex", borderRadius: "var(--radius-sm)", overflow: "hidden", ...style }}
-    >
+    <div className={cn("sq-pagination inline-flex rounded-sm overflow-hidden", className)} style={style}>
       {btn("«", page > 1, onPrev, false)}
       {btn(`Page ${page}`, false, undefined, true)}
       {btn("»", hasNext, onNext, false)}

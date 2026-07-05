@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { cn } from "./cn";
 
 /** Props for the {@link CodeBlock} monospace panel. */
 export interface CodeBlockProps {
@@ -19,21 +20,11 @@ export function CodeBlock({ code, language, maxHeight = "15rem", className = "",
   const text = typeof code === "string" ? code : JSON.stringify(code, null, 2);
   return (
     <pre
-      className={`sq-codeblock ${className}`}
-      style={{
-        margin: 0,
-        background: "var(--surface-code)",
-        border: "1px solid var(--border-default)",
-        borderRadius: "var(--radius-md)",
-        padding: "0.85rem 1rem",
-        fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-xs)",
-        lineHeight: 1.6,
-        color: "var(--text-primary)",
-        maxHeight,
-        overflow: "auto",
-        ...style,
-      }}
+      className={cn(
+        "sq-codeblock m-0 bg-surface-code border border-edge rounded-md px-4 py-[0.85rem] font-mono text-xs leading-[1.6] text-fg overflow-auto",
+        className,
+      )}
+      style={{ maxHeight, ...style }}
     >
       <code data-language={language}>{text}</code>
     </pre>
