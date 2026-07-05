@@ -7,6 +7,10 @@ import { defineConfig } from "vite";
 // web façade will serve.
 export default defineConfig({
   root: import.meta.dirname,
+  // Relative asset URLs so one build serves both the root and any reverse-proxy base path
+  // (the façade injects the runtime base; the app uses hash routing, so the document URL
+  // stays at "<base>/" and "./assets/…" resolves under it).
+  base: "./",
   plugins: [react()],
   server: {
     port: 5199,
