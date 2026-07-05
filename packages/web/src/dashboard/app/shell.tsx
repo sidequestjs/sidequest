@@ -82,7 +82,7 @@ export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
       <AppSidebar pages={pages} activePath={active.path} onNavigate={go} onOpenPalette={() => setPalette(true)} />
       <main className="relative z-[1] flex-1 overflow-y-auto">
         <DashboardHeader title={active.nav.label} subtitle={active.nav.subtitle} />
-        <div className="px-7 pt-6 pb-12 max-w-[1180px]">{active.element}</div>
+        <div className="px-7 pt-6 pb-12">{active.element}</div>
       </main>
       <CommandPalette
         open={palette}

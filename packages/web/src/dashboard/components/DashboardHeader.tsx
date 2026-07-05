@@ -14,9 +14,9 @@ export interface DashboardHeaderProps {
 export function DashboardHeader({ title, subtitle }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-[5] bg-[color-mix(in_srgb,var(--surface-app)_82%,transparent)] backdrop-blur-[10px] border-b border-edge-subtle">
-      {/* Inner content shares the page content's max width + padding so the title and the
-          toggle/docs actions line up with the content's left and right edges. */}
-      <div className="flex items-center justify-between px-7 py-4 max-w-[1180px]">
+      {/* Same horizontal padding as the page content so the title and the toggle/docs
+          actions line up with the content's left and right edges (both full-width). */}
+      <div className="flex items-center justify-between px-7 py-4">
         <div>
           <h1 className="m-0 text-xl font-bold text-fg-strong tracking-[-0.01em]">{title}</h1>
           {subtitle && <div className="text-[12.5px] text-fg-muted mt-0.5">{subtitle}</div>}
