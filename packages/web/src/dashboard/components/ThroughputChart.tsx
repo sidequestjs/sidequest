@@ -28,13 +28,16 @@ function hhmm(timestamp: string | Date): string {
 }
 
 /**
- * ThroughputChart — completed vs failed jobs over time, drawn with Chart.js, plus a
- * range selector. Guards against environments without a 2D canvas context or
- * ResizeObserver (jsdom) so it renders inertly under test.
+ * ThroughputChart — completed vs failed jobs over time, drawn with Chart.js and a range
+ * selector. The chart is created once and then updated in place as new data arrives, so
+ * polling gently pushes the series along instead of replaying the entrance animation on
+ * every refetch. Guards against environments without a 2D canvas context (jsdom).
  */
 export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
 
+  // Create the chart once (empty), on mount.
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
@@ -44,11 +47,11 @@ export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartP
     const config: ChartConfiguration = {
       type: "line",
       data: {
-        labels: data.map((point) => hhmm(point.timestamp)),
+        labels: [],
         datasets: [
           {
             label: "Completed",
-            data: data.map((point) => point.completed),
+            data: [],
             borderColor: "#4faf75",
             backgroundColor: "rgba(79,175,117,0.10)",
             tension: 0.4,
@@ -58,7 +61,7 @@ export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartP
           },
           {
             label: "Failed",
-            data: data.map((point) => point.failed),
+            data: [],
             borderColor: "#b75252",
             backgroundColor: "rgba(183,82,82,0.10)",
             tension: 0.4,
@@ -71,6 +74,10 @@ export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartP
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        // Only the first paint animates; in-place updates use a short, uniform tween so
+        // new points ease in rather than re-running the entrance reveal.
+        animation: { duration: 500 },
+        animations: { y: { duration: 300 }, x: { duration: 0 } },
         interaction: { mode: "index", intersect: false },
         scales: {
           x: { ticks: { color: "#6b7688", font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
@@ -99,6 +106,7 @@ export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartP
       },
     };
     const chart = new Chart(ctx, config);
+    chartRef.current = chart;
     const box = canvas.parentElement;
     const observer = new ResizeObserver(() => chart.resize());
     if (box) {
@@ -107,7 +115,20 @@ export function ThroughputChart({ data, range, onRangeChange }: ThroughputChartP
     return () => {
       observer.disconnect();
       chart.destroy();
+      chartRef.current = null;
     };
+  }, []);
+
+  // Push new data into the existing chart (no teardown → no entrance re-animation).
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) {
+      return;
+    }
+    chart.data.labels = data.map((point) => hhmm(point.timestamp));
+    chart.data.datasets[0].data = data.map((point) => point.completed);
+    chart.data.datasets[1].data = data.map((point) => point.failed);
+    chart.update();
   }, [data]);
 
   return (
