@@ -20,9 +20,9 @@ export default tseslint.config(
       "**/migrations/**",
       "**/storybook-static/**",
       "packages/docs/.vitepress/cache/**",
-      "packages/dashboard/vite.lib.config.ts",
-      "packages/dashboard/vitest.setup.ts",
-      "packages/dashboard/.storybook/**",
+      "packages/web/vite.lib.config.ts",
+      "packages/web/vitest.setup.ts",
+      "packages/web/.storybook/**",
     ],
   },
   {
@@ -51,13 +51,13 @@ export default tseslint.config(
   },
   {
     // React UI library lives in its own tsconfig (JSX, DOM libs, bundler resolution).
-    files: ["packages/dashboard/src/ui/**/*.{ts,tsx}"],
+    files: ["packages/web/src/ui/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks, "jsx-a11y": jsxA11y },
     languageOptions: {
       globals: { ...globals.browser },
       parserOptions: {
         projectService: false,
-        project: ["./packages/dashboard/tsconfig.ui.json"],
+        project: ["./packages/web/tsconfig.ui.json"],
         tsconfigRootDir: import.meta.dirname,
         sourceType: "module",
       },

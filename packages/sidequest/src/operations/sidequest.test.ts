@@ -6,17 +6,6 @@ import { Sidequest } from "./sidequest";
 import { SidequestConfig } from "./types";
 
 // Mock dependencies
-const mockSidequestDashboard = vi.hoisted(() => ({
-  start: vi.fn(),
-  close: vi.fn(),
-}));
-
-vi.mock("@sidequest/dashboard", () => ({
-  SidequestDashboard: vi.fn().mockImplementation(function () {
-    return mockSidequestDashboard;
-  }),
-}));
-
 const mockEngineInstance = vi.hoisted(() => ({
   configure: vi.fn().mockResolvedValue({} as NonNullableEngineConfig),
   start: vi.fn(),
@@ -77,8 +66,6 @@ describe("Sidequest", () => {
     vi.resetAllMocks();
 
     // Restore original mock implementations
-    mockSidequestDashboard.start.mockImplementation(vi.fn());
-    mockSidequestDashboard.close.mockImplementation(vi.fn());
     mockEngineInstance.configure.mockResolvedValue({} as NonNullableEngineConfig);
     mockEngineInstance.start.mockImplementation(vi.fn());
     mockEngineInstance.close.mockImplementation(vi.fn());
@@ -122,20 +109,12 @@ describe("Sidequest", () => {
   });
 
   describe("start", () => {
-    it("should configure engine and start both engine and dashboard", async () => {
-      const config: SidequestConfig = {
-        ...mockEngineConfig,
-        dashboard: { port: 4000 },
-      };
-      vi.mocked(mockEngineInstance.configure).mockResolvedValue(config as NonNullableEngineConfig);
-      await Sidequest.start(config);
+    it("should configure and start the engine", async () => {
+      vi.mocked(mockEngineInstance.configure).mockResolvedValue(mockEngineConfig as NonNullableEngineConfig);
+      await Sidequest.start(mockEngineConfig);
 
-      expect(mockEngineInstance.configure).toHaveBeenCalledWith(config);
+      expect(mockEngineInstance.configure).toHaveBeenCalledWith(mockEngineConfig);
       expect(mockEngineInstance.start).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).toHaveBeenCalledWith({
-        port: 4000,
-        backendConfig: mockEngineConfig.backend,
-      });
     });
 
     it("should work without config", async () => {
@@ -144,42 +123,6 @@ describe("Sidequest", () => {
 
       expect(mockEngineInstance.configure).toHaveBeenCalledWith(undefined);
       expect(mockEngineInstance.start).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).toHaveBeenCalledWith({
-        backendConfig: mockEngineConfig.backend,
-      });
-    });
-
-    it("should work without dashboard config", async () => {
-      const config: SidequestConfig = {
-        ...mockEngineConfig,
-      };
-
-      vi.mocked(mockEngineInstance.configure).mockResolvedValue(config as NonNullableEngineConfig);
-      await Sidequest.start(config);
-
-      expect(mockEngineInstance.configure).toHaveBeenCalledWith(config);
-      expect(mockEngineInstance.start).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).toHaveBeenCalledWith({
-        backendConfig: mockEngineConfig.backend,
-      });
-    });
-
-    it("should pass through dashboard configuration while excluding backendConfig", async () => {
-      const config: SidequestConfig = {
-        ...mockEngineConfig,
-        dashboard: {
-          port: 5000,
-        },
-      };
-
-      vi.spyOn(Sidequest, "configure").mockResolvedValue(config as NonNullableEngineConfig);
-
-      await Sidequest.start(config);
-
-      expect(mockSidequestDashboard.start).toHaveBeenCalledWith({
-        port: 5000,
-        backendConfig: mockEngineConfig.backend,
-      });
     });
 
     it("should handle engine configuration errors", async () => {
@@ -189,7 +132,7 @@ describe("Sidequest", () => {
       await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
 
       expect(mockEngineInstance.configure).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).not.toHaveBeenCalled();
+      expect(mockEngineInstance.start).not.toHaveBeenCalled();
     });
 
     it("should handle engine start errors", async () => {
@@ -198,20 +141,6 @@ describe("Sidequest", () => {
 
       await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
 
-      expect(mockEngineInstance.start).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).toHaveBeenCalled();
-    });
-
-    it("should handle dashboard start errors", async () => {
-      const error = new Error("Dashboard start failed");
-
-      mockSidequestDashboard.start.mockImplementation(() => {
-        throw error;
-      });
-
-      await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
-
-      expect(mockEngineInstance.configure).toHaveBeenCalled();
       expect(mockEngineInstance.start).toHaveBeenCalled();
     });
 
@@ -229,31 +158,13 @@ describe("Sidequest", () => {
 
       stopSpy.mockRestore();
     });
-
-    it("should call stop if dashboard start fails", async () => {
-      const error = new Error("Dashboard start failed");
-      mockSidequestDashboard.start.mockRejectedValue(error);
-
-      // Spy on the stop method
-      const stopSpy = vi.spyOn(Sidequest, "stop");
-
-      await expect(Sidequest.start(mockEngineConfig)).rejects.toThrow();
-
-      expect(mockEngineInstance.configure).toHaveBeenCalled();
-      expect(mockEngineInstance.start).toHaveBeenCalled();
-      expect(mockSidequestDashboard.start).toHaveBeenCalled();
-      expect(stopSpy).toHaveBeenCalled();
-
-      stopSpy.mockRestore();
-    });
   });
 
   describe("stop", () => {
-    it("should stop both engine and dashboard", async () => {
+    it("should stop the engine", async () => {
       await Sidequest.stop();
 
       expect(mockEngineInstance.close).toHaveBeenCalled();
-      expect(mockSidequestDashboard.close).toHaveBeenCalled();
     });
   });
 });

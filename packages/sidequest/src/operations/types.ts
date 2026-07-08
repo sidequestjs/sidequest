@@ -1,5 +1,4 @@
 import { SQLDriverConfig } from "@sidequest/backend";
-import { DashboardConfig } from "@sidequest/dashboard";
 import { EngineConfig } from "@sidequest/engine";
 
 /**
@@ -50,9 +49,10 @@ export type SidequestEngineConfig<TDriver extends string = KnownDrivers> = Omit<
 };
 
 /**
- * Complete Sidequest configuration
+ * Complete Sidequest configuration.
+ *
+ * Currently an alias of {@link SidequestEngineConfig}. The dashboard/web layer is
+ * being rewritten and no longer wired into `Sidequest.start`; it will be reintroduced
+ * here once the `@sidequest/web` façade lands.
  */
-export type SidequestConfig<TDriver extends string = KnownDrivers> = SidequestEngineConfig<TDriver> & {
-  /** Optional dashboard configuration */
-  dashboard?: Omit<DashboardConfig, "backendConfig">;
-};
+export type SidequestConfig<TDriver extends string = KnownDrivers> = SidequestEngineConfig<TDriver>;

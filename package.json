@@ -25,7 +25,7 @@
     "test:all:ci": "turbo run test:ci",
     "test:all:debug": "yarn vitest --test-timeout=0 run --exclude tests/integration",
     "test:all:coverage": "vitest run --coverage --exclude tests/integration",
-    "test:ui:coverage": "yarn vitest run --config packages/dashboard/vitest.config.js --coverage",
+    "test:ui:coverage": "yarn vitest run --config packages/web/vitest.config.js --coverage",
     "format": "prettier --write \"**/*.{ts,js,mts,tsx,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,mts,tsx,jsx}\"",
     "lint": "eslint . --ext .ts,.mts,.js,.tsx,.jsx",

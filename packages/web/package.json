@@ -1,7 +1,7 @@
 {
-  "name": "@sidequest/dashboard",
+  "name": "@sidequest/web",
   "version": "1.16.0",
-  "description": "@sidequest/dashboard is the web dashboard for Sidequest, a distributed background job queue system.",
+  "description": "@sidequest/web is the web layer for Sidequest: dashboard UI components, the OSS dashboard app, and the management API.",
   "keywords": [
     "nodejs",
     "javascript",
@@ -19,20 +19,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sidequestjs/sidequest.git",
-    "directory": "packages/dashboard"
+    "directory": "packages/web"
   },
   "funding": "https://github.com/sponsors/sidequestjs",
   "packageManager": "yarn@4.9.2",
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
     "./ui": {
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"
@@ -43,40 +35,24 @@
     "dist"
   ],
   "scripts": {
-    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
-    "dev": "npx rollup -c -w",
+    "build": "npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
+    "dev": "npx vite build --watch --config vite.lib.config.ts",
     "test": "yarn vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "license": "LGPL-3.0-or-later",
-  "dependencies": {
-    "@sidequest/backend": "workspace:*",
-    "@sidequest/core": "workspace:*",
-    "@sidequest/engine": "workspace:*",
-    "clsx": "^2.1.1",
-    "ejs": "^4.0.1",
-    "express": "^5.2.1",
-    "express-basic-auth": "^1.2.1",
-    "express-ejs-layouts": "^2.5.1",
-    "morgan": "^1.10.1"
-  },
   "devDependencies": {
-    "@highlightjs/cdn-assets": "^11.11.1",
     "@storybook/react-vite": "^10.4.6",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/feather-icons": "^4.29.4",
-    "@types/morgan": "^1.9.10",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
-    "chart.js": "^4.5.1",
+    "clsx": "^2.1.1",
     "daisyui": "5.1.7",
-    "feather-icons": "^4.29.2",
-    "htmx.org": "^2.0.8",
     "jsdom": "^29.1.1",
     "lucide-react": "^1.23.0",
     "react": "^19.2.7",

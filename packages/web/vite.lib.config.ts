@@ -5,11 +5,10 @@ import dts from "vite-plugin-dts";
 
 const pkgDir = import.meta.dirname;
 
-// Vite builds the `@sidequest/dashboard/ui` component library (JS only). The shipped
-// stylesheet (`@sidequest/dashboard/ui/styles.css`) is compiled separately by the
-// Tailwind CLI in the build script — it inlines the design tokens and the utilities
-// the components use into a single self-contained file. The Express server keeps its
-// own Rollup build (see rollup.config.js) untouched.
+// Vite builds the `@sidequest/web/ui` component library (JS only). The shipped
+// stylesheet (`@sidequest/web/ui/styles.css`) is compiled separately by the Tailwind
+// CLI in the build script — it inlines the design tokens and the utilities the
+// components use into a single self-contained file.
 export default defineConfig({
   plugins: [
     react(),

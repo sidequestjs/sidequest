@@ -61,7 +61,6 @@
   "dependencies": {
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
-    "@sidequest/dashboard": "workspace:*",
     "@sidequest/engine": "workspace:*"
   }
 }
