@@ -91,7 +91,7 @@ export function ThemeToggle({ size = "md", onChange, className = "", ...rest }: 
       )}
       {...rest}
     >
-      <Icon name={isLight ? "moon" : "sun"} size={s.icon} />
+      <Icon name={isLight ? "Moon" : "Sun"} size={s.icon} />
     </button>
   );
 }

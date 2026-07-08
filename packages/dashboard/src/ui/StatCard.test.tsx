@@ -13,7 +13,7 @@ describe("StatCard", () => {
 
   it("renders a tone, icon, delta and className", () => {
     const { container } = render(
-      <StatCard label="Failed" value={3} tone="failed" icon="activity" delta="+2 today" className="extra" style={{}} />,
+      <StatCard label="Failed" value={3} tone="failed" icon="Activity" delta="+2 today" className="extra" style={{}} />,
     );
 
     expect(container.querySelector(".sq-statcard")).toHaveClass("extra");

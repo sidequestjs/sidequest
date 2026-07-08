@@ -1,12 +1,12 @@
 import type { CSSProperties, MouseEvent } from "react";
 import { cn } from "./cn";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 /** Props for the {@link NavItem} sidebar link. */
 export interface NavItemProps {
   label: string;
   /** Lucide icon name. */
-  icon?: string;
+  icon?: IconName;
   active?: boolean;
   href?: string;
   onClick?: (e: MouseEvent) => void;

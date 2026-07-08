@@ -5,10 +5,10 @@ import { StepProgress, type Step } from "./StepProgress";
 describe("StepProgress", () => {
   it("renders a mixed-status timeline covering every node treatment", () => {
     const steps: Step[] = [
-      { label: "Enqueued", icon: "inbox", status: "done" },
-      { label: "Claimed", status: "active" }, // no icon -> "circle"
-      { label: "Running", icon: "play", status: "pending" },
-      { label: "Failed", icon: "x", status: "failed" },
+      { label: "Enqueued", icon: "Inbox", status: "done" },
+      { label: "Claimed", status: "active" }, // no icon -> "Circle"
+      { label: "Running", icon: "Play", status: "pending" },
+      { label: "Failed", icon: "X", status: "failed" },
     ];
     render(<StepProgress steps={steps} />);
 

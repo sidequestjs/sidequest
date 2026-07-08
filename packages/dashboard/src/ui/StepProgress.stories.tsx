@@ -14,10 +14,10 @@ type Story = StoryObj<typeof meta>;
 export const Completed: Story = {
   args: {
     steps: [
-      { label: "Enqueued", icon: "inbox", status: "done" },
-      { label: "Claimed", icon: "user-check", status: "done" },
-      { label: "Running", icon: "activity", status: "done" },
-      { label: "Completed", icon: "circle-check", status: "done" },
+      { label: "Enqueued", icon: "Inbox", status: "done" },
+      { label: "Claimed", icon: "UserCheck", status: "done" },
+      { label: "Running", icon: "Activity", status: "done" },
+      { label: "Completed", icon: "CircleCheck", status: "done" },
     ],
   },
 };
@@ -25,10 +25,10 @@ export const Completed: Story = {
 export const Running: Story = {
   args: {
     steps: [
-      { label: "Enqueued", icon: "inbox", status: "done" },
-      { label: "Claimed", icon: "user-check", status: "done" },
-      { label: "Running", icon: "activity", status: "active" },
-      { label: "Completed", icon: "circle-check", status: "pending" },
+      { label: "Enqueued", icon: "Inbox", status: "done" },
+      { label: "Claimed", icon: "UserCheck", status: "done" },
+      { label: "Running", icon: "Activity", status: "active" },
+      { label: "Completed", icon: "CircleCheck", status: "pending" },
     ],
   },
 };
@@ -36,10 +36,10 @@ export const Running: Story = {
 export const Failed: Story = {
   args: {
     steps: [
-      { label: "Enqueued", icon: "inbox", status: "done" },
-      { label: "Claimed", icon: "user-check", status: "done" },
-      { label: "Running", icon: "activity", status: "failed" },
-      { label: "Completed", icon: "circle-check", status: "canceled" },
+      { label: "Enqueued", icon: "Inbox", status: "done" },
+      { label: "Claimed", icon: "UserCheck", status: "done" },
+      { label: "Running", icon: "Activity", status: "failed" },
+      { label: "Completed", icon: "CircleCheck", status: "canceled" },
     ],
   },
 };

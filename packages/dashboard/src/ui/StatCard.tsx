@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "./cn";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 /** Number tone for {@link StatCard}. */
 export type StatTone = "running" | "completed" | "failed" | "scheduled" | "neutral";
@@ -14,7 +14,7 @@ export interface StatCardProps {
   /** Number color. @default "neutral" */
   tone?: StatTone;
   /** Lucide icon in the top-right. */
-  icon?: string;
+  icon?: IconName;
   /** Small delta/subtext next to the value. */
   delta?: string;
   className?: string;

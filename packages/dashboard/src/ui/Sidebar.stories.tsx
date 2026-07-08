@@ -15,9 +15,9 @@ export const Default: Story = {
   render: () => (
     <div style={{ height: "26rem", display: "flex" }}>
       <Sidebar>
-        <NavItem label="Dashboard" icon="layout-dashboard" active />
-        <NavItem label="Jobs" icon="list" />
-        <NavItem label="Queues" icon="layers" />
+        <NavItem label="Dashboard" icon="LayoutDashboard" active />
+        <NavItem label="Jobs" icon="List" />
+        <NavItem label="Queues" icon="Layers" />
       </Sidebar>
     </div>
   ),

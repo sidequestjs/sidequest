@@ -11,16 +11,16 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Active: Story = { args: { label: "Dashboard", icon: "layout-dashboard", active: true } };
+export const Active: Story = { args: { label: "Dashboard", icon: "LayoutDashboard", active: true } };
 
-export const Inactive: Story = { args: { label: "Jobs", icon: "list" } };
+export const Inactive: Story = { args: { label: "Jobs", icon: "List" } };
 
 export const List: Story = {
   render: () => (
     <div style={{ width: "14rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-      <NavItem label="Dashboard" icon="layout-dashboard" active />
-      <NavItem label="Jobs" icon="list" />
-      <NavItem label="Queues" icon="layers" />
+      <NavItem label="Dashboard" icon="LayoutDashboard" active />
+      <NavItem label="Jobs" icon="List" />
+      <NavItem label="Queues" icon="Layers" />
     </div>
   ),
 };

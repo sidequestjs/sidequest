@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 const meta = {
   title: "Actions/Icon",
@@ -10,11 +10,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Play: Story = { args: { name: "play" } };
+export const Play: Story = { args: { name: "Play" } };
 
-export const Large: Story = { args: { name: "refresh-ccw", size: 32 } };
+export const Large: Story = { args: { name: "RefreshCcw", size: 32 } };
 
-const NAMES = ["play", "x", "refresh-ccw", "trash-2", "clock", "activity", "circle-check", "circle-x", "pause"];
+const NAMES: IconName[] = ["Play", "X", "RefreshCcw", "Trash2", "Clock", "Activity", "CircleCheck", "CircleX", "Pause"];
 
 export const Gallery: Story = {
   render: () => (

@@ -19,8 +19,8 @@ describe("Button", () => {
         variant="primary"
         size="lg"
         type="submit"
-        icon="play"
-        iconRight="x"
+        icon="Play"
+        iconRight="X"
         disabled
         block
         active

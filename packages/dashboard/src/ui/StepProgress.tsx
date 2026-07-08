@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { cn } from "./cn";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 /** Status of a single {@link StepProgress} node. */
 export type StepStatus = "done" | "active" | "failed" | "canceled" | "pending";
@@ -9,7 +9,7 @@ export type StepStatus = "done" | "active" | "failed" | "canceled" | "pending";
 export interface Step {
   label: string;
   /** Lucide icon name for the node. */
-  icon?: string;
+  icon?: IconName;
   status: StepStatus;
 }
 
@@ -67,7 +67,7 @@ export function StepProgress({ steps, className = "", style = {} }: StepProgress
                   filled ? cn(TONE_BG[step.status], "text-white") : "bg-surface-raised border-2 border-edge-strong text-fg-muted",
                 )}
               >
-                <Icon name={step.icon ?? "circle"} size={16} />
+                <Icon name={step.icon ?? "Circle"} size={16} />
               </div>
               <div className={cn("flex-1 h-[3px]", rightLine)} />
             </div>

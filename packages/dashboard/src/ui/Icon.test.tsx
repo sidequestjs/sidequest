@@ -1,10 +1,10 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 describe("Icon", () => {
   it("renders a lucide glyph for a known name with defaults", () => {
-    const { container } = render(<Icon name="play" />);
+    const { container } = render(<Icon name="Play" />);
 
     const svg = container.querySelector("svg");
     expect(svg).not.toBeNull();
@@ -13,7 +13,7 @@ describe("Icon", () => {
   });
 
   it("resolves multi-segment names and honors size/strokeWidth/rest props", () => {
-    const { container } = render(<Icon name="refresh-ccw" size={24} strokeWidth={3} className="x" />);
+    const { container } = render(<Icon name="RefreshCcw" size={24} strokeWidth={3} className="x" />);
 
     const svg = container.querySelector("svg");
     expect(svg).toHaveAttribute("width", "24");
@@ -22,7 +22,7 @@ describe("Icon", () => {
   });
 
   it("renders nothing for an unknown name", () => {
-    const { container } = render(<Icon name="definitely-not-an-icon" />);
+    const { container } = render(<Icon name={"definitely-not-an-icon" as IconName} />);
 
     expect(container.querySelector("svg")).toBeNull();
   });

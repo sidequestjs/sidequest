@@ -41,7 +41,7 @@ export function Select({ options, size = "md", className = "", children, ...rest
           : children}
       </select>
       <Icon
-        name="chevron-down"
+        name="ChevronDown"
         size={16}
         className="pointer-events-none absolute right-[0.6rem] top-1/2 -translate-y-1/2 text-fg-secondary"
       />

@@ -12,9 +12,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = { args: { variant: "primary", children: "Enqueue job" } };
 
-export const WithIcon: Story = { args: { variant: "default", icon: "play", children: "Run" } };
+export const WithIcon: Story = { args: { variant: "default", icon: "Play", children: "Run" } };
 
-export const Danger: Story = { args: { variant: "danger", icon: "trash-2", children: "Delete" } };
+export const Danger: Story = { args: { variant: "danger", icon: "Trash2", children: "Delete" } };
 
 export const Variants: Story = {
   render: () => (

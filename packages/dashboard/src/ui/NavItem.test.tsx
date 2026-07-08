@@ -13,7 +13,7 @@ describe("NavItem", () => {
   });
 
   it("renders an inactive link with an icon (muted icon color)", () => {
-    const { container } = render(<NavItem label="Jobs" icon="list" />);
+    const { container } = render(<NavItem label="Jobs" icon="List" />);
 
     expect(screen.getByRole("link", { name: /Jobs/ })).toBeInTheDocument();
     expect(container.querySelector("svg")).not.toBeNull();
@@ -21,7 +21,7 @@ describe("NavItem", () => {
 
   it("renders an active link with an icon, href, className and style", () => {
     const { container } = render(
-      <NavItem label="Queues" icon="layers" active href="/queues" className="extra" style={{ opacity: 1 }} />,
+      <NavItem label="Queues" icon="Layers" active href="/queues" className="extra" style={{ opacity: 1 }} />,
     );
 
     const link = screen.getByRole("link", { name: /Queues/ });

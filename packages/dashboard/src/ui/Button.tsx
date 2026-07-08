@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 /** Visual treatments for {@link Button}. */
 export type ButtonVariant = "primary" | "default" | "outline" | "ghost" | "danger";
@@ -14,9 +14,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** @default "md" */
   size?: ButtonSize;
   /** Leading Lucide icon name. */
-  icon?: string;
+  icon?: IconName;
   /** Trailing Lucide icon name. */
-  iconRight?: string;
+  iconRight?: IconName;
   /** Full-width. */
   block?: boolean;
   /** Pressed/selected look (e.g. active pagination). */
