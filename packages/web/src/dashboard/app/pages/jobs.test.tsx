@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import type { ApiClient } from "../../client";
 import { jsonResponse, renderWithClient } from "../../testing/harness";
-import { JobsPage } from "./jobs";
+import { JobsListView } from "./jobs";
 
 function makeClient() {
   return {
@@ -27,7 +27,7 @@ describe("JobsPage", () => {
   });
 
   it("renders the jobs list with status dots and segment counts", async () => {
-    renderWithClient(<JobsPage />, makeClient());
+    renderWithClient(<JobsListView onOpenJob={() => {}} />, makeClient());
 
     await waitFor(() => expect(screen.getByText("SendEmailJob")).toBeInTheDocument());
     expect(screen.getByText("5/5")).toBeInTheDocument();

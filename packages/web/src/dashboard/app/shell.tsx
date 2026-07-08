@@ -1,10 +1,25 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  createHashHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppSidebar } from "../components/AppSidebar";
 import { CommandPalette } from "../components/CommandPalette";
 import { DashboardHeader } from "../components/DashboardHeader";
-import { useHashRoute } from "./router";
 
-/** A dashboard page: its route, its nav entry, and what to render. */
+/** An extra route a page owns that is not a nav entry (e.g. a detail view like `/jobs/$id`). */
+export interface DashboardRoute {
+  path: string;
+  element: ReactNode;
+}
+
+/** A dashboard page: its route, its nav entry, what to render, and any owned detail routes. */
 export interface DashboardPage {
   path: string;
   nav: {
@@ -18,6 +33,8 @@ export interface DashboardPage {
     subtitle?: string;
   };
   element: ReactNode;
+  /** Non-nav routes owned by this page, such as detail views. */
+  routes?: DashboardRoute[];
 }
 
 const THEME_STORAGE_KEY = "sq-theme";
@@ -36,26 +53,31 @@ function toggleTheme(): void {
 
 /**
  * Resolves the active page for a path by longest matching prefix, so detail routes like
- * `/jobs/42` still activate the `/jobs` page. Falls back to the exact match, then the
- * root page.
+ * `/jobs/42` still activate the `/jobs` page (for the header/nav). Falls back to the exact
+ * match, then the root page.
  */
-function resolveActive(pages: DashboardPage[], path: string): DashboardPage {
+export function resolveActive(pages: DashboardPage[], path: string): DashboardPage {
   const prefix = pages
     .filter((page) => page.path !== "/" && (path === page.path || path.startsWith(`${page.path}/`)))
     .sort((a, b) => b.path.length - a.path.length)[0];
   return prefix ?? pages.find((page) => page.path === path) ?? pages.find((page) => page.path === "/") ?? pages[0];
 }
 
+/** A route path relative to the root route ("/" stays the index; others drop the leading slash). */
+function relativePath(path: string): string {
+  return path === "/" ? "/" : path.replace(/^\//, "");
+}
+
 /**
- * The dashboard shell: the modern chrome (brand glow, section sidebar, sticky header,
- * ⌘K command palette) wrapped around the active page. This is the page-registry seam:
- * the Pro passes a superset `pages` array (OSS pages plus its own) to add screens
- * without forking.
+ * The dashboard chrome (brand glow, section sidebar, sticky header, ⌘K command palette) wrapped
+ * around the active page's `<Outlet />`. Lives inside the router so it can read the active path
+ * and navigate.
  */
-export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
-  const { path, navigate } = useHashRoute();
+function DashboardChrome({ pages }: { pages: DashboardPage[] }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const navigate = useNavigate();
   const [palette, setPalette] = useState(false);
-  const active = resolveActive(pages, path);
+  const active = resolveActive(pages, pathname);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -72,7 +94,7 @@ export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
   }, []);
 
   const go = (to: string) => {
-    navigate(to);
+    void navigate({ to });
     setPalette(false);
   };
 
@@ -82,7 +104,9 @@ export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
       <AppSidebar pages={pages} activePath={active.path} onNavigate={go} onOpenPalette={() => setPalette(true)} />
       <main className="relative z-[1] flex-1 overflow-y-auto">
         <DashboardHeader title={active.nav.label} subtitle={active.nav.subtitle} />
-        <div className="px-7 pt-6 pb-12">{active.element}</div>
+        <div className="px-7 pt-6 pb-12">
+          <Outlet />
+        </div>
       </main>
       <CommandPalette
         open={palette}
@@ -93,4 +117,31 @@ export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
       />
     </div>
   );
+}
+
+/**
+ * Builds a TanStack Router from the page registry: a root route rendering the chrome, one child
+ * route per page (plus any detail routes a page owns), on hash history so the dashboard serves
+ * statically under any base path without server rewrites. This is the page-registry seam: the
+ * Pro passes a superset `pages` array to add screens without forking.
+ */
+export function createDashboardRouter(pages: DashboardPage[]) {
+  const rootRoute = createRootRoute({ component: () => <DashboardChrome pages={pages} /> });
+  const children = pages.flatMap((page) => [
+    createRoute({ getParentRoute: () => rootRoute, path: relativePath(page.path), component: () => <>{page.element}</> }),
+    ...(page.routes ?? []).map((route) =>
+      createRoute({ getParentRoute: () => rootRoute, path: relativePath(route.path), component: () => <>{route.element}</> }),
+    ),
+  ]);
+  const routeTree = rootRoute.addChildren(children);
+  return createRouter({ routeTree, history: createHashHistory() });
+}
+
+/**
+ * The dashboard shell: builds the router from the page registry and renders it. Passing the same
+ * `pages` keeps the router stable across re-renders.
+ */
+export function DashboardShell({ pages }: { pages: DashboardPage[] }) {
+  const router = useMemo(() => createDashboardRouter(pages), [pages]);
+  return <RouterProvider router={router} />;
 }

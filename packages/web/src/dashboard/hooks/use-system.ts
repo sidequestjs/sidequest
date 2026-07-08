@@ -1,15 +1,17 @@
+import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "../context";
-import { useApiQuery, type UseApiQueryOptions } from "./use-api-query";
+import type { QueryHookOptions } from "./query-client";
 
 /** Queries system/engine info (driver, version, connectivity) for the sidebar footer. */
-export function useSystem(options?: UseApiQueryOptions) {
+export function useSystem(options?: QueryHookOptions) {
   const client = useApiClient();
-  return useApiQuery(
-    async () => {
+  return useQuery({
+    queryKey: ["system"],
+    queryFn: async () => {
       const res = await client.system.$get();
       return res.json();
     },
-    [],
-    options,
-  );
+    refetchInterval: options?.refetchInterval,
+    enabled: options?.enabled,
+  });
 }

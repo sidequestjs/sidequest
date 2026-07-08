@@ -12,5 +12,4 @@ export * from "./app/pages";
 export * from "./app/pages/jobs";
 export * from "./app/pages/overview";
 export * from "./app/pages/queues";
-export * from "./app/router";
 export * from "./app/shell";

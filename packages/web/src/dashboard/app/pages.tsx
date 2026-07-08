@@ -1,4 +1,4 @@
-import { JobsPage } from "./pages/jobs";
+import { JobDetailPage, JobsPage } from "./pages/jobs";
 import { OverviewPage } from "./pages/overview";
 import { QueuesPage } from "./pages/queues";
 import type { DashboardPage } from "./shell";
@@ -26,6 +26,7 @@ export const ossPages: DashboardPage[] = [
       subtitle: "Inspect, filter, and reprocess background jobs",
     },
     element: <JobsPage />,
+    routes: [{ path: "/jobs/$id", element: <JobDetailPage /> }],
   },
   {
     path: "/queues",

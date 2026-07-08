@@ -1,4 +1,4 @@
-import { act, screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ApiClient } from "../client";
@@ -25,9 +25,10 @@ describe("DashboardShell", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the nav entries, header, and the active page", () => {
+  it("renders the nav entries, header, and the active page", async () => {
     renderWithClient(<DashboardShell pages={pages} />, stubClient());
-    expect(screen.getByRole("button", { name: "Home" })).toBeInTheDocument();
+    // the router mounts its matches on an effect, so wait for the chrome to appear
+    expect(await screen.findByRole("button", { name: "Home" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Jobs" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Home" })).toBeInTheDocument();
     expect(screen.getByText("the home page")).toBeInTheDocument();
@@ -38,25 +39,21 @@ describe("DashboardShell", () => {
     const user = userEvent.setup();
     renderWithClient(<DashboardShell pages={pages} />, stubClient());
 
-    await user.click(screen.getByRole("button", { name: "Jobs" }));
-    act(() => {
-      window.dispatchEvent(new Event("hashchange"));
-    });
+    await user.click(await screen.findByRole("button", { name: "Jobs" }));
 
-    expect(screen.getByText("jobs page")).toBeInTheDocument();
+    expect(await screen.findByText("jobs page")).toBeInTheDocument();
   });
 
   it("opens the command palette on ⌘K and navigates from it", async () => {
     const user = userEvent.setup();
     renderWithClient(<DashboardShell pages={pages} />, stubClient());
+    await screen.findByRole("button", { name: "Home" });
 
     await user.keyboard("{Meta>}k{/Meta}");
     expect(screen.getByRole("dialog", { name: "Command palette" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Go to Jobs/ }));
-    act(() => {
-      window.dispatchEvent(new Event("hashchange"));
-    });
-    expect(screen.getByText("jobs page")).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.getByText("jobs page")).toBeInTheDocument());
   });
 });

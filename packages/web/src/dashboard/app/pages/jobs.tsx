@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { JobDetailView } from "../../components/JobDetailView";
 import { JobsTable } from "../../components/JobsTable";
@@ -5,18 +6,20 @@ import { JobsToolbar } from "../../components/JobsToolbar";
 import { SegmentedFilter, type Segment } from "../../components/SegmentedFilter";
 import { useJob, useJobActions, useJobs } from "../../hooks/use-jobs";
 import { useOverview } from "../../hooks/use-overview";
-import { useHashRoute } from "../router";
 
 const PAGE_SIZE = 11;
 
-/** The jobs screen: routes between the list and a single job's detail (`#/jobs/<id>`). */
+/** The jobs list route (`/jobs`): opens a job by navigating to its detail route. */
 export function JobsPage() {
-  const { path, navigate } = useHashRoute();
-  const match = /^\/jobs\/(\d+)$/.exec(path);
-  if (match) {
-    return <JobDetailContainer id={Number(match[1])} onBack={() => navigate("/jobs")} />;
-  }
-  return <JobsListView onOpenJob={(id) => navigate(`/jobs/${id}`)} />;
+  const navigate = useNavigate();
+  return <JobsListView onOpenJob={(id) => void navigate({ to: `/jobs/${id}` })} />;
+}
+
+/** The job detail route (`/jobs/$id`): reads the id from the route and wires rerun/cancel. */
+export function JobDetailPage() {
+  const { id } = useParams({ strict: false });
+  const navigate = useNavigate();
+  return <JobDetailContainer id={Number(id)} onBack={() => void navigate({ to: "/jobs" })} />;
 }
 
 /** Loads a job by id and renders its detail, wiring the rerun/cancel actions. */
@@ -48,7 +51,7 @@ const SEGMENTS: { key: string; label: string; countKey: "total" | "running" | "c
   ];
 
 /** The jobs list: search, segmented status filters, and the paginated table. */
-function JobsListView({ onOpenJob }: { onOpenJob: (id: number) => void }) {
+export function JobsListView({ onOpenJob }: { onOpenJob: (id: number) => void }) {
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
