@@ -9,6 +9,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import type { IconName } from "../ui/Icon";
 import { AppSidebar } from "../components/AppSidebar";
 import { CommandPalette } from "../components/CommandPalette";
 import { DashboardHeader } from "../components/DashboardHeader";
@@ -24,7 +25,7 @@ export interface DashboardPage {
   path: string;
   nav: {
     label: string;
-    icon?: string;
+    icon?: IconName;
     /** Sidebar section header this page groups under (e.g. "Monitor"). */
     section?: string;
     /** Keyboard hint shown on hover (e.g. "G J"). */

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "../../ui/Icon";
+import { Icon, type IconName } from "../../ui/Icon";
 import { Kbd } from "../../ui/Kbd";
 import type { DashboardPage } from "../app/shell";
 
@@ -14,7 +14,7 @@ export interface CommandPaletteProps {
 
 interface Command {
   label: string;
-  icon: string;
+  icon: IconName;
   run: () => void;
 }
 
@@ -32,7 +32,7 @@ export function CommandPalette({ open, onClose, pages, onNavigate, onToggleTheme
   const commands: Command[] = [
     ...pages.map((page) => ({
       label: `Go to ${page.nav.label}`,
-      icon: page.nav.icon ?? "circle",
+      icon: page.nav.icon ?? "Circle",
       run: () => {
         onNavigate(page.path);
         onClose();
@@ -40,7 +40,7 @@ export function CommandPalette({ open, onClose, pages, onNavigate, onToggleTheme
     })),
     {
       label: "Toggle theme",
-      icon: "sun-moon",
+      icon: "SunMoon",
       run: () => {
         onToggleTheme();
         onClose();
@@ -48,7 +48,7 @@ export function CommandPalette({ open, onClose, pages, onNavigate, onToggleTheme
     },
     {
       label: "Open documentation",
-      icon: "book-open",
+      icon: "BookOpen",
       run: () => {
         window.open("https://docs.sidequestjs.com", "_blank", "noreferrer");
         onClose();
@@ -70,7 +70,7 @@ export function CommandPalette({ open, onClose, pages, onNavigate, onToggleTheme
         className="dash-palette w-[min(560px,92vw)] bg-surface-card border border-edge-strong rounded-xl shadow-lg overflow-hidden"
       >
         <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-edge">
-          <Icon name="search" size={16} className="text-fg-muted" />
+          <Icon name="Search" size={16} className="text-fg-muted" />
           <input
             autoFocus
             value={query}
@@ -91,7 +91,7 @@ export function CommandPalette({ open, onClose, pages, onNavigate, onToggleTheme
             >
               <Icon name={command.icon} size={16} className="text-fg-muted" />
               <span className="flex-1">{command.label}</span>
-              <Icon name="corner-down-left" size={14} className="text-fg-muted" />
+              <Icon name="CornerDownLeft" size={14} className="text-fg-muted" />
             </button>
           ))}
         </div>

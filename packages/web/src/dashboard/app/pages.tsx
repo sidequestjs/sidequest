@@ -9,7 +9,7 @@ export const ossPages: DashboardPage[] = [
     path: "/",
     nav: {
       label: "Overview",
-      icon: "layout-dashboard",
+      icon: "LayoutDashboard",
       section: "Monitor",
       hint: "G O",
       subtitle: "Real-time job processing at a glance",
@@ -20,7 +20,7 @@ export const ossPages: DashboardPage[] = [
     path: "/jobs",
     nav: {
       label: "Jobs",
-      icon: "list",
+      icon: "List",
       section: "Monitor",
       hint: "G J",
       subtitle: "Inspect, filter, and reprocess background jobs",
@@ -32,7 +32,7 @@ export const ossPages: DashboardPage[] = [
     path: "/queues",
     nav: {
       label: "Queues",
-      icon: "layers",
+      icon: "Layers",
       section: "Monitor",
       hint: "G Q",
       subtitle: "Concurrency, priority, and throughput per queue",

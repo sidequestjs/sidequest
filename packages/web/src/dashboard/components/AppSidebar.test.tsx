@@ -7,8 +7,8 @@ import { jsonResponse, renderWithClient } from "../testing/harness";
 import { AppSidebar } from "./AppSidebar";
 
 const pages: DashboardPage[] = [
-  { path: "/", nav: { label: "Overview", icon: "layout-dashboard", section: "Monitor", hint: "G O" }, element: null },
-  { path: "/jobs", nav: { label: "Jobs", icon: "list", section: "Monitor" }, element: null },
+  { path: "/", nav: { label: "Overview", icon: "LayoutDashboard", section: "Monitor", hint: "G O" }, element: null },
+  { path: "/jobs", nav: { label: "Jobs", icon: "List", section: "Monitor" }, element: null },
 ];
 
 // AppSidebar's footer renders EngineStatus, which queries `system`.

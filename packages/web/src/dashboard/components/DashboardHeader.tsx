@@ -30,7 +30,7 @@ export function DashboardHeader({ title, subtitle }: DashboardHeaderProps) {
             title="Docs"
             className="w-9 h-9 grid place-items-center rounded-lg bg-surface-raised border border-edge cursor-pointer text-fg-secondary no-underline transition-colors hover:bg-surface-hover hover:text-fg-strong"
           >
-            <Icon name="book-open" size={16} />
+            <Icon name="BookOpen" size={16} />
           </a>
         </div>
       </div>

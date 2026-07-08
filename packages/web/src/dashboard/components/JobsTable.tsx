@@ -106,7 +106,7 @@ export function JobsTable({
                       <Button
                         size="sm"
                         variant="default"
-                        icon="refresh-ccw"
+                        icon="RefreshCcw"
                         onClick={(e) => {
                           e.stopPropagation();
                           onRerun(job.id);
@@ -118,7 +118,7 @@ export function JobsTable({
                       <Button
                         size="sm"
                         variant="default"
-                        icon="x"
+                        icon="X"
                         onClick={(e) => {
                           e.stopPropagation();
                           onCancel(job.id);
@@ -127,7 +127,7 @@ export function JobsTable({
                         Cancel
                       </Button>
                     )}
-                    <Icon name="chevron-right" size={16} className="text-fg-muted" />
+                    <Icon name="ChevronRight" size={16} className="text-fg-muted" />
                   </span>
                 </td>
               </tr>

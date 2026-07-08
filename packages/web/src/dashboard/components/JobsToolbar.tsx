@@ -14,7 +14,7 @@ export function JobsToolbar({ query, onQuery }: JobsToolbarProps) {
     <div className="flex gap-3 items-center flex-wrap">
       <div className="relative flex-1 min-w-[240px]">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted inline-flex">
-          <Icon name="search" size={15} />
+          <Icon name="Search" size={15} />
         </span>
         <input
           value={query}

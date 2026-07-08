@@ -54,7 +54,7 @@ export function AppSidebar({ pages, activePath, onNavigate, onOpenPalette }: App
           onClick={onOpenPalette}
           className="w-full flex items-center gap-2 h-[34px] px-2.5 rounded-lg bg-surface-inset border border-edge cursor-pointer text-fg-muted text-[13px] font-sans transition-colors hover:border-edge-strong"
         >
-          <Icon name="search" size={14} />
+          <Icon name="Search" size={14} />
           <span className="flex-1 text-left">Search…</span>
           <Kbd>Cmd</Kbd>
           <Kbd>K</Kbd>
@@ -86,7 +86,7 @@ export function AppSidebar({ pages, activePath, onNavigate, onOpenPalette }: App
                   {on && (
                     <span className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-[3px] h-[18px] rounded-[3px] bg-brand" />
                   )}
-                  <Icon name={page.nav.icon ?? "circle"} size={16} className={on ? "text-brand" : "text-fg-muted"} />
+                  <Icon name={page.nav.icon ?? "Circle"} size={16} className={on ? "text-brand" : "text-fg-muted"} />
                   <span className="flex-1">{page.nav.label}</span>
                   {page.nav.hint && (
                     <span className="font-mono text-[10px] text-fg-muted opacity-0 transition-opacity group-hover:opacity-100">

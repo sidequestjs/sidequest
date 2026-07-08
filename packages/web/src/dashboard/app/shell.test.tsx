@@ -6,8 +6,8 @@ import { jsonResponse, renderWithClient } from "../testing/harness";
 import { DashboardShell, type DashboardPage } from "./shell";
 
 const pages: DashboardPage[] = [
-  { path: "/", nav: { label: "Home", icon: "layout-dashboard", subtitle: "the home page" }, element: <div>home page</div> },
-  { path: "/jobs", nav: { label: "Jobs", icon: "list" }, element: <div>jobs page</div> },
+  { path: "/", nav: { label: "Home", icon: "LayoutDashboard", subtitle: "the home page" }, element: <div>home page</div> },
+  { path: "/jobs", nav: { label: "Jobs", icon: "List" }, element: <div>jobs page</div> },
 ];
 
 /** A client stub for the engine-status query the sidebar footer makes. */

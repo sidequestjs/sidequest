@@ -41,18 +41,18 @@ export function JobDetailView({ job, onBack, onRerun, onCancel }: JobDetailViewP
   const statuses = STEP_MAP[job.state] ?? STEP_MAP.waiting;
   const done = ["canceled", "failed", "completed"].includes(job.state);
   const lastLabel = job.state === "failed" ? "Failed" : job.state === "canceled" ? "Canceled" : "Completed";
-  const lastIcon = job.state === "failed" ? "x-circle" : job.state === "canceled" ? "alert-circle" : "check-circle";
+  const lastIcon = job.state === "failed" ? "CircleX" : job.state === "canceled" ? "CircleAlert" : "CircleCheck";
   const steps: Step[] = [
-    { label: "Enqueued", icon: "clock", status: statuses[0] },
-    { label: "Claimed", icon: "user-check", status: statuses[1] },
-    { label: "Running", icon: "activity", status: statuses[2] },
+    { label: "Enqueued", icon: "Clock", status: statuses[0] },
+    { label: "Claimed", icon: "UserCheck", status: statuses[1] },
+    { label: "Running", icon: "Activity", status: statuses[2] },
     { label: lastLabel, icon: lastIcon, status: statuses[3] },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button size="sm" variant="ghost" icon="arrow-left" onClick={onBack}>
+        <Button size="sm" variant="ghost" icon="ArrowLeft" onClick={onBack}>
           Back
         </Button>
         <h1 className="m-0 text-2xl font-bold text-fg-strong flex-1 flex items-center gap-3">
@@ -61,11 +61,11 @@ export function JobDetailView({ job, onBack, onRerun, onCancel }: JobDetailViewP
         </h1>
         <div className="flex gap-2">
           {done ? (
-            <Button size="sm" variant="outline" icon="refresh-ccw" onClick={() => onRerun(job.id)}>
+            <Button size="sm" variant="outline" icon="RefreshCcw" onClick={() => onRerun(job.id)}>
               Re-Run
             </Button>
           ) : (
-            <Button size="sm" variant="outline" icon="x" onClick={() => onCancel(job.id)}>
+            <Button size="sm" variant="outline" icon="X" onClick={() => onCancel(job.id)}>
               Cancel
             </Button>
           )}

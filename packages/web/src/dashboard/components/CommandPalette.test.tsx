@@ -5,8 +5,8 @@ import type { DashboardPage } from "../app/shell";
 import { CommandPalette } from "./CommandPalette";
 
 const pages: DashboardPage[] = [
-  { path: "/", nav: { label: "Overview", icon: "layout-dashboard" }, element: null },
-  { path: "/jobs", nav: { label: "Jobs", icon: "list" }, element: null },
+  { path: "/", nav: { label: "Overview", icon: "LayoutDashboard" }, element: null },
+  { path: "/jobs", nav: { label: "Jobs", icon: "List" }, element: null },
 ];
 
 const props = { pages, onClose: () => undefined, onNavigate: () => undefined, onToggleTheme: () => undefined };

@@ -37,7 +37,7 @@ export function QueueCard({ queue, onToggle }: QueueCardProps) {
           />
           <span className="font-mono text-[15px] font-semibold text-fg-strong">{queue.name}</span>
         </div>
-        <Button size="sm" variant="default" icon={active ? "pause" : "play"} onClick={() => onToggle(queue.name)}>
+        <Button size="sm" variant="default" icon={active ? "Pause" : "Play"} onClick={() => onToggle(queue.name)}>
           {active ? "Pause" : "Activate"}
         </Button>
       </div>
