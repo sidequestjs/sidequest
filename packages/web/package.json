@@ -51,6 +51,7 @@
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
+    "@tanstack/react-query": "^5.101.2",
     "hono": "^4.12.0"
   },
   "devDependencies": {

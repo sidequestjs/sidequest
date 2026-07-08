@@ -24,7 +24,7 @@ export default defineConfig({
           name: "ui",
           globals: true,
           environment: "jsdom",
-          include: ["packages/web/src/ui/**/*.test.tsx"],
+          include: ["packages/web/src/ui/**/*.test.tsx", "packages/web/src/dashboard/**/*.test.tsx"],
           setupFiles: ["./packages/web/vitest.setup.ts"],
         },
       },
