@@ -42,6 +42,7 @@
   "scripts": {
     "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
     "dev": "npx rollup -c -w",
+    "dev:app": "npx vite --config vite.app.config.ts",
     "test": "yarn vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -52,6 +53,8 @@
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
     "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-router": "^1.170.17",
+    "chart.js": "^4.5.1",
     "hono": "^4.12.0"
   },
   "devDependencies": {

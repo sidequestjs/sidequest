@@ -21,6 +21,7 @@ export default tseslint.config(
       "**/storybook-static/**",
       "packages/docs/.vitepress/cache/**",
       "packages/web/vite.lib.config.ts",
+      "packages/web/vite.app.config.ts",
       "packages/web/vitest.setup.ts",
       "packages/web/.storybook/**",
     ],

@@ -1,0 +1,59 @@
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ApiClient } from "../client";
+import { jsonResponse, renderWithClient } from "../testing/harness";
+import { DashboardShell, type DashboardPage } from "./shell";
+
+const pages: DashboardPage[] = [
+  { path: "/", nav: { label: "Home", icon: "LayoutDashboard", subtitle: "the home page" }, element: <div>home page</div> },
+  { path: "/jobs", nav: { label: "Jobs", icon: "List" }, element: <div>jobs page</div> },
+];
+
+/** A client stub for the engine-status query the sidebar footer makes. */
+function stubClient() {
+  return { system: { $get: vi.fn().mockResolvedValue(jsonResponse({ connected: true })) } } as unknown as ApiClient;
+}
+
+describe("DashboardShell", () => {
+  beforeEach(() => {
+    window.location.hash = "";
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("renders the nav entries, header, and the active page", async () => {
+    renderWithClient(<DashboardShell pages={pages} />, stubClient());
+    // the router mounts its matches on an effect, so wait for the chrome to appear
+    expect(await screen.findByRole("button", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Jobs" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByText("the home page")).toBeInTheDocument();
+    expect(screen.getByText("home page")).toBeInTheDocument();
+  });
+
+  it("switches the active page when a nav entry is clicked", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<DashboardShell pages={pages} />, stubClient());
+
+    await user.click(await screen.findByRole("button", { name: "Jobs" }));
+
+    expect(await screen.findByText("jobs page")).toBeInTheDocument();
+  });
+
+  it("opens the command palette on ⌘K and navigates from it", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<DashboardShell pages={pages} />, stubClient());
+    await screen.findByRole("button", { name: "Home" });
+
+    await user.keyboard("{Meta>}k{/Meta}");
+    expect(screen.getByRole("dialog", { name: "Command palette" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Go to Jobs/ }));
+
+    await waitFor(() => expect(screen.getByText("jobs page")).toBeInTheDocument());
+  });
+});

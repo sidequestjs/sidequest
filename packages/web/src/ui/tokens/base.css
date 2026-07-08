@@ -45,6 +45,16 @@ body.sq-surface {
 
 ::selection { background: var(--brand-ring); color: #fff; }
 
+/* Live-status pulse — the halo ring on running/active indicators (StatusDot, engine
+ * and queue status dots). Disabled under reduced-motion. */
+@keyframes sq-pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  70% { transform: scale(1.15); opacity: 0.75; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.sq-pulse { animation: sq-pulse-ring 1.8s var(--ease-standard) infinite; }
+@media (prefers-reduced-motion: reduce) { .sq-pulse { animation: none; } }
+
 /* Interaction states (:hover / :focus-visible / :active) and layout now live on the
  * components as Tailwind utility variants. The `.sq-*` class names remain on the
  * elements as stable styling hooks, but carry no CSS here. */

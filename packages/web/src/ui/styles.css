@@ -17,8 +17,10 @@
 @import "./tokens/base.css";
 @import "tailwindcss";
 
-/* Scan the component sources for utility usage. */
+/* Scan the design-system primitives (./) plus the dashboard app (../dashboard), which
+ * shares these tokens and utilities. */
 @source "./";
+@source "../dashboard/**/*.{ts,tsx}";
 
 @theme inline {
   /* ---- Surfaces (bg-surface, bg-surface-raised, …) ---- */

@@ -1,0 +1,32 @@
+/* App-level dashboard chrome that the design tokens/Tailwind utilities can't express:
+ * the brand glow behind the shell and the command-palette entrance animation. Component
+ * styling itself lives on the components as Tailwind utilities + design tokens. */
+
+.dash-glow {
+  position: absolute;
+  top: -180px;
+  left: 120px;
+  width: 620px;
+  height: 420px;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(6px);
+  background: radial-gradient(closest-side, rgba(43, 124, 211, 0.16), transparent 70%);
+}
+[data-theme="light"] .dash-glow {
+  background: radial-gradient(closest-side, rgba(43, 124, 211, 0.12), transparent 70%);
+}
+
+@keyframes dash-palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.dash-palette {
+  animation: dash-palette-in var(--duration-base) var(--ease-out);
+}
