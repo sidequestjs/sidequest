@@ -1,8 +1,9 @@
+import type { Backend } from "@sidequest/backend";
 import { JobClassType, logger } from "@sidequest/core";
 import { Engine } from "@sidequest/engine";
 import { JobOperations } from "./job";
 import { QueueOperations } from "./queue";
-import { KnownDrivers, SidequestConfig, SidequestEngineConfig } from "./types";
+import { DashboardConfig, KnownDrivers, SidequestConfig, SidequestEngineConfig } from "./types";
 
 /**
  * Main entry point for the Sidequest job processing system.
@@ -28,6 +29,9 @@ export class Sidequest {
    * This allows access to the underlying engine for advanced operations.
    */
   private static engine = new Engine();
+
+  /** Handle to the running dashboard server, when booted via `start({ dashboard })`. */
+  private static dashboardServer?: { close: () => Promise<void> };
 
   /**
    * Provides access to the singleton QueueOperations instance for managing queues.
@@ -91,6 +95,11 @@ export class Sidequest {
       const engineConfig = await this.configure(config);
 
       await this.engine.start(engineConfig);
+
+      if (config?.dashboard?.enabled) {
+        const driver = (engineConfig as { backend?: { driver?: string } }).backend?.driver;
+        await this.startDashboard(config.dashboard, driver);
+      }
     } catch (error) {
       logger().error("Failed to start Sidequest:", error);
       await this.stop(); // Ensure cleanup on error
@@ -109,9 +118,49 @@ export class Sidequest {
    * @returns A promise that resolves when all cleanup operations are complete
    */
   static async stop() {
+    if (this.dashboardServer) {
+      await this.dashboardServer.close();
+      this.dashboardServer = undefined;
+    }
     await this.engine.close();
     this.job.setBackend(undefined);
     this.queue.setBackend(undefined);
+  }
+
+  /**
+   * Boots the `@sidequest/web` dashboard façade alongside the engine, serving the SPA and
+   * the management API on `dashboard.port`. Loaded lazily via a dynamic import so
+   * `@sidequest/web` is only touched when the dashboard is enabled.
+   */
+  private static async startDashboard(dashboard: DashboardConfig, driver?: string): Promise<void> {
+    interface WebServer {
+      serveDashboard(options: {
+        backend: Backend;
+        driver?: string;
+        port?: number;
+        basePath?: string;
+        auth?: { user: string; password: string };
+      }): { close: () => Promise<void> };
+    }
+    const backend = this.getBackend();
+    if (!backend) {
+      throw new Error("Cannot start the dashboard before the engine backend is ready.");
+    }
+    try {
+      const specifier = "@sidequest/web/server";
+      const web = (await import(specifier)) as WebServer;
+      this.dashboardServer = web.serveDashboard({
+        backend,
+        driver,
+        port: dashboard.port,
+        basePath: dashboard.basePath,
+        auth: dashboard.auth,
+      });
+      logger().info(`Sidequest dashboard listening on port ${dashboard.port ?? 8678}`);
+    } catch (error) {
+      logger().error("Failed to start the Sidequest dashboard. Is @sidequest/web installed?", error);
+      throw error;
+    }
   }
 
   /**

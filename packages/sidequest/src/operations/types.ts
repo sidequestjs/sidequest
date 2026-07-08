@@ -49,10 +49,25 @@ export type SidequestEngineConfig<TDriver extends string = KnownDrivers> = Omit<
 };
 
 /**
- * Complete Sidequest configuration.
- *
- * Currently an alias of {@link SidequestEngineConfig}. The dashboard/web layer is
- * being rewritten and no longer wired into `Sidequest.start`; it will be reintroduced
- * here once the `@sidequest/web` façade lands.
+ * Options for the optional dashboard served alongside the engine by `@sidequest/web`.
+ * Leaving `auth` unset serves the dashboard wide open (dev-only).
  */
-export type SidequestConfig<TDriver extends string = KnownDrivers> = SidequestEngineConfig<TDriver>;
+export interface DashboardConfig {
+  /** Boot the dashboard when the engine starts. @default false */
+  enabled?: boolean;
+  /** Listen port. @default 8678 */
+  port?: number;
+  /** Reverse-proxy prefix the dashboard is mounted under, e.g. "/admin". @default "" */
+  basePath?: string;
+  /** Basic-auth credentials. Omit for a wide-open (dev-only) dashboard. */
+  auth?: { user: string; password: string };
+}
+
+/**
+ * Complete Sidequest configuration: the engine config plus the optional `dashboard`
+ * served by the `@sidequest/web` façade.
+ */
+export type SidequestConfig<TDriver extends string = KnownDrivers> = SidequestEngineConfig<TDriver> & {
+  /** Optional dashboard served alongside the engine. Requires `@sidequest/web`. */
+  dashboard?: DashboardConfig;
+};

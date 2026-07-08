@@ -34,13 +34,18 @@
       "types": "./dist/api/index.d.ts",
       "import": "./dist/api/index.js",
       "require": "./dist/api/index.cjs"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
+    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify && npx vite build --config vite.app.config.ts",
     "dev": "npx rollup -c -w",
     "dev:app": "npx vite --config vite.app.config.ts",
     "test": "yarn vitest run",
@@ -49,6 +54,7 @@
   },
   "license": "LGPL-3.0-or-later",
   "dependencies": {
+    "@hono/node-server": "^1.13.0",
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",

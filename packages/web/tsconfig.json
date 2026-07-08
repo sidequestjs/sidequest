@@ -3,5 +3,5 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "include": ["src/api/**/*.ts"]
+  "include": ["src/api/**/*.ts", "src/server/**/*.ts"]
 }
