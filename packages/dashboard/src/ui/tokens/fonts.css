@@ -1,0 +1,9 @@
+/* Sidequest.js — Webfonts
+ * The shipped product renders in the platform system-ui stack (Tailwind/DaisyUI default)
+ * with `monospace` for code. This design system pairs that with two curated webfonts:
+ *  - Poppins       → brand wordmark + display, closest match to the rounded geometric
+ *                    lettering in the Sidequest.js logo (SUBSTITUTION — see README).
+ *  - JetBrains Mono → code / data / job arguments (SUBSTITUTION for generic monospace).
+ * Both load from Google Fonts. Swap the @import for local @font-face if you self-host.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');

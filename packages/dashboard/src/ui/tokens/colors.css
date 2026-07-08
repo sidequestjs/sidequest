@@ -1,0 +1,137 @@
+/* Sidequest.js — Color tokens
+ * Raw palette lifted verbatim from the dashboard's DaisyUI "sidequest-dark" theme
+ * (packages/dashboard/src/public/css/styles.css) plus the Tailwind accent tints the
+ * templates use for stat numbers. Semantic aliases sit on top and are theme-aware:
+ * :root is the canonical dark product theme; [data-theme="light"] is a derived light theme.
+ */
+
+:root {
+  /* ---- Brand blue (from logo gradient + primary #2b7cd3) ---- */
+  --sq-blue-50:  #eef5fc;
+  --sq-blue-100: #d4e6f8;
+  --sq-blue-200: #a9cdf0;
+  --sq-blue-300: #7db8ec;
+  --sq-blue-400: #4d97e0;
+  --sq-blue-500: #2b7cd3;   /* primary */
+  --sq-blue-600: #2366b4;
+  --sq-blue-700: #1d5490;
+  --sq-blue-800: #1a446f;
+  --sq-blue-900: #16304d;
+
+  /* Logo gradient endpoints (light cyan-blue -> deep blue) */
+  --sq-grad-start: #3aa0e6;
+  --sq-grad-end:   #2464c8;
+
+  /* ---- Navy / ink surfaces (base-100..300 from theme) ---- */
+  --sq-navy-950: #080c1a;
+  --sq-navy-900: #0c1226;   /* base-100  — app background */
+  --sq-navy-850: #101830;
+  --sq-navy-800: #182038;   /* base-200  — raised panels */
+  --sq-navy-700: #202a47;
+  --sq-navy-600: #2a3b5f;   /* base-300  — hover / lines */
+  --sq-slate-700: #2c3448;  /* neutral   — sidebar / cards */
+  --sq-slate-600: #38425c;
+
+  /* ---- Neutral / grey ramp (light theme + text) ---- */
+  --sq-gray-50:  #f7f9fc;
+  --sq-gray-100: #eef1f6;
+  --sq-gray-200: #e0e5ee;
+  --sq-gray-300: #cdd5e0;   /* base-content on dark */
+  --sq-gray-400: #9aa6ba;
+  --sq-gray-500: #6b7688;
+  --sq-gray-600: #4b5468;
+  --sq-gray-700: #374151;   /* secondary-content */
+  --sq-gray-800: #232b3d;
+  --sq-gray-900: #141a28;
+
+  /* ---- Status (from theme semantic colors) ---- */
+  --sq-success: #4faf75;
+  --sq-success-strong: #4ade80;   /* text-green-400 accent */
+  --sq-warning: #d2a94c;
+  --sq-warning-strong: #facc15;   /* text-yellow-400 accent */
+  --sq-error:   #b75252;
+  --sq-error-strong: #f87171;     /* text-red-400 accent */
+  --sq-info:    #3d7dd8;
+  --sq-info-strong: #60a5fa;      /* text-blue-400 accent */
+  --sq-accent:  #4c5faf;          /* accent */
+
+  /* ---- Code-block surface (near-black used in job view) ---- */
+  --sq-code-bg: #0b0f1a;
+}
+
+/* ============================================================
+   SEMANTIC ALIASES — DARK (default, canonical product theme)
+   `:root` keeps dark the no-attribute default; [data-theme="dark"]
+   is the explicit selector so consumers can force it symmetrically.
+   ============================================================ */
+:root,
+[data-theme="dark"] {
+  --surface-app:      var(--sq-navy-900);
+  --surface-raised:   var(--sq-navy-800);
+  --surface-card:     var(--sq-slate-700);
+  --surface-hover:    var(--sq-navy-600);
+  --surface-code:     var(--sq-code-bg);
+  --surface-inset:    var(--sq-navy-850);
+
+  --text-primary:     var(--sq-gray-300);
+  --text-strong:      #ffffff;
+  --text-secondary:   #9aa6ba;
+  --text-muted:       #6b7688;
+  --text-inverse:     #0c1226;
+  --text-link:        var(--sq-blue-300);
+
+  --border-subtle:    rgba(255, 255, 255, 0.06);
+  --border-default:   #2a3b5f;
+  --border-strong:    #38425c;
+
+  --brand-primary:        var(--sq-blue-500);
+  --brand-primary-hover:  var(--sq-blue-400);
+  --brand-primary-active: var(--sq-blue-600);
+  --on-brand:             #ffffff;
+  --brand-gradient:       linear-gradient(150deg, var(--sq-grad-start) 0%, var(--sq-grad-end) 100%);
+  --brand-ring:           rgba(43, 124, 211, 0.45);
+
+  /* status text accents on dark */
+  --status-running:   var(--sq-info-strong);
+  --status-completed: var(--sq-success-strong);
+  --status-failed:    var(--sq-error-strong);
+  --status-scheduled: var(--sq-warning-strong);
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+   SEMANTIC ALIASES — LIGHT (derived; opt-in via data-theme)
+   ============================================================ */
+[data-theme="light"] {
+  --surface-app:      var(--sq-gray-50);
+  --surface-raised:   #ffffff;
+  --surface-card:     #ffffff;
+  --surface-hover:    var(--sq-gray-100);
+  --surface-code:     var(--sq-gray-100);
+  --surface-inset:    var(--sq-gray-100);
+
+  --text-primary:     #1f2739;
+  --text-strong:      #0c1226;
+  --text-secondary:   #414b60;   /* 7:1 on white — was #4b5468 */
+  --text-muted:       #616b7e;   /* 4.6:1 on white — was #6b7688 (3.9:1) */
+  --text-inverse:     #ffffff;
+  --text-link:        var(--sq-blue-700);   /* 5.3:1 — was blue-600 (4.1:1) */
+
+  --border-subtle:    rgba(12, 18, 38, 0.08);
+  --border-default:   var(--sq-gray-200);
+  --border-strong:    var(--sq-gray-300);
+
+  --brand-primary:        var(--sq-blue-500);
+  --brand-primary-hover:  var(--sq-blue-600);
+  --brand-primary-active: var(--sq-blue-700);
+  --on-brand:             #ffffff;
+  --brand-ring:           rgba(43, 124, 211, 0.30);
+
+  --status-running:   var(--sq-info);
+  --status-completed: var(--sq-success);
+  --status-failed:    var(--sq-error);
+  --status-scheduled: #b7902f;
+
+  color-scheme: light;
+}

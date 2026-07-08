@@ -1,0 +1,50 @@
+/* Sidequest.js — Base layer
+ * Minimal resets + the ambient defaults specimen cards & kits rely on. Kept small;
+ * components style themselves via tokens. Applying `.sq-surface` to a preview root
+ * paints the app background + primary text so cards read like the real product.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.sq-surface,
+body.sq-surface {
+  margin: 0;
+  background: var(--surface-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.sq-brand-text {
+  font-family: var(--font-brand);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.sq-mono { font-family: var(--font-mono); }
+
+/* Brand gradient text (wordmark / hero accents) */
+.sq-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Uppercase eyebrow / column-header treatment */
+.sq-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+}
+
+::selection { background: var(--brand-ring); color: #fff; }
+
+/* Interaction states (:hover / :focus-visible / :active) and layout now live on the
+ * components as Tailwind utility variants. The `.sq-*` class names remain on the
+ * elements as stable styling hooks, but carry no CSS here. */

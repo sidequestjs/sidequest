@@ -1,32 +1,48 @@
-import type { HTMLAttributes } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { cn } from "./cn";
 
-/** Visual variants available for {@link Card}. */
-export type CardVariant = "solid" | "muted";
-
-/** Props for the {@link Card} component. Extends the native `div` attributes. */
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /** Background treatment. Defaults to `"solid"`. */
-  variant?: CardVariant;
+/** Props for the {@link Card} panel primitive. */
+export interface CardProps {
+  /** Header title. Omit for a bare panel. */
+  title?: ReactNode;
+  /** Right-aligned header actions (buttons). */
+  actions?: ReactNode;
+  /** Body padding (CSS length). @default "var(--space-6)" */
+  padding?: string;
+  children?: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  bodyStyle?: CSSProperties;
 }
 
-const variantClasses: Record<CardVariant, string> = {
-  solid: "bg-surface",
-  muted: "bg-surface-muted",
-};
-
 /**
- * Surface container used across the Sidequest dashboard. Renders a rounded,
- * bordered panel that wraps arbitrary content and forwards any native `div`
- * attributes.
+ * Card — the dashboard's panel primitive. Optional title/actions header, then a
+ * padded body. Compose stat tiles, tables, and job details inside it.
  */
-export function Card({ variant = "solid", className, children, ...rest }: CardProps) {
-  const classes = `rounded-card border border-border p-4 text-content ${variantClasses[variant]}${
-    className ? ` ${className}` : ""
-  }`;
-
+export function Card({
+  title,
+  actions,
+  children,
+  padding = "var(--space-6)",
+  className = "",
+  style = {},
+  bodyStyle = {},
+}: CardProps) {
   return (
-    <div className={classes} {...rest}>
-      {children}
+    <div
+      className={cn("sq-card overflow-hidden bg-surface-card border border-edge rounded-md shadow-md", className)}
+      style={style}
+    >
+      {(title != null || actions != null) && (
+        <div
+          className="flex items-center justify-between border-b border-edge-subtle"
+          style={{ padding: `var(--space-4) ${padding}` }}
+        >
+          {title && <h3 className="m-0 text-lg font-semibold text-fg-strong">{title}</h3>}
+          {actions && <div className="flex gap-2">{actions}</div>}
+        </div>
+      )}
+      <div style={{ padding, ...bodyStyle }}>{children}</div>
     </div>
   );
 }

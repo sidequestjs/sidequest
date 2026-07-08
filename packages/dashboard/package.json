@@ -36,13 +36,14 @@
     "./ui": {
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"
-    }
+    },
+    "./ui/styles.css": "./dist/ui/styles.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts",
+    "build": "npx rollup -c && npx vite build --config vite.lib.config.ts && npx @tailwindcss/cli -i ./src/ui/styles.css -o ./dist/ui/styles.css --minify",
     "dev": "npx rollup -c -w",
     "test": "yarn vitest run",
     "storybook": "storybook dev -p 6006",
@@ -53,6 +54,7 @@
     "@sidequest/backend": "workspace:*",
     "@sidequest/core": "workspace:*",
     "@sidequest/engine": "workspace:*",
+    "clsx": "^2.1.1",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "express-basic-auth": "^1.2.1",
@@ -62,7 +64,6 @@
   "devDependencies": {
     "@highlightjs/cdn-assets": "^11.11.1",
     "@storybook/react-vite": "^10.4.6",
-    "@tailwindcss/vite": "^4.3.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -77,6 +78,7 @@
     "feather-icons": "^4.29.2",
     "htmx.org": "^2.0.8",
     "jsdom": "^29.1.1",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "storybook": "^10.4.6",
@@ -84,10 +86,14 @@
     "vite-plugin-dts": "^5.0.3"
   },
   "peerDependencies": {
+    "lucide-react": "*",
     "react": "*",
     "react-dom": "*"
   },
   "peerDependenciesMeta": {
+    "lucide-react": {
+      "optional": true
+    },
     "react": {
       "optional": true
     },

@@ -1,0 +1,24 @@
+/* Sidequest.js — Spacing & sizing tokens
+ * 4px base grid. Dashboard uses Tailwind's scale (p-4, gap-4, p-6) — mirrored here.
+ */
+
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4  */
+  --space-2: 0.5rem;    /* 8  */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 — default control / card padding step */
+  --space-5: 1.25rem;   /* 20 */
+  --space-6: 1.5rem;    /* 24 — main content padding, card body */
+  --space-8: 2rem;      /* 32 — section gap */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 */
+  --space-20: 5rem;     /* 80 */
+
+  /* ---- Layout constants (from dashboard) ---- */
+  --sidebar-width: 16rem;   /* w-64 */
+  --content-max: 80rem;
+  --control-height: 2.5rem; /* 40px — inputs / selects / md button */
+  --control-height-sm: 2rem;/* 32px — btn-sm */
+}
