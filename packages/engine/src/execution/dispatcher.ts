@@ -90,7 +90,9 @@ export class Dispatcher {
   start() {
     logger("Dispatcher").debug(`Starting dispatcher...`);
     this.isRunning = true;
-    void this.listen();
+    void this.listen().catch((error: unknown) => {
+      logger("Dispatcher").error("Dispatcher polling loop crashed unexpectedly:", error);
+    });
   }
 
   /**
