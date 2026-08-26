@@ -13,6 +13,7 @@ import {
 } from "@sidequest/core";
 import { inspect } from "util";
 import { NonNullableEngineConfig } from "../engine";
+import { JobTransitionConflictError } from "../job/job-transition-conflict-error";
 import { JobTransitioner } from "../job/job-transitioner";
 import { InlineRunner, JobRunner, RunnerPool } from "../shared-runner";
 
@@ -109,7 +110,13 @@ export class ExecutorManager {
       // This might not be necessary, but for the sake of consistency we do it.
       this.queueJob(queueConfig, job);
 
-      job = await JobTransitioner.apply(this.backend, job, new RunTransition());
+      try {
+        job = await JobTransitioner.apply(this.backend, job, new RunTransition());
+      } catch (error) {
+        if (!(error instanceof JobTransitionConflictError)) throw error;
+        logger("Executor Manager").debug(`Skipping job ${job.id}: its execution changed before it could start`);
+        return;
+      }
 
       isRunning = true;
       const cancellationCheck = async () => {

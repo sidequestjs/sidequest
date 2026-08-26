@@ -28,6 +28,14 @@ export type NewJobData = Pick<JobData, "queue" | "script" | "class" | "args" | "
 export type UpdateJobData = Pick<JobData, "id"> & Partial<Omit<JobData, "id">>;
 
 /**
+ * Fields that identify the exact execution snapshot a job update was based on.
+ *
+ * A backend uses this fingerprint as an atomic update precondition so an old
+ * worker or stale-job sweep cannot overwrite a newer lifecycle transition.
+ */
+export type JobExecutionFingerprint = Pick<JobData, "state" | "attempt" | "claimed_by" | "claimed_at" | "attempted_at">;
+
+/**
  * Data required to create a new queue.
  */
 export type NewQueueData = Pick<QueueConfig, "name"> & Partial<Omit<QueueConfig, "queue" | "id">>;
@@ -167,6 +175,15 @@ export interface Backend {
    * @returns The updated job data.
    */
   updateJob(job: UpdateJobData): Promise<JobData>;
+
+  /**
+   * Updates a job only if its persisted execution fingerprint is unchanged.
+   *
+   * @param job The updated job data.
+   * @param expected The execution fingerprint observed before computing the update.
+   * @returns The updated job, or undefined if the job no longer matches the expected fingerprint.
+   */
+  updateJobIfCurrent(job: UpdateJobData, expected: JobExecutionFingerprint): Promise<JobData | undefined>;
 
   /**
    * Lists jobs with optional filters.

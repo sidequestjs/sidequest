@@ -1,5 +1,13 @@
 import { JobData, JobState, QueueConfig } from "@sidequest/core";
-import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
+import {
+  Backend,
+  JobCounts,
+  JobExecutionFingerprint,
+  NewJobData,
+  NewQueueData,
+  UpdateJobData,
+  UpdateQueueData,
+} from "./backend";
 import { BackendConfig } from "./config";
 import { createBackendFromDriver } from "./factory";
 
@@ -119,6 +127,11 @@ export class LazyBackend implements Backend {
   async updateJob(job: UpdateJobData): Promise<JobData> {
     await this.init();
     return this.backend!.updateJob(job);
+  }
+
+  async updateJobIfCurrent(job: UpdateJobData, expected: JobExecutionFingerprint): Promise<JobData | undefined> {
+    await this.init();
+    return this.backend!.updateJobIfCurrent(job, expected);
   }
 
   async listJobs(params?: {

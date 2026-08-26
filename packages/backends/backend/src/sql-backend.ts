@@ -2,7 +2,15 @@ import { DuplicatedJobError, JobData, JobState, logger, QueueConfig } from "@sid
 import { Knex } from "knex";
 import { hostname } from "os";
 import { inspect } from "util";
-import { Backend, JobCounts, NewJobData, NewQueueData, UpdateJobData, UpdateQueueData } from "./backend";
+import {
+  Backend,
+  JobCounts,
+  JobExecutionFingerprint,
+  NewJobData,
+  NewQueueData,
+  UpdateJobData,
+  UpdateQueueData,
+} from "./backend";
 import { JOB_FALLBACK, MISC_FALLBACK, QUEUE_FALLBACK } from "./constants";
 import { formatDateForBucket, safeParseJobData, whereOrWhereIn } from "./utils";
 
@@ -212,6 +220,28 @@ export abstract class SQLBackend implements Backend {
 
     logger("Backend").debug(`Job updated successfully: ${inspect(updated)}`);
 
+    return safeParseJobData(updated);
+  }
+
+  async updateJobIfCurrent(job: UpdateJobData, expected: JobExecutionFingerprint): Promise<JobData | undefined> {
+    const data = {
+      ...job,
+      args: job.args ? JSON.stringify(job.args) : job.args,
+      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
+      result: job.result ? JSON.stringify(job.result) : job.result,
+      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
+    };
+
+    logger("Backend").debug(`Conditionally updating job: ${inspect(data)}`);
+    const [updated] = (await this.knex("sidequest_jobs")
+      .where({ id: job.id, ...expected })
+      .update(data)
+      .returning("*")) as JobData[];
+
+    if (!updated) return undefined;
+
+    logger("Backend").debug(`Job updated successfully: ${inspect(updated)}`);
     return safeParseJobData(updated);
   }
 
