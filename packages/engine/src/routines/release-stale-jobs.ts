@@ -1,7 +1,7 @@
 import { Backend } from "@sidequest/backend";
 import { logger, RetryTransition } from "@sidequest/core";
 import { inspect } from "util";
-import { JobTransitioner } from "../job";
+import { JobTransitionConflictError, JobTransitioner } from "../job";
 
 /**
  * Finds and releases stale jobs, making them available for processing again.
@@ -21,11 +21,26 @@ export async function releaseStaleJobs(backend: Backend, maxStaleMs: number, max
         // We need to use the JobTransitioner to properly handle retries and state transitions
         // This fixes the issue where the release of a stale job incremented the retry count and
         // did not respect the maxRetries setting.
-        await JobTransitioner.apply(backend, jobData, new RetryTransition("Stale job released for retry"));
+        try {
+          await JobTransitioner.apply(backend, jobData, new RetryTransition("Stale job released for retry"));
+        } catch (error) {
+          if (!(error instanceof JobTransitionConflictError)) throw error;
+          logger("Engine").debug(`Skipping stale snapshot for job ${jobData.id}: its execution changed`);
+        }
       } else {
         // If it's "claimed", then the attempt count was not incremented, so we can just set it back to "waiting"
+        const expected = {
+          state: jobData.state,
+          attempt: jobData.attempt,
+          claimed_by: jobData.claimed_by ?? null,
+          claimed_at: jobData.claimed_at ?? null,
+          attempted_at: jobData.attempted_at ?? null,
+        };
         jobData.state = "waiting";
-        await backend.updateJob(jobData);
+        const updated = await backend.updateJobIfCurrent(jobData, expected);
+        if (!updated) {
+          logger("Engine").debug(`Skipping stale snapshot for job ${jobData.id}: its execution changed`);
+        }
       }
     }
   } else {

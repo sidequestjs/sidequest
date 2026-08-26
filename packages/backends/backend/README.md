@@ -18,7 +18,7 @@ This package provides the foundational types, interfaces, and abstract base clas
 
 ### Type Definitions
 
-- **Job Types** - `NewJobData`, `UpdateJobData`, `JobCounts` for job operations
+- **Job Types** - `NewJobData`, `UpdateJobData`, `JobExecutionFingerprint`, `JobCounts` for job operations
 - **Queue Types** - `NewQueueData`, `UpdateQueueData` for queue management
 - **Configuration** - `BackendConfig` for backend driver configuration
 

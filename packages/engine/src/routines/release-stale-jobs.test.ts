@@ -5,12 +5,143 @@ import { releaseStaleJobs } from "./release-stale-jobs";
 describe("release-stale-jobs.ts", () => {
   sidequestTest("should do nothing when no stale jobs are found", async ({ backend }) => {
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([]);
-    const updateJobSpy = vi.spyOn(backend, "updateJob");
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent");
 
     await releaseStaleJobs(backend, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).not.toHaveBeenCalled();
+  });
+
+  sidequestTest("does not resurrect a job completed after the stale scan", async ({ backend }) => {
+    const inserted = await backend.createNewJob({
+      queue: "default",
+      script: "./test-job.js",
+      class: "TestJob",
+      state: "waiting",
+      args: [],
+      constructor_args: [],
+      attempt: 0,
+      max_attempts: 3,
+    });
+    const staleSnapshot = await backend.updateJob({
+      ...inserted,
+      state: "running",
+      attempt: 1,
+      claimed_by: "worker-a",
+      claimed_at: new Date(Date.now() - 120_000),
+      attempted_at: new Date(Date.now() - 120_000),
+      timeout: 1,
+    });
+    const completedAt = new Date();
+
+    vi.spyOn(backend, "staleJobs").mockImplementationOnce(async () => {
+      // Force the race deterministically: the scan owns the old running
+      // snapshot, then the live executor commits completion before recovery
+      // applies its transition.
+      await backend.updateJob({
+        ...staleSnapshot,
+        state: "completed",
+        completed_at: completedAt,
+        result: { ok: true },
+      });
+      return [{ ...staleSnapshot }];
+    });
+
+    await releaseStaleJobs(backend, 1, 1);
+
+    expect(await backend.getJob(inserted.id)).toMatchObject({
+      state: "completed",
+      completed_at: completedAt,
+      result: { ok: true },
+    });
+  });
+
+  sidequestTest("does not overwrite a newer execution of the same running job", async ({ backend }) => {
+    const inserted = await backend.createNewJob({
+      queue: "default",
+      script: "./test-job.js",
+      class: "TestJob",
+      state: "waiting",
+      args: [],
+      constructor_args: [],
+      attempt: 0,
+      max_attempts: 3,
+    });
+    const staleSnapshot = await backend.updateJob({
+      ...inserted,
+      state: "running",
+      attempt: 1,
+      claimed_by: "worker-a",
+      claimed_at: new Date(Date.now() - 120_000),
+      attempted_at: new Date(Date.now() - 120_000),
+      timeout: 1,
+    });
+    const newerClaimedAt = new Date();
+    const newerAttemptedAt = new Date();
+
+    vi.spyOn(backend, "staleJobs").mockImplementationOnce(async () => {
+      // Model another sweep releasing attempt 1 and a worker starting attempt
+      // 2 before this sweep resumes. State remains `running`, so a state-only
+      // condition would still overwrite the new owner.
+      await backend.updateJob({
+        ...staleSnapshot,
+        state: "running",
+        attempt: 2,
+        claimed_by: "worker-b",
+        claimed_at: newerClaimedAt,
+        attempted_at: newerAttemptedAt,
+      });
+      return [{ ...staleSnapshot }];
+    });
+
+    await releaseStaleJobs(backend, 1, 1);
+
+    expect(await backend.getJob(inserted.id)).toMatchObject({
+      state: "running",
+      attempt: 2,
+      claimed_by: "worker-b",
+      claimed_at: newerClaimedAt,
+      attempted_at: newerAttemptedAt,
+    });
+  });
+
+  sidequestTest("does not release a claimed job that was re-claimed after the stale scan", async ({ backend }) => {
+    const inserted = await backend.createNewJob({
+      queue: "default",
+      script: "./test-job.js",
+      class: "TestJob",
+      state: "waiting",
+      args: [],
+      constructor_args: [],
+      attempt: 0,
+      max_attempts: 3,
+    });
+    const staleSnapshot = await backend.updateJob({
+      ...inserted,
+      state: "claimed",
+      claimed_by: "worker-a",
+      claimed_at: new Date(Date.now() - 120_000),
+    });
+    const newerClaimedAt = new Date();
+
+    vi.spyOn(backend, "staleJobs").mockImplementationOnce(async () => {
+      await backend.updateJob({
+        ...staleSnapshot,
+        state: "claimed",
+        claimed_by: "worker-b",
+        claimed_at: newerClaimedAt,
+      });
+      return [{ ...staleSnapshot }];
+    });
+
+    await releaseStaleJobs(backend, 1, 1);
+
+    expect(await backend.getJob(inserted.id)).toMatchObject({
+      state: "claimed",
+      claimed_by: "worker-b",
+      claimed_at: newerClaimedAt,
+    });
   });
 
   sidequestTest("should release stale claimed jobs by setting state to waiting", async ({ backend }) => {
@@ -28,7 +159,9 @@ describe("release-stale-jobs.ts", () => {
     } as unknown as JobData;
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
+    const updateJobSpy = vi
+      .spyOn(backend, "updateJobIfCurrent")
+      .mockImplementation((job) => Promise.resolve(job as JobData));
 
     await releaseStaleJobs(backend, 600_000, 60_000);
 
@@ -37,7 +170,7 @@ describe("release-stale-jobs.ts", () => {
 
     // Claimed jobs should go back to waiting without using JobTransitioner
     expect(mockStaleJob.state).toBe("waiting");
-    expect(updateJobSpy).toHaveBeenCalledWith(mockStaleJob);
+    expect(updateJobSpy).toHaveBeenCalledWith(mockStaleJob, expect.objectContaining({ state: "claimed" }));
   });
 
   sidequestTest("should retry stale running jobs using JobTransitioner", async ({ backend }) => {
@@ -55,7 +188,7 @@ describe("release-stale-jobs.ts", () => {
     } as unknown as JobData;
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent").mockImplementation((job) => {
       return Promise.resolve(job as JobData);
     });
 
@@ -83,7 +216,7 @@ describe("release-stale-jobs.ts", () => {
     } as unknown as JobData;
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent").mockImplementation((job) => {
       return Promise.resolve(job as JobData);
     });
 
@@ -125,7 +258,7 @@ describe("release-stale-jobs.ts", () => {
     ] as unknown as JobData[];
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue(mockStaleJobs);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => {
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent").mockImplementation((job) => {
       return Promise.resolve(job as JobData);
     });
 
@@ -154,14 +287,16 @@ describe("release-stale-jobs.ts", () => {
     } as unknown as JobData;
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue([mockStaleJob]);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockImplementation((job) => Promise.resolve(job as JobData));
+    const updateJobSpy = vi
+      .spyOn(backend, "updateJobIfCurrent")
+      .mockImplementation((job) => Promise.resolve(job as JobData));
 
     await releaseStaleJobs(backend, 600_000, 60_000);
 
     expect(staleJobsSpy).toHaveBeenCalledOnce();
     expect(updateJobSpy).toHaveBeenCalledOnce();
     expect(mockStaleJob.state).toBe("waiting");
-    expect(updateJobSpy).toHaveBeenCalledWith(mockStaleJob);
+    expect(updateJobSpy).toHaveBeenCalledWith(mockStaleJob, expect.objectContaining({ state: "claimed" }));
   });
 
   sidequestTest("should handle backend errors gracefully", async ({ backend }) => {
@@ -180,7 +315,7 @@ describe("release-stale-jobs.ts", () => {
     ] as unknown as JobData[];
 
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockResolvedValue(mockStaleJobs);
-    const updateJobSpy = vi.spyOn(backend, "updateJob").mockRejectedValue(new Error("Database error"));
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent").mockRejectedValue(new Error("Database error"));
 
     await expect(releaseStaleJobs(backend, 600_000, 60_000)).rejects.toThrow("Database error");
 
@@ -191,7 +326,7 @@ describe("release-stale-jobs.ts", () => {
 
   sidequestTest("should handle staleJobs backend error", async ({ backend }) => {
     const staleJobsSpy = vi.spyOn(backend, "staleJobs").mockRejectedValue(new Error("Failed to fetch stale jobs"));
-    const updateJobSpy = vi.spyOn(backend, "updateJob");
+    const updateJobSpy = vi.spyOn(backend, "updateJobIfCurrent");
 
     await expect(releaseStaleJobs(backend, 600_000, 60_000)).rejects.toThrow("Failed to fetch stale jobs");
 

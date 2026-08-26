@@ -3,6 +3,7 @@ import {
   formatDateForBucket,
   JOB_FALLBACK,
   JobCounts,
+  JobExecutionFingerprint,
   NewJobData,
   NewQueueData,
   QUEUE_FALLBACK,
@@ -197,6 +198,13 @@ export default class MongoBackend implements Backend {
     const res = await this.jobs.findOneAndUpdate({ id }, { $set: updates }, { returnDocument: "after" });
     if (!res) throw new Error("Job not found");
     return res as JobData;
+  }
+
+  async updateJobIfCurrent(job: UpdateJobData, expected: JobExecutionFingerprint): Promise<JobData | undefined> {
+    await this.ensureConnected();
+    const { id, ...updates } = job;
+    const res = await this.jobs.findOneAndUpdate({ id, ...expected }, { $set: updates }, { returnDocument: "after" });
+    return (res as JobData | null) ?? undefined;
   }
 
   async listJobs(params?: {

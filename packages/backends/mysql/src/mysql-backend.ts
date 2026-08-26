@@ -1,5 +1,6 @@
 import {
   JOB_FALLBACK,
+  JobExecutionFingerprint,
   NewJobData,
   NewQueueData,
   QUEUE_FALLBACK,
@@ -152,6 +153,34 @@ export default class MysqlBackend extends SQLBackend {
     });
 
     logger("Backend").debug(`Job updated successfully: ${inspect(updatedJob)}`);
+    return updatedJob;
+  }
+
+  async updateJobIfCurrent(job: UpdateJobData, expected: JobExecutionFingerprint): Promise<JobData | undefined> {
+    const data = {
+      ...job,
+      args: job.args ? JSON.stringify(job.args) : job.args,
+      constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
+      result: job.result ? JSON.stringify(job.result) : job.result,
+      errors: job.errors ? JSON.stringify(job.errors) : job.errors,
+      uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
+    };
+    logger("Backend").debug(`Conditionally updating job: ${inspect(data)}`);
+
+    const updatedJob = await this.knex.transaction(async (trx) => {
+      const updatedCount = await trx("sidequest_jobs")
+        .where({ id: job.id, ...expected })
+        .update(data);
+
+      if (updatedCount === 0) return undefined;
+
+      const updated = await trx<JobData>("sidequest_jobs").where({ id: job.id }).first();
+      if (!updated) return undefined;
+
+      return safeParseJobData(updated);
+    });
+
+    if (updatedJob) logger("Backend").debug(`Job updated successfully: ${inspect(updatedJob)}`);
     return updatedJob;
   }
 

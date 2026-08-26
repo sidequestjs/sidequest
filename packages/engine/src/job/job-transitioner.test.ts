@@ -9,6 +9,7 @@ import {
   RunTransition,
   SnoozeTransition,
 } from "@sidequest/core";
+import { JobTransitionConflictError } from "./job-transition-conflict-error";
 import { JobTransitioner } from "./job-transitioner";
 
 describe("JobTransitioner", () => {
@@ -294,6 +295,30 @@ describe("JobTransitioner", () => {
   });
 
   describe("edge cases", () => {
+    sidequestTest("does not let an old executor overwrite a newer execution", async ({ backend }) => {
+      const oldExecution = await backend.updateJob({
+        ...jobData,
+        state: "running",
+        attempt: 1,
+        claimed_by: "worker-a",
+        claimed_at: new Date(2000, 0, 1),
+        attempted_at: new Date(2000, 0, 1),
+      });
+      const newExecution = await backend.updateJob({
+        ...oldExecution,
+        state: "running",
+        attempt: 2,
+        claimed_by: "worker-b",
+        claimed_at: new Date(2000, 0, 2),
+        attempted_at: new Date(2000, 0, 2),
+      });
+
+      await expect(
+        JobTransitioner.apply(backend, oldExecution, new CompleteTransition("stale result")),
+      ).rejects.toBeInstanceOf(JobTransitionConflictError);
+      expect(await backend.getJob(jobData.id)).toMatchObject(newExecution);
+    });
+
     sidequestTest("handles transitions that should run but don't change job state", async ({ backend }) => {
       jobData = await backend.updateJob({
         ...jobData,

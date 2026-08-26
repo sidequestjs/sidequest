@@ -20,6 +20,7 @@ const mockBackend: Backend = vi.hoisted(() => ({
   createNewJob: vi.fn().mockResolvedValue({ id: 1 } as JobData),
   claimPendingJob: vi.fn().mockResolvedValue([{ id: 1 }] as JobData[]),
   updateJob: vi.fn().mockResolvedValue({ id: 1 } as JobData),
+  updateJobIfCurrent: vi.fn().mockResolvedValue({ id: 1 } as JobData),
   listJobs: vi.fn().mockResolvedValue([{ id: 1 }] as JobData[]),
   countJobs: vi.fn().mockResolvedValue({ total: 1 } as JobCounts),
   countJobsOverTime: vi.fn().mockResolvedValue([{ timestamp: new Date(), total: 1 }]),
@@ -137,6 +138,20 @@ describe("LazyBackend", () => {
     const job = { id: 1 } as UpdateJobData;
     const result = await lazyBackend.updateJob(job);
     expect(mockBackend.updateJob).toHaveBeenCalledWith(job);
+    expect(result).toEqual({ id: 1 });
+  });
+
+  it("should proxy updateJobIfCurrent", async () => {
+    const job = { id: 1 } as UpdateJobData;
+    const expected = {
+      state: "running" as const,
+      attempt: 1,
+      claimed_by: "worker-a",
+      claimed_at: new Date(),
+      attempted_at: new Date(),
+    };
+    const result = await lazyBackend.updateJobIfCurrent(job, expected);
+    expect(mockBackend.updateJobIfCurrent).toHaveBeenCalledWith(job, expected);
     expect(result).toEqual({ id: 1 });
   });
 

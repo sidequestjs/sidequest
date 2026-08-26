@@ -317,8 +317,16 @@ The backend class must be exported as a default export from the module. Sideques
 ### Implementing the Backend Interface
 
 ```typescript
-import { Backend, JobData, NewJobData, UpdateJobData, JobCounts } from "@sidequest/backend";
-import { JobState, QueueConfig } from "@sidequest/core";
+import {
+  Backend,
+  JobCounts,
+  JobExecutionFingerprint,
+  NewJobData,
+  NewQueueData,
+  UpdateJobData,
+  UpdateQueueData,
+} from "@sidequest/backend";
+import { JobData, JobState, QueueConfig } from "@sidequest/core";
 
 export class MyCustomBackend implements Backend {
   // Required methods to implement
@@ -370,6 +378,13 @@ export class MyCustomBackend implements Backend {
 
   async updateJob(job: UpdateJobData): Promise<JobData> {
     // Update job data
+  }
+
+  async updateJobIfCurrent(
+    job: UpdateJobData,
+    expected: JobExecutionFingerprint,
+  ): Promise<JobData | undefined> {
+    // Atomically update only when the persisted execution fingerprint matches
   }
 
   async listJobs(params?: {
@@ -471,11 +486,12 @@ The backend driver is dynamically loaded based on the `driver` string. It will b
 When creating a custom backend, ensure:
 
 1. **Atomic job claiming**: Jobs must be claimed atomically to prevent race conditions
-2. **Transaction support**: Use transactions for data consistency
-3. **Index optimization**: Add appropriate indexes for job and queue queries
-4. **Error handling**: Proper error handling and connection management
-5. **Migration support**: Implement schema versioning and migrations
-6. **JSON serialization**: Handle complex job arguments and results properly
+2. **Conditional job updates**: Execution transitions must compare and update atomically so stale workers cannot overwrite newer attempts
+3. **Transaction support**: Use transactions for data consistency
+4. **Index optimization**: Add appropriate indexes for job and queue queries
+5. **Error handling**: Proper error handling and connection management
+6. **Migration support**: Implement schema versioning and migrations
+7. **JSON serialization**: Handle complex job arguments and results properly
 
 ### Testing Your Backend
 
