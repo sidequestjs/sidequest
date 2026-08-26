@@ -16,10 +16,13 @@ export function parseStackTrace(err: Error): string[] {
   return stackLines
     .map((line) => {
       const match = /(file:\/\/)?(((\/?)(\w:))?([/\\].+)):\d+:\d+/.exec(line);
-      if (match) {
-        return `${match[5] ?? ""}${match[6].replaceAll("\\", "/")}`;
+      if (!match) {
+        return undefined;
       }
-      return undefined;
+      const filePath = `${match[5] ?? ""}${match[6].replaceAll("\\", "/")}`;
+      // file:// URLs (e.g. ESM stack frames on Windows) percent-encode special characters like
+      // spaces (`Program%20Files`); decode them back into a real filesystem path.
+      return match[1] ? decodeURIComponent(filePath) : filePath;
     })
     .filter(Boolean) as string[];
 }
