@@ -38,7 +38,9 @@ export class JobTransitioner {
       const uniqueness = UniquenessFactory.create(newData.uniqueness_config);
       newData.unique_digest = uniqueness.digest(jobData);
     }
-    logger("JobTransitioner").debug(`Updating with new job data: ${inspect(newData)}`);
+    logger("JobTransitioner").debug(
+      `Updating with new job data: ${inspect(newData)} if execution matches: ${inspect(expected)}`,
+    );
     const updated = await backend.updateJobIfCurrent(newData, expected);
     if (!updated) {
       throw new JobTransitionConflictError(jobData.id, transition.constructor.name);

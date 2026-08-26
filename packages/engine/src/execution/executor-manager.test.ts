@@ -8,6 +8,7 @@ import {
   RetryTransition,
   RunTransition,
 } from "@sidequest/core";
+import { JobTransitionConflictError } from "../job/job-transition-conflict-error";
 import { JobTransitioner } from "../job/job-transitioner";
 import { grantQueueConfig } from "../queue/grant-queue-config";
 import { DummyJob } from "../test-jobs/dummy-job";
@@ -255,6 +256,49 @@ describe("ExecutorManager", () => {
 
       // The fire-and-forget executor must not reject, and must free the job from the active set.
       await expect(executorManager.execute(queryConfig, jobData)).resolves.toBeUndefined();
+      expect(executorManager.totalActiveWorkers()).toBe(0);
+
+      await executorManager.destroy();
+    });
+
+    sidequestTest("does not run or retry a job when its start transition loses a race", async ({ backend, config }) => {
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(JobTransitioner.apply).mockRejectedValueOnce(
+        new JobTransitionConflictError(jobData.id, "RunTransition"),
+      );
+
+      await expect(executorManager.execute(queryConfig, jobData)).resolves.toBeUndefined();
+
+      expect(runMock).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledTimes(1);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
+      expect(executorManager.totalActiveWorkers()).toBe(0);
+
+      await executorManager.destroy();
+    });
+
+    sidequestTest("does not retry a job when its terminal transition loses a race", async ({ backend, config }) => {
+      const queryConfig = await grantQueueConfig(backend, { name: "default", concurrency: 1 });
+      const executorManager = new ExecutorManager(backend, config);
+
+      // RunTransition succeeds, then the completion transition loses ownership to a newer execution.
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      vi.mocked(JobTransitioner.apply)
+        .mockResolvedValueOnce(jobData)
+        .mockRejectedValueOnce(new JobTransitionConflictError(jobData.id, "CompleteTransition"));
+
+      await expect(executorManager.execute(queryConfig, jobData)).resolves.toBeUndefined();
+
+      expect(runMock).toHaveBeenCalledWith(jobData, expect.any(AbortSignal));
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).toHaveBeenCalledWith(backend, jobData, expect.any(CompleteTransition));
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(JobTransitioner.apply).not.toHaveBeenCalledWith(backend, jobData, expect.any(RetryTransition));
       expect(executorManager.totalActiveWorkers()).toBe(0);
 
       await executorManager.destroy();
