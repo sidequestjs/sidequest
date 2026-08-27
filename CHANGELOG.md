@@ -5,6 +5,14 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.3](https://github.com/sidequestjs/sidequest/compare/v1.16.2...v1.16.3) (2026-08-27)
+
+
+### Bug Fixes
+
+* enhance stack trace parsing for percent-encoded characters in Windows paths ([#210](https://github.com/sidequestjs/sidequest/issues/210)) ([77734e7](https://github.com/sidequestjs/sidequest/commit/77734e7444efbf4caa17191ef5f41d8d6c0928d5))
+* fence stale job recovery transitions ([#209](https://github.com/sidequestjs/sidequest/issues/209)) ([6916af5](https://github.com/sidequestjs/sidequest/commit/6916af5ad499e28832154b1f401bc6f1fe6db443))
+
 ## [1.16.2](https://github.com/sidequestjs/sidequest/compare/v1.16.1...v1.16.2) (2026-07-21)
 
 
