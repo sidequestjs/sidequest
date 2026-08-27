@@ -42,6 +42,25 @@ describe("parseStackTrace", () => {
     expect(result).toEqual(["C:/Windows/file.js", "/usr/local/file.ts", "D:/project/main.js"]);
   });
 
+  it("should decode percent-encoded characters from file:// URLs (e.g. spaces in Windows paths)", () => {
+    const error = new Error("Test error");
+    error.stack = `Error: Test error
+        at function1 (file:///C:/Program%20Files/my%20app/index.js:10:5)
+        at function2 (file:///home/user/my%20project/app.ts:15:8)`;
+
+    const result = parseStackTrace(error);
+    expect(result).toEqual(["C:/Program Files/my app/index.js", "/home/user/my project/app.ts"]);
+  });
+
+  it("should not alter a literal percent sign in a plain (non-file://) path", () => {
+    const error = new Error("Test error");
+    error.stack = `Error: Test error
+        at function1 (C:\\Users\\test\\100%done\\file.js:10:5)`;
+
+    const result = parseStackTrace(error);
+    expect(result).toEqual(["C:/Users/test/100%done/file.js"]);
+  });
+
   it("should return empty array when stack is undefined", () => {
     const error = new Error("Test error");
     error.stack = undefined;
