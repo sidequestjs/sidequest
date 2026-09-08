@@ -85,13 +85,17 @@ export class Dispatcher {
   }
 
   /**
-   * Starts the dispatcher loop.
+   * Starts the dispatcher loop. If the loop crashes unexpectedly it is restarted after a short delay.
    */
   start() {
     logger("Dispatcher").debug(`Starting dispatcher...`);
     this.isRunning = true;
-    void this.listen().catch((error: unknown) => {
-      logger("Dispatcher").error("Dispatcher polling loop crashed unexpectedly:", error);
+    void this.listen().catch(async (error: unknown) => {
+      // A transient backend error (e.g. a dropped DB connection) rejects the loop. Without a restart
+      // no job would ever be claimed again and they would pile up in waiting state.
+      logger("Dispatcher").error("Dispatcher polling loop crashed unexpectedly, restarting:", error);
+      await this.sleep(this.sleepDelay);
+      if (this.isRunning) this.start();
     });
   }
 
