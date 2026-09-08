@@ -74,6 +74,35 @@ describe("Dispatcher", () => {
       await dispatcher.stop();
     });
 
+    sidequestTest("keeps polling after a transient backend error", async ({ backend }) => {
+      expect(await backend.listJobs({ state: "waiting" })).toHaveLength(1);
+
+      const mockClaim = vi
+        .spyOn(backend, "claimPendingJob")
+        .mockRejectedValueOnce(new Error("Connection terminated unexpectedly"));
+
+      const dispatcher = new Dispatcher(
+        backend,
+        new QueueManager(backend, config.queues!),
+        new ExecutorManager(backend, config as NonNullableEngineConfig),
+        100,
+      );
+      dispatcher.start();
+
+      runMock.mockImplementationOnce(() => {
+        return { type: "completed", result: "foo", __is_job_transition__: true } as CompletedResult;
+      });
+
+      await vi.waitUntil(async () => {
+        const jobs = await backend.listJobs({ state: "waiting" });
+        return jobs.length === 0;
+      });
+
+      expect(mockClaim.mock.calls.length).toBeGreaterThan(1);
+
+      await dispatcher.stop();
+    });
+
     sidequestTest("does not claim job when there is no available slot for the queue", async ({ backend }) => {
       await createJob(backend, "default");
 
