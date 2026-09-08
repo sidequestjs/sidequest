@@ -29,46 +29,53 @@ export class Dispatcher {
    */
   private async listen() {
     while (this.isRunning) {
-      const queues = await this.queueManager.getActiveQueuesWithRunnableJobs();
+      try {
+        const queues = await this.queueManager.getActiveQueuesWithRunnableJobs();
 
-      let shouldSleep = true;
+        let shouldSleep = true;
 
-      for (const queue of queues) {
-        const availableSlots = this.executorManager.availableSlotsByQueue(queue);
-        if (availableSlots <= 0) {
-          logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
+        for (const queue of queues) {
+          const availableSlots = this.executorManager.availableSlotsByQueue(queue);
+          if (availableSlots <= 0) {
+            logger("Dispatcher").debug(`Queue ${queue.name} limit reached!`);
+            await this.sleep(this.sleepDelay);
+            continue;
+          }
+
+          const globalSlots = this.executorManager.availableSlotsGlobal();
+          if (globalSlots <= 0) {
+            logger("Dispatcher").debug(`Global concurrency limit reached!`);
+            await this.sleep(this.sleepDelay);
+            continue;
+          }
+
+          const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, Math.min(availableSlots, globalSlots));
+
+          if (jobs.length > 0) {
+            // if a job was found on any queue do not sleep
+            shouldSleep = false;
+          }
+
+          for (const job of jobs) {
+            // adds jobs to active sets before execution to avoid race conditions
+            // because the execution is not awaited. This way we ensure that available slots
+            // are correctly calculated.
+            this.executorManager.queueJob(queue, job);
+            // does not await for job execution. Guard against any unexpected rejection so a single
+            // job can never crash the engine with an unhandled promise rejection.
+            void this.executorManager.execute(queue, job).catch((error: unknown) => {
+              logger("Dispatcher").error(`Unexpected error executing job ${job.id}:`, error);
+            });
+          }
+        }
+
+        if (shouldSleep) {
           await this.sleep(this.sleepDelay);
-          continue;
         }
-
-        const globalSlots = this.executorManager.availableSlotsGlobal();
-        if (globalSlots <= 0) {
-          logger("Dispatcher").debug(`Global concurrency limit reached!`);
-          await this.sleep(this.sleepDelay);
-          continue;
-        }
-
-        const jobs: JobData[] = await this.backend.claimPendingJob(queue.name, Math.min(availableSlots, globalSlots));
-
-        if (jobs.length > 0) {
-          // if a job was found on any queue do not sleep
-          shouldSleep = false;
-        }
-
-        for (const job of jobs) {
-          // adds jobs to active sets before execution to avoid race conditions
-          // because the execution is not awaited. This way we ensure that available slots
-          // are correctly calculated.
-          this.executorManager.queueJob(queue, job);
-          // does not await for job execution. Guard against any unexpected rejection so a single
-          // job can never crash the engine with an unhandled promise rejection.
-          void this.executorManager.execute(queue, job).catch((error: unknown) => {
-            logger("Dispatcher").error(`Unexpected error executing job ${job.id}:`, error);
-          });
-        }
-      }
-
-      if (shouldSleep) {
+      } catch (error) {
+        // A transient backend error (e.g. a dropped DB connection) must not end the loop, otherwise
+        // no job would ever be claimed again and they would pile up in waiting state.
+        logger("Dispatcher").error("Dispatcher polling iteration failed, retrying:", error);
         await this.sleep(this.sleepDelay);
       }
     }
@@ -85,17 +92,13 @@ export class Dispatcher {
   }
 
   /**
-   * Starts the dispatcher loop. If the loop crashes unexpectedly it is restarted after a short delay.
+   * Starts the dispatcher loop.
    */
   start() {
     logger("Dispatcher").debug(`Starting dispatcher...`);
     this.isRunning = true;
-    void this.listen().catch(async (error: unknown) => {
-      // A transient backend error (e.g. a dropped DB connection) rejects the loop. Without a restart
-      // no job would ever be claimed again and they would pile up in waiting state.
-      logger("Dispatcher").error("Dispatcher polling loop crashed unexpectedly, restarting:", error);
-      await this.sleep(this.sleepDelay);
-      if (this.isRunning) this.start();
+    void this.listen().catch((error: unknown) => {
+      logger("Dispatcher").error("Dispatcher polling loop crashed unexpectedly:", error);
     });
   }
 
