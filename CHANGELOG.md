@@ -5,6 +5,13 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.4](https://github.com/sidequestjs/sidequest/compare/v1.16.3...v1.16.4) (2026-09-08)
+
+
+### Bug Fixes
+
+* restart dispatcher polling loop after an unexpected crash ([#214](https://github.com/sidequestjs/sidequest/issues/214)) ([ba66067](https://github.com/sidequestjs/sidequest/commit/ba660672226aa92ae7dbc6ca8ac3babd3e678948))
+
 ## [1.16.3](https://github.com/sidequestjs/sidequest/compare/v1.16.2...v1.16.3) (2026-08-27)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "sidequest",
-  "version": "1.16.3",
+  "version": "1.16.4",
   "description": "Redis-free background job processor for Node.js. Persist jobs in your existing PostgreSQL, MySQL, SQLite, or MongoDB, with a built-in dashboard. A distributed, durable BullMQ and pg-boss alternative.",
   "keywords": [
     "nodejs",
