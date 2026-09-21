@@ -1,4 +1,5 @@
 import { NewJobData } from "@sidequest/backend";
+import { DuplicatedJobError } from "@sidequest/core";
 import { describe, it } from "vitest";
 import { backend } from "./backend";
 
@@ -124,7 +125,7 @@ export default function defineCreateNewJobTestSuite() {
       };
 
       await backend.createNewJob(job);
-      await expect(backend.createNewJob(job2)).rejects.toThrow();
+      await expect(backend.createNewJob(job2)).rejects.toThrow(DuplicatedJobError);
     });
   });
 }
