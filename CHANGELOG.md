@@ -5,6 +5,13 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.5](https://github.com/sidequestjs/sidequest/compare/v1.16.4...v1.16.5) (2026-09-22)
+
+
+### Bug Fixes
+
+* map Mongo duplicate key error to DuplicatedJobError ([#217](https://github.com/sidequestjs/sidequest/issues/217)) ([9255b1a](https://github.com/sidequestjs/sidequest/commit/9255b1a285749cf89d8b7fbbd061e220aa27f06a))
+
 ## [1.16.4](https://github.com/sidequestjs/sidequest/compare/v1.16.3...v1.16.4) (2026-09-08)
 
 
