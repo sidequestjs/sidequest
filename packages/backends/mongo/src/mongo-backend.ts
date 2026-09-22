@@ -10,7 +10,7 @@ import {
   UpdateJobData,
   UpdateQueueData,
 } from "@sidequest/backend";
-import { JobData, JobState, QueueConfig } from "@sidequest/core";
+import { DuplicatedJobError, JobData, JobState, QueueConfig } from "@sidequest/core";
 import { Collection, Db, Filter, MongoClient } from "mongodb";
 import { addCoalescedField, generateTimeBuckets, getTimeRangeConfig, matchDateRange, parseTimeRange } from "./utils";
 
@@ -156,7 +156,20 @@ export default class MongoBackend implements Backend {
       inserted_at: now,
       available_at: job.available_at ?? now,
     };
-    await this.jobs.insertOne(doc);
+    try {
+      await this.jobs.insertOne(doc);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (("code" in error && error.code === 11000) ||
+          error.message?.includes("E11000") ||
+          error.message?.includes("unique_digest"))
+      ) {
+        throw new DuplicatedJobError(doc);
+      }
+
+      throw error;
+    }
     return doc;
   }
 
