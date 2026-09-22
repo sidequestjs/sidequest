@@ -25,6 +25,31 @@ const defaultKnexConfig = {
   },
 };
 
+const MYSQL_ER_DUP_ENTRY = 1062;
+
+function isUniqueDigestDuplicateError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const code = "code" in error ? error.code : undefined;
+  const errno = "errno" in error ? error.errno : undefined;
+  const sqlMessage = "sqlMessage" in error && typeof error.sqlMessage === "string" ? error.sqlMessage : "";
+  const constraint = "constraint" in error && typeof error.constraint === "string" ? error.constraint : "";
+  const details = `${error.message}\n${sqlMessage}\n${constraint}`;
+
+  if (!details.includes("unique_digest")) {
+    return false;
+  }
+
+  return (
+    code === "ER_DUP_ENTRY" ||
+    errno === MYSQL_ER_DUP_ENTRY ||
+    constraint === "sidequest_jobs_unique_digest_active_idx" ||
+    /duplicate entry/i.test(details)
+  );
+}
+
 export default class MysqlBackend extends SQLBackend {
   constructor(dbConfig: string | SQLDriverConfig) {
     const knexConfig: Knex.Config = {
@@ -119,11 +144,7 @@ export default class MysqlBackend extends SQLBackend {
 
       return insertedJob;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.message?.includes("sidequest_jobs.unique_digest") ||
-          ("constraint" in error && error.constraint === "sidequest_jobs_unique_digest_active_idx"))
-      ) {
+      if (isUniqueDigestDuplicateError(error)) {
         throw new DuplicatedJobError(job as JobData);
       }
 
