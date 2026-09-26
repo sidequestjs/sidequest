@@ -1,5 +1,7 @@
 import { sidequestTest } from "@/tests/fixture";
-import { describe, expect } from "vitest";
+import type { Backend } from "@sidequest/backend";
+import type { QueueConfig } from "@sidequest/core";
+import { describe, expect, it, vi } from "vitest";
 import { grantQueueConfig, QueueDefaults } from "./grant-queue-config";
 
 describe("grantQueueConfig", () => {
@@ -190,5 +192,47 @@ describe("grantQueueConfig", () => {
     await expect(() => grantQueueConfig(backend, { name: "invalid-concurrency", concurrency: 0 })).rejects.toThrowError(
       "Concurrency must be at least 1",
     );
+  });
+
+  it("returns a queue created concurrently by another engine", async () => {
+    const queueConfig: QueueConfig = {
+      id: 1,
+      name: "concurrent",
+      concurrency: 10,
+      priority: 0,
+      state: "active",
+    };
+    let persistedQueue: QueueConfig | undefined;
+    const getQueue = vi.fn(() => Promise.resolve(persistedQueue));
+    const createNewQueue = vi.fn(() => {
+      if (persistedQueue) {
+        return Promise.reject(new Error("duplicate queue name"));
+      }
+      persistedQueue = queueConfig;
+      return Promise.resolve(queueConfig);
+    });
+    const backend = {
+      getQueue,
+      createNewQueue,
+    } as unknown as Backend;
+
+    const [first, second] = await Promise.all([
+      grantQueueConfig(backend, { name: "concurrent" }),
+      grantQueueConfig(backend, { name: "concurrent" }),
+    ]);
+
+    expect(first).toBe(queueConfig);
+    expect(second).toBe(queueConfig);
+    expect(createNewQueue).toHaveBeenCalledTimes(2);
+  });
+
+  it("preserves insertion errors when no queue was created", async () => {
+    const insertionError = new Error("database unavailable");
+    const backend = {
+      getQueue: vi.fn().mockResolvedValue(undefined),
+      createNewQueue: vi.fn().mockRejectedValue(insertionError),
+    } as unknown as Backend;
+
+    await expect(grantQueueConfig(backend, { name: "unavailable" })).rejects.toBe(insertionError);
   });
 });

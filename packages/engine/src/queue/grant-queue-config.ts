@@ -8,6 +8,21 @@ import { logger, QueueConfig } from "@sidequest/core";
  */
 export type QueueDefaults = Omit<NewQueueData, "id" | "name">;
 
+async function useExistingQueueConfig(
+  backend: Backend,
+  queue: NewQueueData,
+  queueConfig: QueueConfig,
+  forceUpdate: boolean,
+) {
+  if (forceUpdate && differentQueueConfig(queue, queueConfig)) {
+    logger("Engine").warn(
+      `Queue config for ${queue.name} exists but differs from the provided configuration. Updating...`,
+    );
+    return backend.updateQueue({ ...queueConfig, ...queue });
+  }
+  return queueConfig;
+}
+
 /**
  * Determines if a new queue configuration differs from the existing queue configuration.
  *
@@ -44,14 +59,7 @@ export async function grantQueueConfig(
 ) {
   const queueConfig = await backend?.getQueue(queue.name);
   if (queueConfig) {
-    if (forceUpdate && differentQueueConfig(queue, queueConfig)) {
-      logger("Engine").warn(
-        `Queue config for ${queue.name} exists but differs from the provided configuration. Updating...`,
-      );
-      return await backend.updateQueue({ ...queueConfig, ...queue });
-    } else {
-      return queueConfig;
-    }
+    return useExistingQueueConfig(backend, queue, queueConfig, forceUpdate);
   }
 
   const newConfig: NewQueueData = {
@@ -61,5 +69,15 @@ export async function grantQueueConfig(
 
   logger("Engine").info(`Creating queue config for ${queue.name}`);
 
-  return backend?.createNewQueue(newConfig);
+  try {
+    return await backend?.createNewQueue(newConfig);
+  } catch (error) {
+    // Another engine may have created the same queue after our initial lookup.
+    // Treat that race as success, while preserving unrelated insertion errors.
+    const concurrentlyCreatedConfig = await backend?.getQueue(queue.name);
+    if (!concurrentlyCreatedConfig) {
+      throw error;
+    }
+    return useExistingQueueConfig(backend, queue, concurrentlyCreatedConfig, forceUpdate);
+  }
 }
