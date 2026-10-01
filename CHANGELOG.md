@@ -5,6 +5,15 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.6](https://github.com/sidequestjs/sidequest/compare/v1.16.5...v1.16.6) (2026-10-01)
+
+
+### Bug Fixes
+
+* preserve host signal handlers on shutdown ([#219](https://github.com/sidequestjs/sidequest/issues/219)) ([657a8bd](https://github.com/sidequestjs/sidequest/commit/657a8bd703b1322f75533a77e45dd7eab409ee39))
+* propagate SQL migration failures ([#220](https://github.com/sidequestjs/sidequest/issues/220)) ([7bc2b98](https://github.com/sidequestjs/sidequest/commit/7bc2b982aee32b05e223bea8cde5822faf9c94fb))
+* tolerate concurrent queue creation ([#221](https://github.com/sidequestjs/sidequest/issues/221)) ([092089f](https://github.com/sidequestjs/sidequest/commit/092089f491e243068f06d9dba430193e4aab9d3c))
+
 ## [1.16.5](https://github.com/sidequestjs/sidequest/compare/v1.16.4...v1.16.5) (2026-09-22)
 
 
