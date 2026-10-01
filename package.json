@@ -1,7 +1,7 @@
 {
   "name": "sidequest-monorepo",
   "private": true,
-  "version": "1.16.5",
+  "version": "1.16.6",
   "type": "module",
   "description": "Monorepo for Sidequest.js",
   "engines": {
