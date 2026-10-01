@@ -44,5 +44,16 @@
   "dependencies": {
     "safe-stable-stringify": "^2.5.0",
     "winston": "^3.19.0"
+  },
+  "peerDependencies": {
+    "pino": "^9.0.0 || ^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pino": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "pino": "^10.3.1"
   }
 }
