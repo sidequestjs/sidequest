@@ -45,6 +45,7 @@ export abstract class SQLBackend implements Backend {
       }
     } catch (err) {
       logger("Backend").error("Migration failed:", err);
+      throw err;
     }
   }
 
@@ -60,6 +61,7 @@ export abstract class SQLBackend implements Backend {
       }
     } catch (err) {
       logger("Backend").error("Rollback failed:", err);
+      throw err;
     }
   }
 
