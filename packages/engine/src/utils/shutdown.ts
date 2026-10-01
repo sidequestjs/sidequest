@@ -2,6 +2,13 @@ import { logger } from "@sidequest/core";
 
 let shuttingDown = false;
 
+interface RegisteredSignalHandler {
+  signal: "SIGINT" | "SIGTERM";
+  handler: () => Promise<void>;
+}
+
+const registeredSignalHandlers: RegisteredSignalHandler[] = [];
+
 /**
  * Handles the shutdown process, ensuring it only runs once and logs appropriately.
  * @param fn The async function to run during shutdown.
@@ -33,17 +40,25 @@ async function shutdown(fn: () => void | Promise<void>, tag: string, signal: str
  */
 export function gracefulShutdown(fn: () => void | Promise<void>, tag: string, enabled: boolean) {
   if (enabled) {
-    process.on("SIGINT", async () => {
+    const sigintHandler = async () => {
       await shutdown(fn, tag, "SIGINT");
-    });
-
-    process.on("SIGTERM", async () => {
+    };
+    const sigtermHandler = async () => {
       await shutdown(fn, tag, "SIGTERM");
-    });
+    };
+
+    process.on("SIGINT", sigintHandler);
+    process.on("SIGTERM", sigtermHandler);
+    registeredSignalHandlers.push(
+      { signal: "SIGINT", handler: sigintHandler },
+      { signal: "SIGTERM", handler: sigtermHandler },
+    );
   }
 }
 
 export function clearGracefulShutdown() {
-  process.removeAllListeners("SIGINT");
-  process.removeAllListeners("SIGTERM");
+  for (const { signal, handler } of registeredSignalHandlers) {
+    process.off(signal, handler);
+  }
+  registeredSignalHandlers.length = 0;
 }
