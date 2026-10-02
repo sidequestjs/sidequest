@@ -5,6 +5,13 @@
 
 * inline and no-fork execution modes ([#180](https://github.com/sidequestjs/sidequest/issues/180)) ([94fe6e2](https://github.com/sidequestjs/sidequest/commit/94fe6e2e4d98b3951d136bccaa6bcb0d4bd7d8c6)), closes [#178](https://github.com/sidequestjs/sidequest/issues/178) [#179](https://github.com/sidequestjs/sidequest/issues/179) [#182](https://github.com/sidequestjs/sidequest/issues/182) [#183](https://github.com/sidequestjs/sidequest/issues/183) [#184](https://github.com/sidequestjs/sidequest/issues/184) [#185](https://github.com/sidequestjs/sidequest/issues/185) [#186](https://github.com/sidequestjs/sidequest/issues/186) [#187](https://github.com/sidequestjs/sidequest/issues/187) [#188](https://github.com/sidequestjs/sidequest/issues/188)
 
+## [1.16.7](https://github.com/sidequestjs/sidequest/compare/v1.16.6...v1.16.7) (2026-10-02)
+
+
+### Bug Fixes
+
+* preserve falsy job results in SQL updates ([#226](https://github.com/sidequestjs/sidequest/issues/226)) ([83c1901](https://github.com/sidequestjs/sidequest/commit/83c190109ef1f416b4308501f9bb9b4aa00d3d1b))
+
 ## [1.16.6](https://github.com/sidequestjs/sidequest/compare/v1.16.5...v1.16.6) (2026-10-01)
 
 
