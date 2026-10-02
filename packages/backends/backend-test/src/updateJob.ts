@@ -1,4 +1,4 @@
-import { NewJobData } from "@sidequest/backend";
+import { NewJobData, UpdateJobData } from "@sidequest/backend";
 import { JobData, toErrorData } from "@sidequest/core";
 import { describe, it } from "vitest";
 import { backend } from "./backend";
@@ -226,6 +226,48 @@ export default function defineUpdateJobTestSuite() {
 
       expect(updatedJob).toBeUndefined();
       expect(await backend.getJob(insertedJob.id)).toMatchObject(newExecution);
+    });
+  });
+
+  describe.each(["updateJob", "updateJobIfCurrent"] as const)("%s result serialization", (method) => {
+    let job: JobData;
+
+    beforeEach(async () => {
+      job = await backend.createNewJob({
+        queue: "default",
+        class: "TestJob",
+        args: [],
+        constructor_args: [],
+        state: "waiting",
+        script: "test.js",
+        attempt: 0,
+      });
+      job = await backend.updateJob({ id: job.id, result: { previous: true } });
+    });
+
+    async function update(data: UpdateJobData) {
+      if (method === "updateJob") return backend.updateJob(data);
+      return backend.updateJobIfCurrent(data, {
+        state: job.state,
+        attempt: job.attempt,
+        claimed_by: job.claimed_by,
+        claimed_at: job.claimed_at,
+        attempted_at: job.attempted_at,
+      });
+    }
+
+    it.each([false, 0, "", null])("should round trip result %j", async (result) => {
+      const updatedJob = await update({ id: job.id, result });
+
+      expect(updatedJob?.result).toBe(result);
+      expect((await backend.getJob(job.id))?.result).toBe(result);
+    });
+
+    it.each([{}, { result: undefined }])("should retain the result when updating with %j", async (data) => {
+      const updatedJob = await update({ id: job.id, ...data });
+
+      expect(updatedJob?.result).toEqual({ previous: true });
+      expect((await backend.getJob(job.id))?.result).toEqual({ previous: true });
     });
   });
 }
