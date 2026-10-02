@@ -157,7 +157,7 @@ export default class MysqlBackend extends SQLBackend {
       ...job,
       args: job.args ? JSON.stringify(job.args) : job.args,
       constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
-      result: job.result ? JSON.stringify(job.result) : job.result,
+      result: job.result === undefined || job.result === null ? job.result : JSON.stringify(job.result),
       errors: job.errors ? JSON.stringify(job.errors) : job.errors,
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
@@ -182,7 +182,7 @@ export default class MysqlBackend extends SQLBackend {
       ...job,
       args: job.args ? JSON.stringify(job.args) : job.args,
       constructor_args: job.constructor_args ? JSON.stringify(job.constructor_args) : job.constructor_args,
-      result: job.result ? JSON.stringify(job.result) : job.result,
+      result: job.result === undefined || job.result === null ? job.result : JSON.stringify(job.result),
       errors: job.errors ? JSON.stringify(job.errors) : job.errors,
       uniqueness_config: job.uniqueness_config ? JSON.stringify(job.uniqueness_config) : job.uniqueness_config,
     };
