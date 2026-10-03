@@ -6,7 +6,7 @@ description: Logging guide for Sidequest.js
 
 # Logging
 
-Sidequest.js uses Winston for structured logging throughout the framework. You can also use the logger in your jobs to add debugging information, monitor execution, and track important events.
+Sidequest.js uses Winston for structured logging throughout the framework, and can send its logs to [pino](#using-pino) instead. You can also use the logger in your jobs to add debugging information, monitor execution, and track important events.
 
 ## Using the Logger in Jobs
 
@@ -101,6 +101,58 @@ log.debug("Validating payment data", {
   validationRules: validationRules,
 });
 ```
+
+## Using pino
+
+If your app already logs with [pino](https://getpino.io/) (for example through Fastify or AdonisJS), Sidequest can write its logs through pino too, so both use the same format.
+
+pino is an optional peer dependency: Sidequest does **not** install it, so you must install it yourself before selecting the adapter:
+
+::: code-group
+
+```bash [npm]
+npm install pino
+```
+
+```bash [yarn]
+yarn add pino
+```
+
+```bash [pnpm]
+pnpm add pino
+```
+
+:::
+
+::: warning
+If `pino` is not installed, `Sidequest.start()` and `Sidequest.configure()` fail with an error asking you to install it.
+:::
+
+Then select the `pino` adapter:
+
+```typescript
+await Sidequest.start({
+  logger: {
+    level: "info",
+    adapter: "pino",
+    options: { base: { service: "jobs" } }, // passed to pino()
+  },
+});
+```
+
+Every Sidequest entry then goes through pino, in your app process, the engine process and the job worker threads, including the entries you write with `logger()` inside jobs. The label becomes a `scope` field:
+
+```json
+{ "level": 30, "time": 1790885583530, "service": "jobs", "scope": "Core", "msg": "Running job #1 - HelloJob" }
+```
+
+A few things to keep in mind:
+
+- `logger.level` decides which entries are logged. A `level` inside `options` is ignored, and `logger.json` has no effect.
+- `options` are sent to the engine process and the worker threads, so they must be serializable. Options that take functions, such as `timestamp`, `mixin`, `formatters`, `serializers` or `hooks`, are not supported: `Sidequest.start()` fails with an error if `options` contains one.
+- `Error` objects in the metadata (for example `log.error("Job failed", { error })`) are written the way pino writes `err`, with their `type`, `message` and `stack`.
+- Each process and worker thread creates its own pino instance, which writes to stdout synchronously so that a worker thread waiting for its next job does not hold entries back. Pipe stdout to your log collector or to [pino-pretty](https://github.com/pinojs/pino-pretty) to format it.
+- Avoid pino's `transport` option with the default `runner: "thread"`: a transport needs the worker thread's event loop to deliver entries, but the thread is blocked while it waits for the next job, so entries logged inside jobs are not delivered. Entries from your app process and the engine process are not affected.
 
 ## Best Practices
 

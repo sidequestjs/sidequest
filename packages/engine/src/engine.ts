@@ -1,5 +1,5 @@
 import { BackendConfig, LazyBackend, MISC_FALLBACK, NewQueueData, QUEUE_FALLBACK } from "@sidequest/backend";
-import { configureLogger, JobClassType, logger, LoggerOptions } from "@sidequest/core";
+import { configureLogger, JobClassType, loadLoggerAdapter, logger, LoggerOptions } from "@sidequest/core";
 import { ChildProcess, fork } from "child_process";
 import { existsSync } from "fs";
 import { cpus } from "os";
@@ -23,7 +23,7 @@ export interface EngineConfig {
   backend?: BackendConfig;
   /** List of queue configurations. Defaults to `[]` */
   queues?: NewQueueData[];
-  /** Logger configuration options. Defaults to `info` and no json */
+  /** Logger configuration options. Defaults to `info`, no json and the `winston` adapter */
   logger?: LoggerOptions;
   /** Maximum number of concurrent jobs. Defaults to `10` */
   maxConcurrentJobs?: number;
@@ -199,6 +199,8 @@ export class Engine {
       logger: {
         level: config?.logger?.level ?? "info",
         json: config?.logger?.json ?? false,
+        adapter: config?.logger?.adapter ?? "winston",
+        options: config?.logger?.options ?? {},
       },
       gracefulShutdown: config?.gracefulShutdown ?? true,
       fork: config?.fork ?? true,
@@ -231,16 +233,18 @@ export class Engine {
       jobPollingInterval: config?.jobPollingInterval ?? 100,
     };
     dependencyRegistry.register(Dependency.Config, nonNullConfig);
-
-    this.validateConfig();
+    // Register the backend before the first await, so a concurrent caller never sees the config without it.
+    const backend = dependencyRegistry.register(Dependency.Backend, new LazyBackend(nonNullConfig.backend));
 
     logger("Engine").debug(`Configuring Sidequest engine: ${inspect(nonNullConfig)}`);
 
     if (nonNullConfig.logger) {
-      configureLogger(nonNullConfig.logger);
+      configureLogger(nonNullConfig.logger, await loadLoggerAdapter(nonNullConfig.logger));
     }
 
-    const backend = dependencyRegistry.register(Dependency.Backend, new LazyBackend(nonNullConfig.backend));
+    // Validate after the logger is configured, so its log entries go to the selected adapter.
+    this.validateConfig();
+
     if (!nonNullConfig.skipMigration) {
       await backend.migrate();
     }

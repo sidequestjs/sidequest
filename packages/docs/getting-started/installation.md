@@ -113,6 +113,34 @@ pnpm add @sidequest/mongo-backend
 
 :::
 
+## Logger Adapters (Optional)
+
+Sidequest logs with Winston by default, which comes with the main package. To send Sidequest's logs to another logger, you must install that logger yourself: the main package does _not_ include it.
+
+### pino
+
+To use the [pino adapter](/guide/jobs/logging#using-pino) (`logger: { adapter: "pino" }`), install pino:
+
+::: code-group
+
+```bash [npm]
+npm install pino
+```
+
+```bash [yarn]
+yarn add pino
+```
+
+```bash [pnpm]
+pnpm add pino
+```
+
+:::
+
+::: warning
+If `pino` is not installed, `Sidequest.start()` and `Sidequest.configure()` fail with an error asking you to install it.
+:::
+
 ## CLI Tool (Optional)
 
 We also provide a CLI Tool to manage backend migrations and configurations. Sidequest will try to manage it in runtime, but if you prefer to do it via CLI for better control, you can install it globally:
