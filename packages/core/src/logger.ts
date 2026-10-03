@@ -46,7 +46,7 @@ export interface LoggerOptions {
    */
   adapter?: LoggerAdapterName;
   /**
-   * Options passed to `pino()` when `adapter` is `"pino"` (e.g. `base`, `redact`, `transport`).
+   * Options passed to `pino()` when `adapter` is `"pino"` (e.g. `base`, `redact`, `messageKey`).
    * They are sent to the engine process and worker threads, so they must be serializable.
    */
   options?: Record<string, unknown>;
@@ -109,8 +109,11 @@ async function createPinoLogger(options: LoggerOptions): Promise<SidequestLogger
       cause: error,
     });
   });
+  // pino writes to stdout asynchronously by default, and a worker thread blocked waiting for its next
+  // job never gets to flush. Write synchronously, unless a transport handles the output.
+  const destination = options.options?.transport ? undefined : pino.destination({ dest: 1, sync: true });
   // Winston already filters by `options.level`, so pino logs every entry it receives.
-  const log = pino({ ...options.options, level: "trace" });
+  const log = pino({ ...options.options, level: "trace" }, destination);
   // pino writes an Error inside the bindings object as `{}`, so serialize it like pino's `err`.
   const bindings = (meta?: Record<string, unknown>) =>
     Object.fromEntries(

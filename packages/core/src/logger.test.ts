@@ -4,8 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import winston from "winston";
 import { configureLogger, loadLoggerAdapter, logger, LoggerOptions, SidequestLogger } from "./logger";
 
-// Real pino, but writing JSON lines into an array instead of stdout.
+// Real pino, but writing JSON lines into an array instead of stdout. `pinoStreams` records the
+// destination Sidequest passed to pino().
 const pinoLines = vi.hoisted(() => [] as Record<string, unknown>[]);
+const pinoStreams = vi.hoisted(() => [] as unknown[]);
 vi.mock("pino", async (importOriginal) => {
   const { default: pino } = await importOriginal<{ default: typeof import("pino") }>();
   const destination = new Writable({
@@ -14,7 +16,11 @@ vi.mock("pino", async (importOriginal) => {
       callback();
     },
   });
-  return { default: Object.assign((options: PinoOptions) => pino(options, destination), pino) };
+  const capture = (options: PinoOptions, stream?: unknown) => {
+    pinoStreams.push(stream);
+    return pino({ ...options, transport: undefined }, destination);
+  };
+  return { default: Object.assign(capture, pino) };
 });
 
 // Mock console output to capture logs
@@ -424,6 +430,26 @@ describe("Logger", () => {
           error: expect.objectContaining({ type: "Error", message: "boom", stack: error.stack }) as unknown,
         }),
       ]);
+    });
+
+    it("should write to stdout synchronously, so worker threads do not hold entries back", async () => {
+      pinoStreams.length = 0;
+
+      await loadLoggerAdapter({ level: "info", adapter: "pino" });
+
+      expect(pinoStreams).toEqual([expect.objectContaining({ fd: 1, sync: true })]);
+    });
+
+    it("should leave the output to the pino transport when one is set", async () => {
+      pinoStreams.length = 0;
+
+      await loadLoggerAdapter({
+        level: "info",
+        adapter: "pino",
+        options: { transport: { target: "pino/file", options: { destination: 1 } } },
+      });
+
+      expect(pinoStreams).toEqual([undefined]);
     });
 
     it("should reject options that cannot be sent to the engine process and worker threads", async () => {

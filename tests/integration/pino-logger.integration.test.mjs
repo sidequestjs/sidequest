@@ -34,7 +34,7 @@ describe("pino logger adapter", () => {
     dir = undefined;
   });
 
-  it("writes every entry through pino, from the app, the engine process and the job thread", async () => {
+  it("writes every entry through pino, from the app, the engine process and the job threads", async () => {
     dir = mkdtempSync(join(tmpdir(), "sidequest-pino-"));
 
     const { code, lines } = await runApp(join(dir, "sidequest.sqlite"));
@@ -45,9 +45,11 @@ describe("pino logger adapter", () => {
     expect(entries).toContainEqual(
       expect.objectContaining({ level: 30, scope: "Worker", msg: "Starting worker with provided configuration..." }),
     );
-    const jobEntry = entries.find((entry) => entry.scope === "LoggingJob");
-    expect(jobEntry).toMatchObject({ level: 30, msg: "Hello from a worker thread" });
-    expect(jobEntry.threadId).toBeGreaterThan(0);
+    // Both jobs ran on the same worker thread; each entry must reach stdout.
+    const jobEntries = entries.filter((entry) => entry.scope === "LoggingJob");
+    expect(jobEntries.map((entry) => entry.msg)).toEqual(["Hello from the first job", "Hello from the second job"]);
+    expect(jobEntries[0].threadId).toBeGreaterThan(0);
+    expect(jobEntries[1].threadId).toBe(jobEntries[0].threadId);
     // The app process and the forked engine process.
     expect(new Set(entries.map((entry) => entry.pid)).size).toBe(2);
   }, 30_000);

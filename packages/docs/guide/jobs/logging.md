@@ -151,7 +151,8 @@ A few things to keep in mind:
 - `logger.level` decides which entries are logged. A `level` inside `options` is ignored, and `logger.json` has no effect.
 - `options` are sent to the engine process and the worker threads, so they must be serializable. Options that take functions, such as `timestamp`, `mixin`, `formatters`, `serializers` or `hooks`, are not supported: `Sidequest.start()` fails with an error if `options` contains one.
 - `Error` objects in the metadata (for example `log.error("Job failed", { error })`) are written the way pino writes `err`, with their `type`, `message` and `stack`.
-- Each process and worker thread creates its own pino instance. Prefer the default stdout output and pipe it to your log collector or [pino-pretty](https://github.com/pinojs/pino-pretty). With pino's `transport` option, every worker thread starts its own transport thread, and entries it has not flushed yet can be lost if Sidequest stops right after a job finishes.
+- Each process and worker thread creates its own pino instance, which writes to stdout synchronously so that a worker thread waiting for its next job does not hold entries back. Pipe stdout to your log collector or to [pino-pretty](https://github.com/pinojs/pino-pretty) to format it.
+- Avoid pino's `transport` option with the default `runner: "thread"`: a transport needs the worker thread's event loop to deliver entries, but the thread is blocked while it waits for the next job, so entries logged inside jobs are not delivered. Entries from your app process and the engine process are not affected.
 
 ## Best Practices
 
