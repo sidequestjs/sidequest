@@ -3,7 +3,7 @@
   class="grid grid-cols-4 gap-4"
   hx-get="<%= basePath %>/dashboard/stats"
   hx-swap="outerHTML"
-  hx-trigger="every 1s, refresh from:body"
+  hx-trigger="<%= pollingInterval === 0 ? 'refresh from:body' : `every ${pollingInterval ?? 1000}ms, refresh from:body` %>"
   hx-include="#graph-range"
 >
   <div class="bg-gray-800 p-4 rounded shadow border border-gray-700">

@@ -40,6 +40,11 @@ export interface DashboardConfig {
    */
   port?: number;
   /**
+   * Interval in milliseconds for automatic dashboard refreshes. Set to 0 to
+   * refresh manually. When omitted, the existing 1s and 3s defaults apply.
+   */
+  pollingInterval?: number;
+  /**
    * Base path for the dashboard when served behind a reverse proxy.
    * For example, if you want to serve the dashboard at `/admin/sidequest`,
    * set this to `/admin/sidequest`.

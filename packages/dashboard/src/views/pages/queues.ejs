@@ -1,4 +1,7 @@
 <section class="space-y-6">
+  <% if (pollingInterval === 0) { %>
+    <button type="button" class="btn btn-outline" onclick="htmx.trigger('#queues-table', 'toggleQueue')">Refresh</button>
+  <% } %>
   <div class="card bg-neutral text-neutral-content shadow-lg">
     <div class="card-body">
       <div class="overflow-x-auto">

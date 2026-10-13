@@ -2,7 +2,7 @@
   id="job-details"
   hx-get="<%= basePath %>/jobs/<%= job.id %>"
   hx-swap="outerHTML"
-  hx-trigger="every 3s, jobChanged"
+  hx-trigger="<%= pollingInterval === 0 ? 'jobChanged' : `every ${pollingInterval ?? 3000}ms, jobChanged` %>"
 >
   <div class="flex w-full">
     <h1 class="text-2xl font-bold flex-1">
