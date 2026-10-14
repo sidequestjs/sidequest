@@ -17,6 +17,7 @@ export class MainWorker {
     if (!this.shuttingDown) {
       try {
         const nonNullConfig = await this.engine.configure({ ...sidequestConfig, skipMigration: true });
+        logger("Worker").info("Starting worker with provided configuration...");
         this.runtime = new WorkerRuntime(this.engine.getBackend()!, nonNullConfig);
         await this.runtime.start();
       } catch (error) {
@@ -62,7 +63,6 @@ if (isChildProcess) {
         }
         if (!worker.shuttingDown) {
           gracefulShutdown(worker.shutdown.bind(worker), "Worker", sidequestConfig.gracefulShutdown);
-          logger("Worker").info("Starting worker with provided configuration...");
           return await worker.runWorker(sidequestConfig);
         } else {
           logger("Worker").warn("Worker is already shutting down, ignoring start signal.");

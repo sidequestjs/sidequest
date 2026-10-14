@@ -1,4 +1,5 @@
 import { sidequestTest } from "@/tests/fixture";
+import { configureLogger, logger } from "@sidequest/core";
 import { rmSync, unlinkSync, writeFileSync } from "fs";
 import { platform } from "os";
 import { resolve } from "path";
@@ -225,6 +226,32 @@ describe("Engine", () => {
 
       rmSync(MANUAL_SCRIPT_TAG);
       await engine.close();
+    });
+
+    sidequestTest("should default to the winston console logger", async () => {
+      const engine = new Engine();
+      const config = await engine.configure({ backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" } });
+
+      expect(config.logger).toEqual({ level: "info", json: false, adapter: "winston", options: {} });
+      expect(logger().transports.map((transport) => transport.constructor.name)).toEqual(["Console"]);
+
+      await engine.close();
+    });
+
+    sidequestTest("should send logs to the configured logger adapter", async () => {
+      const engine = new Engine();
+      try {
+        const config = await engine.configure({
+          backend: { driver: "@sidequest/sqlite-backend", config: ":memory:" },
+          logger: { level: "warn", adapter: "pino", options: { base: null } },
+        });
+
+        expect(config.logger).toEqual({ level: "warn", json: false, adapter: "pino", options: { base: null } });
+        expect(logger().transports.map((transport) => transport.constructor.name)).toEqual(["Stream"]);
+      } finally {
+        await engine.close();
+        configureLogger({ level: "info", json: false });
+      }
     });
 
     sidequestTest("should not reconfigure already configured engine", async ({ engine }) => {

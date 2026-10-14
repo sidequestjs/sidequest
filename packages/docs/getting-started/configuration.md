@@ -140,6 +140,7 @@ await Sidequest.start({
   logger: {
     level: "info", // 'debug', 'info', 'warn', 'error'
     json: false,
+    adapter: "winston", // 'winston' (console) or 'pino'
   },
 
   // 7. Shutdown behavior
@@ -205,6 +206,8 @@ await Sidequest.start({
 | `cleanupFinishedJobsOlderThan`   | Age (milliseconds) after which finished jobs are deleted                                                                                                                                                                                 | `2592000000` (30 days)      |
 | `logger.level`                   | Minimum log level (`debug`, `info`, `warn`, `error`)                                                                                                                                                                                     | `info`                      |
 | `logger.json`                    | Whether to output logs in JSON format                                                                                                                                                                                                    | `false`                     |
+| `logger.adapter`                 | Logger that writes Sidequest's entries: `winston` (console) or `pino`. See [Logging](/guide/jobs/logging#using-pino)                                                                                                                     | `winston`                   |
+| `logger.options`                 | Options passed to `pino()` when `logger.adapter` is `pino`. Must be serializable                                                                                                                                                         | `{}`                        |
 | `gracefulShutdown`               | Whether to enable graceful shutdown handling                                                                                                                                                                                             | `true`                      |
 | `jobDefaults`                    | Default values for new jobs. Used while enqueueing                                                                                                                                                                                       | `undefined`                 |
 | `queueDefaults`                  | Default values for auto-created queues                                                                                                                                                                                                   | `undefined`                 |

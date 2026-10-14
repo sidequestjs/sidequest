@@ -1,6 +1,27 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { LoggerOptions as PinoOptions } from "pino";
+import { Writable } from "stream";
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import winston from "winston";
-import { configureLogger, logger, LoggerOptions } from "./logger";
+import { configureLogger, loadLoggerAdapter, logger, LoggerOptions, SidequestLogger } from "./logger";
+
+// Real pino, but writing JSON lines into an array instead of stdout. `pinoStreams` records the
+// destination Sidequest passed to pino().
+const pinoLines = vi.hoisted(() => [] as Record<string, unknown>[]);
+const pinoStreams = vi.hoisted(() => [] as unknown[]);
+vi.mock("pino", async (importOriginal) => {
+  const { default: pino } = await importOriginal<{ default: typeof import("pino") }>();
+  const destination = new Writable({
+    write(chunk: Buffer, _encoding, callback) {
+      pinoLines.push(JSON.parse(chunk.toString()) as Record<string, unknown>);
+      callback();
+    },
+  });
+  const capture = (options: PinoOptions, stream?: unknown) => {
+    pinoStreams.push(stream);
+    return pino({ ...options, transport: undefined }, destination);
+  };
+  return { default: Object.assign(capture, pino) };
+});
 
 // Mock console output to capture logs
 const mockTransports = {
@@ -258,6 +279,199 @@ describe("Logger", () => {
           }
         });
       }).not.toThrow();
+    });
+  });
+
+  describe("custom logger", () => {
+    let customLogger: Record<keyof SidequestLogger, Mock<SidequestLogger["info"]>>;
+
+    beforeEach(() => {
+      customLogger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
+    });
+
+    afterEach(() => {
+      configureLogger({ level: "info", json: false });
+    });
+
+    it("should forward entries to the custom logger instead of the console", () => {
+      const testLogger = configureLogger({ level: "debug" }, customLogger);
+
+      logger().info("Plain message");
+
+      expect(testLogger.transports).toHaveLength(1);
+      expect(testLogger.transports[0]).not.toBeInstanceOf(winston.transports.Console);
+      expect(customLogger.info).toHaveBeenCalledWith("Plain message");
+    });
+
+    it("should pass the scope and metadata as the meta object", () => {
+      configureLogger({ level: "debug" }, customLogger);
+
+      logger("Engine").info("Starting", { jobId: 7 });
+
+      expect(customLogger.info).toHaveBeenCalledWith("Starting", { scope: "Engine", jobId: 7 });
+    });
+
+    it("should map each level to the matching method", () => {
+      configureLogger({ level: "silly" }, customLogger);
+      const scoped = logger("Levels");
+
+      scoped.error("e");
+      scoped.warn("w");
+      scoped.info("i");
+      scoped.debug("d");
+      scoped.verbose("v");
+      scoped.silly("s");
+
+      expect(customLogger.error).toHaveBeenCalledWith("e", { scope: "Levels" });
+      expect(customLogger.warn).toHaveBeenCalledWith("w", { scope: "Levels" });
+      expect(customLogger.info).toHaveBeenCalledWith("i", { scope: "Levels" });
+      expect(customLogger.debug).toHaveBeenNthCalledWith(1, "d", { scope: "Levels" });
+      expect(customLogger.debug).toHaveBeenNthCalledWith(2, "v", { scope: "Levels" });
+      expect(customLogger.debug).toHaveBeenNthCalledWith(3, "s", { scope: "Levels" });
+    });
+
+    it("should only forward entries at or above the configured level", () => {
+      configureLogger({ level: "warn" }, customLogger);
+
+      logger("Filter").debug("hidden");
+      logger("Filter").info("hidden");
+      logger("Filter").warn("shown");
+
+      expect(customLogger.debug).not.toHaveBeenCalled();
+      expect(customLogger.info).not.toHaveBeenCalled();
+      expect(customLogger.warn).toHaveBeenCalledWith("shown", { scope: "Filter" });
+    });
+
+    it("should keep the error message and stack", () => {
+      configureLogger({ level: "debug" }, customLogger);
+      const error = new Error("boom");
+
+      logger("Backend").error("Migration failed:", error);
+      logger("Worker").error(error);
+
+      expect(customLogger.error).toHaveBeenNthCalledWith(1, "Migration failed: boom", {
+        scope: "Backend",
+        stack: error.stack,
+      });
+      expect(customLogger.error).toHaveBeenNthCalledWith(2, "boom", expect.objectContaining({ stack: error.stack }));
+    });
+  });
+
+  describe("loadLoggerAdapter", () => {
+    beforeEach(() => {
+      pinoLines.length = 0;
+    });
+
+    afterEach(() => {
+      configureLogger({ level: "info", json: false });
+    });
+
+    it("should keep the default console logger for winston", async () => {
+      await expect(loadLoggerAdapter({ level: "info" })).resolves.toBeUndefined();
+      await expect(loadLoggerAdapter({ level: "info", adapter: "winston" })).resolves.toBeUndefined();
+    });
+
+    it("should reject an unknown adapter", async () => {
+      const unknown = { level: "info", adapter: "bunyan" } as unknown as LoggerOptions;
+      const inherited = { level: "info", adapter: "toString" } as unknown as LoggerOptions;
+
+      await expect(loadLoggerAdapter(unknown)).rejects.toThrow(
+        'Unknown logger adapter "bunyan". Available adapters: "winston", "pino".',
+      );
+      await expect(loadLoggerAdapter(inherited)).rejects.toThrow('Unknown logger adapter "toString"');
+    });
+
+    it("should write entries through pino with the scope, metadata and options", async () => {
+      const options: LoggerOptions = { level: "debug", adapter: "pino", options: { base: { app: "test" } } };
+      configureLogger(options, await loadLoggerAdapter(options));
+
+      logger("Engine").info("Starting", { jobId: 7 });
+      logger().debug("No metadata");
+
+      expect(pinoLines).toEqual([
+        expect.objectContaining({ level: 30, msg: "Starting", scope: "Engine", jobId: 7, app: "test" }),
+        expect.objectContaining({ level: 20, msg: "No metadata" }),
+      ]);
+    });
+
+    it("should let logger.level decide what pino receives", async () => {
+      const options: LoggerOptions = { level: "warn", adapter: "pino", options: { level: "error" } };
+      configureLogger(options, await loadLoggerAdapter(options));
+
+      logger("Queue").info("hidden");
+      logger("Queue").warn("shown");
+
+      expect(pinoLines).toEqual([expect.objectContaining({ level: 40, msg: "shown", scope: "Queue" })]);
+    });
+
+    it("should write errors through pino with their stack", async () => {
+      const options: LoggerOptions = { level: "info", adapter: "pino" };
+      configureLogger(options, await loadLoggerAdapter(options));
+      const error = new Error("boom");
+
+      logger("Backend").error("Migration failed:", error);
+
+      expect(pinoLines).toEqual([
+        expect.objectContaining({ level: 50, msg: "Migration failed: boom", scope: "Backend", stack: error.stack }),
+      ]);
+    });
+
+    it("should serialize errors passed as metadata instead of writing them as {}", async () => {
+      const options: LoggerOptions = { level: "info", adapter: "pino" };
+      configureLogger(options, await loadLoggerAdapter(options));
+      const error = new Error("boom");
+
+      logger("MyJob").error("Job failed", { error, attempt: 2 });
+
+      expect(pinoLines).toEqual([
+        expect.objectContaining({
+          msg: "Job failed",
+          attempt: 2,
+          error: expect.objectContaining({ type: "Error", message: "boom", stack: error.stack }) as unknown,
+        }),
+      ]);
+    });
+
+    it("should write to stdout synchronously, so worker threads do not hold entries back", async () => {
+      pinoStreams.length = 0;
+
+      await loadLoggerAdapter({ level: "info", adapter: "pino" });
+
+      expect(pinoStreams).toEqual([expect.objectContaining({ fd: 1, sync: true })]);
+    });
+
+    it("should leave the output to the pino transport when one is set", async () => {
+      pinoStreams.length = 0;
+
+      await loadLoggerAdapter({
+        level: "info",
+        adapter: "pino",
+        options: { transport: { target: "pino/file", options: { destination: 1 } } },
+      });
+
+      expect(pinoStreams).toEqual([undefined]);
+    });
+
+    it("should reject options that cannot be sent to the engine process and worker threads", async () => {
+      const options: LoggerOptions = { level: "info", adapter: "pino", options: { timestamp: () => ',"time":0' } };
+
+      await expect(loadLoggerAdapter(options)).rejects.toThrow('"logger.options" must be serializable');
+    });
+
+    it("should explain how to install pino when it is missing", async () => {
+      vi.resetModules();
+      vi.doMock("pino", () => {
+        throw new Error("Cannot find package 'pino'");
+      });
+      try {
+        const fresh = await import("./logger");
+
+        await expect(fresh.loadLoggerAdapter({ level: "info", adapter: "pino" })).rejects.toThrow(
+          'The "pino" logger adapter requires the "pino" package',
+        );
+      } finally {
+        vi.doUnmock("pino");
+      }
     });
   });
 });
