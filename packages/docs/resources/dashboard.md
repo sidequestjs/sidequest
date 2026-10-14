@@ -45,6 +45,7 @@ await Sidequest.start({
   dashboard: {
     enabled: true, // Enable/disable dashboard (default: true)
     port: 3000, // Custom port (default: 8678)
+    pollingInterval: 10000, // Refresh every 10 seconds; use 0 for manual refresh only
     auth: {
       // Optional basic authentication
       user: "admin",
@@ -56,13 +57,14 @@ await Sidequest.start({
 
 ### Configuration Options
 
-| Option          | Type      | Default     | Description                                                             |
-| --------------- | --------- | ----------- | ----------------------------------------------------------------------- |
-| `enabled`       | `boolean` | `true`      | Enable or disable the dashboard completely                              |
-| `port`          | `number`  | `8678`      | Port number for the dashboard server                                    |
-| `basePath`      | `string`  | `""`        | Base path for serving behind a reverse proxy (e.g., `/admin/sidequest`) |
-| `auth.user`     | `string`  | `undefined` | Username for basic authentication                                       |
-| `auth.password` | `string`  | `undefined` | Password for basic authentication                                       |
+| Option            | Type      | Default     | Description                                                                                                   |
+| ----------------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------- |
+| `enabled`         | `boolean` | `true`      | Enable or disable the dashboard completely                                                                    |
+| `port`            | `number`  | `8678`      | Port number for the dashboard server                                                                          |
+| `basePath`        | `string`  | `""`        | Base path for serving behind a reverse proxy (e.g., `/admin/sidequest`)                                       |
+| `pollingInterval` | `number`  | `undefined` | Refresh interval in milliseconds. Omit for the current 1s/3s defaults, or set to `0` for manual refresh only. |
+| `auth.user`       | `string`  | `undefined` | Username for basic authentication                                                                             |
+| `auth.password`   | `string`  | `undefined` | Password for basic authentication                                                                             |
 
 ### Security Configuration
 

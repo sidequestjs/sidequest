@@ -2965,6 +2965,7 @@ __metadata:
     "@sidequest/backend": "workspace:*"
     "@sidequest/core": "workspace:*"
     "@sidequest/engine": "workspace:*"
+    "@types/ejs": "npm:^3.1.5"
     "@types/feather-icons": "npm:^4.29.4"
     "@types/morgan": "npm:^1.9.10"
     chart.js: "npm:^4.5.1"
@@ -3394,6 +3395,13 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10c0/bf3f811843117900d7084b9d0c852da9a044d12eb40e6de73b552598a6843c21291a8a381b0532644574beecd5e3491c5ff3a0365ab86b15d59862c025384844
+  languageName: node
+  linkType: hard
+
+"@types/ejs@npm:^3.1.5":
+  version: 3.1.5
+  resolution: "@types/ejs@npm:3.1.5"
+  checksum: 10c0/13d994cf0323d7e0ad33b9384914ccd3b4cd8bf282eced3649b1621b66ee7c784ac2d120a9d7b1f43d6f873518248fb8c3221b06a649b847860b9c2389a0b0ed
   languageName: node
   linkType: hard
 
