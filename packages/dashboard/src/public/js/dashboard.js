@@ -130,4 +130,11 @@ selectElement.addEventListener("change", (event) => {
   htmx.trigger("#dashboard-stats", "refresh");
 });
 
-setInterval(refreshGraph, 1000);
+document.getElementById("refresh-dashboard")?.addEventListener("click", () => {
+  refreshGraph();
+  htmx.trigger("#dashboard-stats", "refresh");
+});
+
+if (window.SIDEQUEST_POLLING_INTERVAL !== 0) {
+  setInterval(refreshGraph, window.SIDEQUEST_POLLING_INTERVAL ?? 1000);
+}

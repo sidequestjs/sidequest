@@ -96,6 +96,13 @@ export class SidequestDashboard {
       ...config,
     };
 
+    if (
+      this.config.pollingInterval !== undefined &&
+      (!Number.isSafeInteger(this.config.pollingInterval) || this.config.pollingInterval < 0)
+    ) {
+      throw new RangeError("Dashboard pollingInterval must be a non-negative integer in milliseconds");
+    }
+
     // Normalize basePath: remove trailing slash, ensure leading slash
     if (this.config.basePath) {
       this.config.basePath = this.config.basePath.replace(/\/$/, "");
@@ -142,6 +149,7 @@ export class SidequestDashboard {
     // Make basePath available to all templates
     this.app?.use((req, res, next) => {
       res.locals.basePath = this.config!.basePath ?? "";
+      res.locals.pollingInterval = this.config!.pollingInterval;
       next();
     });
 
