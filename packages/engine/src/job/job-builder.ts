@@ -267,8 +267,22 @@ export class JobBuilder<T extends JobClassType> {
       backoff_strategy: this.jobBackoffStrategy,
     };
 
-    if (this.uniquenessConfig) {
-      const uniqueness = UniquenessFactory.create(this.uniquenessConfig);
+    return this.withUniqueDigest(jobData);
+  }
+
+  /**
+   * Stamps the uniqueness digest onto job data that is about to be inserted.
+   *
+   * The digest is derived from the data it is stamped on (class, args and, for fixed-window
+   * uniqueness, `available_at`), so it must be recomputed whenever any of those change: that is
+   * why {@link schedule} calls this once per tick instead of reusing the digest of its snapshot.
+   *
+   * @param jobData The job data to stamp. Mutated and returned.
+   * @returns The same job data, with `unique_digest` set when a uniqueness config is present.
+   */
+  protected withUniqueDigest(jobData: NewJobData): NewJobData {
+    if (jobData.uniqueness_config) {
+      const uniqueness = UniquenessFactory.create(jobData.uniqueness_config);
       jobData.unique_digest = uniqueness.digest(jobData as JobData);
       logger("JobBuilder").debug(`Job ${jobData.class} uniqueness digest: ${jobData.unique_digest}`);
     }
@@ -302,6 +316,10 @@ export class JobBuilder<T extends JobClassType> {
    * - You must call this method during application initialization to ensure the job is scheduled correctly.
    * - Uses node-cron's `noOverlap: true` option to prevent concurrent executions.
    * - The scheduled task is registered with the CronRegistry for proper cleanup during shutdown.
+   * - Every job enqueued by a tick becomes available at the time of that tick, plus the delay a future
+   *   `availableAt()` set before `schedule()` puts after it, and its uniqueness digest is computed for
+   *   that time. With `unique({ period })` this makes each window admit one job, which is what
+   *   de-duplicates a schedule registered by several instances.
    *
    * @param cronExpression - A valid cron expression (node-cron compatible) that defines when the job should be enqueued.
    * @param args - Arguments to be passed to the job's `run` method on each scheduled execution.
@@ -324,6 +342,12 @@ export class JobBuilder<T extends JobClassType> {
     // Ensures the same payload is used on every scheduled execution.
     Object.freeze(jobData);
 
+    // The snapshot's `available_at` is either the builder's construction time (the default) or a date
+    // the caller set with `availableAt()`. The builder cannot tell the two apart, but only the distance
+    // of that date after this point can mean anything for a recurring job, so it is kept as a delay
+    // applied to every tick. The default precedes this point and yields 0: jobs are due at the tick.
+    const delayAfterTickMs = Math.max(0, (jobData.available_at ?? new Date()).getTime() - Date.now());
+
     logger("JobBuilder").debug(
       `Scheduling job ${jobData.class} with cron: "${cronExpression}", args: ${inspect(args)}, ` +
         `constructor args: ${inspect(this.constructorArgs)}`,
@@ -332,11 +356,21 @@ export class JobBuilder<T extends JobClassType> {
     const scheduledTask = nodeCron.schedule(
       cronExpression,
       async () => {
-        const newJobData: NewJobData = Object.assign({}, jobData);
+        // The snapshot carries the `available_at` and `unique_digest` of the moment `schedule()` was
+        // called, so they are replaced for every tick. Reusing them would make each job claim to have
+        // been due at schedule time and, with fixed-window uniqueness, would hash every tick into the
+        // window of the first one: the second tick onwards then collides with the first job's digest
+        // and throws `DuplicatedJobError` for as long as that row exists.
+        const triggeredAt = new Date();
+        const newJobData = this.withUniqueDigest({
+          ...jobData,
+          available_at: new Date(triggeredAt.getTime() + delayAfterTickMs),
+        });
         logger("JobBuilder").debug(
-          `Cron triggered for job ${newJobData.class} at ${newJobData.available_at!.toISOString()} with args: ${inspect(args)}`,
+          `Cron triggered for job ${newJobData.class} at ${triggeredAt.toISOString()}, ` +
+            `available at ${newJobData.available_at!.toISOString()}, with args: ${inspect(args)}`,
         );
-        return this.backend.createNewJob(jobData);
+        return this.backend.createNewJob(newJobData);
       },
       this.jobScheduleOptions,
     );

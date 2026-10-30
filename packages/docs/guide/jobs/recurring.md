@@ -63,6 +63,7 @@ Sidequest.build(MyJob).schedule("*/5 * * * * *", "foo"); // Every 5 seconds with
 
 - **In-memory only:** Scheduled tasks are NOT persisted in the database. You must re-register schedules on every app startup.
 - **No overlap:** Sidequest uses `noOverlap: true` by default - if a previous run is still in progress, a new job will not be enqueued for that tick. You can override this via `.scheduleOptions({ noOverlap: false })`.
+- **One job per tick:** Each tick enqueues a job that becomes available at the time of the tick (a future `.availableAt()` set before `schedule()` is kept as a delay after each tick). Builder settings are captured when `schedule()` is called, so changing the builder afterwards does not affect later ticks. With `.unique({ period })`, the uniqueness window is the one the tick falls in, so each window admits exactly one job.
 
 ## Timezone Support
 

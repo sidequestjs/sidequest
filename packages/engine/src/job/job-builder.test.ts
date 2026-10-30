@@ -1,6 +1,6 @@
 import { sidequestTest } from "@/tests/fixture";
 import { Backend } from "@sidequest/backend";
-import { JobData, JobState, UniquenessFactory } from "@sidequest/core";
+import { DuplicatedJobError, JobData, JobState, UniquenessFactory } from "@sidequest/core";
 import nodeCron from "node-cron";
 import { MANUAL_SCRIPT_TAG } from "../shared-runner";
 import { DummyJob } from "../test-jobs/dummy-job";
@@ -455,6 +455,73 @@ describe("JobBuilder", () => {
       validateMock.mockReturnValueOnce(false);
 
       await expect(() => jobBuilder.schedule("invalid-cron")).rejects.toThrow("Invalid cron expression invalid-cron");
+    });
+
+    sidequestTest("enqueues a fixed-window unique job again once a new window starts", async ({ backend }) => {
+      // The docs recommend `unique({ period })` on scheduled jobs to de-duplicate across instances.
+      // Each tick must land in the window of the tick, not the window in which `schedule()` was called,
+      // or the second tick onwards collides with the first job forever.
+      vi.useFakeTimers();
+      await new JobBuilder(backend, DummyJob).unique({ period: "second" }).schedule("* * * * * *");
+      const [, tick] = scheduleMock.mock.calls[0] as [string, () => Promise<JobData>];
+
+      const first = await tick();
+      vi.advanceTimersByTime(1100);
+      const second = await tick();
+
+      expect(second.unique_digest).not.toEqual(first.unique_digest);
+      expect(await backend.listJobs({ jobClass: DummyJob.name })).toHaveLength(2);
+    });
+
+    sidequestTest("rejects a second tick that falls in the same uniqueness window", async ({ backend }) => {
+      // Two instances registering the same schedule tick in the same window; only one job may exist.
+      vi.useFakeTimers();
+      await new JobBuilder(backend, DummyJob).unique({ period: "minute" }).schedule("* * * * *");
+      await new JobBuilder(backend, DummyJob).unique({ period: "minute" }).schedule("* * * * *");
+      const [[, tickA], [, tickB]] = scheduleMock.mock.calls as [string, () => Promise<JobData>][];
+
+      await tickA();
+      vi.advanceTimersByTime(50);
+      await expect(tickB()).rejects.toThrow(DuplicatedJobError);
+      expect(await backend.listJobs({ jobClass: DummyJob.name })).toHaveLength(1);
+    });
+
+    sidequestTest("keeps a future availableAt as a delay after each tick", async ({ backend }) => {
+      vi.useFakeTimers();
+      const delay = 10 * 60_000;
+      await new JobBuilder(backend, DummyJob).availableAt(new Date(Date.now() + delay)).schedule("0 * * * *");
+      const [, tick] = scheduleMock.mock.calls[0] as [string, () => Promise<JobData>];
+
+      vi.advanceTimersByTime(60 * 60_000);
+      const job = await tick();
+
+      expect(job.available_at.getTime()).toBe(Date.now() + delay);
+    });
+
+    sidequestTest("makes each scheduled job available at the time of its tick", async ({ backend }) => {
+      vi.useFakeTimers();
+      const scheduledAt = Date.now();
+      await new JobBuilder(backend, DummyJob).schedule("* * * * *");
+      const [, tick] = scheduleMock.mock.calls[0] as [string, () => Promise<JobData>];
+
+      vi.advanceTimersByTime(60_000);
+      const job = await tick();
+
+      // `available_at` is also what fixed-window uniqueness hashes, so it must move with the tick.
+      expect(job.available_at.getTime()).toBeGreaterThanOrEqual(scheduledAt + 60_000);
+    });
+
+    sidequestTest("keeps the builder state captured at schedule time on later ticks", async ({ backend }) => {
+      // The builder may be mutated after `schedule()`; ticks must keep using the scheduled configuration.
+      const builder = new JobBuilder(backend, DummyJob).queue("scheduled-queue").maxAttempts(2);
+      await builder.schedule("* * * * *");
+      const [, tick] = scheduleMock.mock.calls[0] as [string, () => Promise<JobData>];
+
+      builder.queue("other-queue").maxAttempts(9);
+      const job = await tick();
+
+      expect(job.queue).toBe("scheduled-queue");
+      expect(job.max_attempts).toBe(2);
     });
 
     describe("scheduleOptions", () => {
